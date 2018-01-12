@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B8B8329E-2C18-4728-A1D3-68267E052433}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Microsoft.RestApi</RootNamespace>
+    <AssemblyName>Microsoft.RestApi</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.DocAsCode.YamlSerialization, Version=2.29.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.DocAsCode.YamlSerialization.2.29.1\lib\netstandard2.0\Microsoft.DocAsCode.YamlSerialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="YamlDotNet, Version=4.2.2.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.Signed.4.2.2\lib\net35\YamlDotNet.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Models\RestFile\FileNameInfo.cs" />
+    <Compile Include="Models\RestFile\RestFileInfo.cs" />
+    <Compile Include="Models\Schema\BaseParameterEntity.cs" />
+    <Compile Include="Models\Schema\BaseParameterTypeEntity.cs" />
+    <Compile Include="Models\Schema\DefinitionEntity.cs" />
+    <Compile Include="Models\Schema\DefinitionParameterEntity.cs" />
+    <Compile Include="Models\Schema\ExampleEntity.cs" />
+    <Compile Include="Models\Schema\ExampleRequestEntity.cs" />
+    <Compile Include="Models\Schema\ExampleRequestHeaderEntity.cs" />
+    <Compile Include="Models\Schema\ExampleResponseEntity.cs" />
+    <Compile Include="Models\Schema\ExampleResponseHeaderEntity.cs" />
+    <Compile Include="Models\Schema\HeaderEntity.cs" />
+    <Compile Include="Models\Schema\IdentifiableEntity.cs" />
+    <Compile Include="Models\Schema\NamedEntity.cs" />
+    <Compile Include="Models\Schema\OperationEntity.cs" />
+    <Compile Include="Models\Schema\OperationGroupEntity.cs" />
+    <Compile Include="Models\Schema\ParameterEntity.cs" />
+    <Compile Include="Models\Schema\PathEntity.cs" />
+    <Compile Include="Models\Schema\RequestBodyEntity.cs" />
+    <Compile Include="Models\Schema\ResponseEntity.cs" />
+    <Compile Include="Models\Schema\ResponseHeaderEntity.cs" />
+    <Compile Include="Models\Schema\SecurityEntity.cs" />
+    <Compile Include="Models\Schema\SecurityScopeEntity.cs" />
+    <Compile Include="Models\TransformModel.cs" />
+    <Compile Include="TransformHelper.cs" />
+    <Compile Include="Transformer\RestOperationGroupTransformer.cs" />
+    <Compile Include="Transformer\RestOperationTransformer.cs" />
+    <Compile Include="Transformer\RestTransformerFactory.cs" />
+    <Compile Include="SplitHelper.cs" />
+    <Compile Include="Models\Mapping\ApisPageOptions.cs" />
+    <Compile Include="Models\Mapping\MappingFile.cs" />
+    <Compile Include="Models\Mapping\OperationGroupMapping.cs" />
+    <Compile Include="Models\Mapping\OrganizationInfo.cs" />
+    <Compile Include="Models\Mapping\ServiceInfo.cs" />
+    <Compile Include="Models\Mapping\SwaggerInfo.cs" />
+    <Compile Include="Models\Mapping\SwaggerToc.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RestSplitter.cs" />
+    <Compile Include="Utility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\Code\RestRepos\OpenAPI.NET\src\Microsoft.OpenApi.Readers\Microsoft.OpenApi.Readers.csproj">
+      <Project>{B06D282A-4E22-424F-9BF5-0824D83CD5BC}</Project>
+      <Name>Microsoft.OpenApi.Readers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\..\Code\RestRepos\OpenAPI.NET\src\Microsoft.OpenApi\Microsoft.OpenApi.csproj">
+      <Project>{A7FBF713-9E54-4336-ADD5-93FF2B50EE4D}</Project>
+      <Name>Microsoft.OpenApi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.RestApi.Common\Microsoft.RestApi.Common.csproj">
+      <Project>{94342e12-a2a7-4fa3-86f7-9c4af17d1f01}</Project>
+      <Name>Microsoft.RestApi.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
