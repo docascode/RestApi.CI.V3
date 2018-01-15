@@ -1,4 +1,4 @@
-﻿namespace Microsoft.RestApi.Transformer
+﻿namespace Microsoft.RestApi.Transformers
 {
     using Microsoft.RestApi.Models;
 

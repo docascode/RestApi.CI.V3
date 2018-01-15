@@ -3,7 +3,7 @@
     using System;
 
     using Microsoft.RestApi.Splitters;
-    using Microsoft.RestApi.Transformer;
+    using Microsoft.RestApi.Transformers;
 
     public class Program
     {

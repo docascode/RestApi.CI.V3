@@ -17,12 +17,6 @@
             Formatting = Formatting.Indented
         };
 
-        public static bool ShouldSplitToOperation(JObject root, int splitOperationCountGreaterThan)
-        {
-            var paths = ((JObject)root["paths"]);
-            return paths.Count > splitOperationCountGreaterThan || (paths.Count == splitOperationCountGreaterThan && paths.Values().First().Values().Count() > splitOperationCountGreaterThan);
-        }
-
         public static readonly Regex YamlHeaderRegex = new Regex(@"^\-{3}(?:\s*?)\n([\s\S]+?)(?:\s*?)\n\-{3}(?:\s*?)(?:\n|$)", RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(10));
         public static readonly YamlDotNet.Serialization.Deserializer YamlDeserializer = new YamlDotNet.Serialization.Deserializer();
         public static readonly YamlDotNet.Serialization.Serializer YamlSerializer = new YamlDotNet.Serialization.Serializer();

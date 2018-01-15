@@ -84,11 +84,11 @@
     <Compile Include="Models\Schema\SecurityEntity.cs" />
     <Compile Include="Models\Schema\SecurityScopeEntity.cs" />
     <Compile Include="Models\TransformModel.cs" />
-    <Compile Include="TransformHelper.cs" />
-    <Compile Include="Transformer\RestOperationGroupTransformer.cs" />
-    <Compile Include="Transformer\RestOperationTransformer.cs" />
-    <Compile Include="Transformer\RestTransformerFactory.cs" />
-    <Compile Include="SplitHelper.cs" />
+    <Compile Include="Transformers\TransformHelper.cs" />
+    <Compile Include="Transformers\RestOperationGroupTransformer.cs" />
+    <Compile Include="Transformers\RestOperationTransformer.cs" />
+    <Compile Include="Transformers\RestTransformerFactory.cs" />
+    <Compile Include="Splitters\SplitHelper.cs" />
     <Compile Include="Models\Mapping\ApisPageOptions.cs" />
     <Compile Include="Models\Mapping\MappingFile.cs" />
     <Compile Include="Models\Mapping\OperationGroupMapping.cs" />
@@ -98,7 +98,7 @@
     <Compile Include="Models\Mapping\SwaggerToc.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RestSplitter.cs" />
+    <Compile Include="Splitters\RestSplitter.cs" />
     <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>

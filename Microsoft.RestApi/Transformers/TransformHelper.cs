@@ -1,4 +1,4 @@
-﻿namespace Microsoft.RestApi.Transformer
+﻿namespace Microsoft.RestApi.Transformers
 {
     using System;
     using System.Collections.Generic;

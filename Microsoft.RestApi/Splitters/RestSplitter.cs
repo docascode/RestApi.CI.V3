@@ -10,7 +10,7 @@
     using Microsoft.RestApi.Model;
     using Microsoft.OpenApi.Readers;
     using Microsoft.OpenApi.Models;
-    using Microsoft.RestApi.Transformer;
+    using Microsoft.RestApi.Transformers;
     using Microsoft.RestApi.Models;
 
     public class RestSplitter
