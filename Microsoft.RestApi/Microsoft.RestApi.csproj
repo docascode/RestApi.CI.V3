@@ -35,8 +35,17 @@
     <Reference Include="Microsoft.DocAsCode.YamlSerialization, Version=2.29.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.DocAsCode.YamlSerialization.2.29.1\lib\netstandard2.0\Microsoft.DocAsCode.YamlSerialization.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.OpenApi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3f5743946376f042, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.OpenApi.1.0.0-beta010\lib\net46\Microsoft.OpenApi.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.OpenApi.Readers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3f5743946376f042, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.OpenApi.Readers.1.0.0-beta010\lib\net46\Microsoft.OpenApi.Readers.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpYaml, Version=1.6.1.0, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpYaml.1.6.1\lib\net45\SharpYaml.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -97,14 +106,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\Code\RestRepos\OpenAPI.NET\src\Microsoft.OpenApi.Readers\Microsoft.OpenApi.Readers.csproj">
-      <Project>{B06D282A-4E22-424F-9BF5-0824D83CD5BC}</Project>
-      <Name>Microsoft.OpenApi.Readers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\..\Code\RestRepos\OpenAPI.NET\src\Microsoft.OpenApi\Microsoft.OpenApi.csproj">
-      <Project>{A7FBF713-9E54-4336-ADD5-93FF2B50EE4D}</Project>
-      <Name>Microsoft.OpenApi</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Microsoft.RestApi.Common\Microsoft.RestApi.Common.csproj">
       <Project>{94342e12-a2a7-4fa3-86f7-9c4af17d1f01}</Project>
       <Name>Microsoft.RestApi.Common</Name>
