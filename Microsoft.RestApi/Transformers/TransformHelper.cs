@@ -65,5 +65,24 @@
             }
             return defaultOperationId.Replace(" ", "").Trim('.').ToLower();
         }
+
+        public static string GetStatusCodeString(string statusCode)
+        {
+            switch (statusCode)
+            {
+                case "200":
+                    return "200 OK";
+                case "201":
+                    return "201 Created";
+                case "202":
+                    return "202 Accepted";
+                case "204":
+                    return "204 No Content";
+                case "400":
+                    return "400 Bad Request";
+                default:
+                    return "Other Status Codes";
+            }
+        }
     }
 }

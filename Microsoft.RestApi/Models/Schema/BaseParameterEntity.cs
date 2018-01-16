@@ -13,7 +13,7 @@
         public string Description { get; set; }
 
         [YamlMember(Alias = "types")]
-        public List<BaseParameterTypeEntity> Types { get; set; }
+        public IList<BaseParameterTypeEntity> Types { get; set; }
 
         [YamlMember(Alias = "typesTitle")]
         public string TypesTitle { get; set; }
