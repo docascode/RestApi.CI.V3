@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.RestApi.Models
 {
-    public class DefinitionParameterEntity : BaseParameterEntity
+    public class DefinitionParameterEntity : PropertyEntity
     {
     }
 }

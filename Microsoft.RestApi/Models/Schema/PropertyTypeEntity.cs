@@ -4,7 +4,7 @@
 
     using YamlDotNet.Serialization;
 
-    public class BaseParameterTypeEntity : IdentifiableEntity
+    public class PropertyTypeEntity : IdentifiableEntity
     {
         [YamlMember(Alias = "isArray")]
         public bool IsArray { get; set; } = false;

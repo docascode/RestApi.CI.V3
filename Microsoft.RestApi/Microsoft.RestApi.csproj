@@ -62,8 +62,8 @@
   <ItemGroup>
     <Compile Include="Models\RestFile\FileNameInfo.cs" />
     <Compile Include="Models\RestFile\RestFileInfo.cs" />
-    <Compile Include="Models\Schema\BaseParameterEntity.cs" />
-    <Compile Include="Models\Schema\BaseParameterTypeEntity.cs" />
+    <Compile Include="Models\Schema\PropertyEntity.cs" />
+    <Compile Include="Models\Schema\PropertyTypeEntity.cs" />
     <Compile Include="Models\Schema\DefinitionEntity.cs" />
     <Compile Include="Models\Schema\DefinitionParameterEntity.cs" />
     <Compile Include="Models\Schema\ExampleEntity.cs" />

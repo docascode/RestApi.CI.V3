@@ -4,7 +4,7 @@
 
     using YamlDotNet.Serialization;
 
-    public class BaseParameterEntity : NamedEntity
+    public class PropertyEntity : NamedEntity
     {
         [YamlMember(Alias = "isReadyOnly")]
         public bool IsReadOnly { get; set; }
@@ -13,7 +13,7 @@
         public string Description { get; set; }
 
         [YamlMember(Alias = "types")]
-        public IList<BaseParameterTypeEntity> Types { get; set; }
+        public IList<PropertyTypeEntity> Types { get; set; }
 
         [YamlMember(Alias = "typesTitle")]
         public string TypesTitle { get; set; }

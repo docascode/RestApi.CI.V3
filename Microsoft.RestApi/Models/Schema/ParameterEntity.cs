@@ -5,7 +5,7 @@
     using YamlDotNet.Serialization;
 
     [Serializable]
-    public class ParameterEntity : BaseParameterEntity
+    public class ParameterEntity : PropertyEntity
     {
         [YamlMember(Alias = "in")]
         public string In { get; set; }

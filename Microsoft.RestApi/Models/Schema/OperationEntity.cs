@@ -27,12 +27,6 @@
         [YamlMember(Alias = "isPreview")]
         public bool IsPreview { get; set; } = false;
 
-        [YamlMember(Alias = "consumes")]
-        public string[] Consumes { get; set; }
-
-        [YamlMember(Alias = "produces")]
-        public string[] Produces { get; set; }
-
         [YamlMember(Alias = "paths")]
         public IList<PathEntity> Paths { get; set; }
 

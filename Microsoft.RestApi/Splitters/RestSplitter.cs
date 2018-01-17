@@ -304,8 +304,35 @@
             return restFileInfo;
         }
 
+        private OpenApiDocument ExtractOpenApiTagsFromPaths(OpenApiDocument openApiDoc)
+        {
+            var tags = new List<OpenApiTag>(openApiDoc.Tags);
+            foreach(var path in openApiDoc.Paths)
+            {
+                if (path.Value.Operations != null)
+                {
+                    foreach (var operation in path.Value.Operations)
+                    {
+                        if(operation.Value.Tags != null)
+                        {
+                            foreach (var tag in operation.Value.Tags)
+                            {
+                                if(!tags.Any(t => t.Name == tag.Name))
+                                {
+                                    tags.Add(tag);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            openApiDoc.Tags = tags;
+            return openApiDoc;
+        }
+
         private IEnumerable<FileNameInfo> SplitOperationGroups(string targetDir, string filePath, OpenApiDocument openApiDoc, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
         {
+            openApiDoc = ExtractOpenApiTagsFromPaths(openApiDoc);
             if (openApiDoc.Tags == null || openApiDoc.Tags.Count == 0)
             {
                 Console.WriteLine($"tags is null or empty for file {filePath}.");

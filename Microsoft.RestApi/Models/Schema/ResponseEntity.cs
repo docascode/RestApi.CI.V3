@@ -6,9 +6,36 @@
     using YamlDotNet.Serialization;
 
     [Serializable]
-    public class ResponseEntity : BaseParameterEntity
+    public class ResponseEntity : NamedEntity
     {
+        [YamlMember(Alias = "description")]
+        public string Description { get; set; }
+
+        [YamlMember(Alias = "body")]
+        public IList<ResponseContentTypeAndBodyEntity> ResponseContentTypeAndBodies { get; set; }
+
         [YamlMember(Alias = "headers")]
-        public IList<ResponseHeaderEntity> ResponseHeaders { get; set; }
+        public IList<ResponseContentTypeAndHeaderEntity> ResponseeContentTypeAndHeaders { get; set; }
+    }
+
+    public class ResponseContentTypeAndBodyEntity : IdentifiableEntity
+    {
+        [YamlMember(Alias = "contentType")]
+        public string ContentType { get; set; }
+
+        [YamlMember(Alias = "typesTitle")]
+        public string TypesTitle { get; set; }
+
+        [YamlMember(Alias = "types")]
+        public IList<PropertyTypeEntity> Types { get; set; }
+    }
+
+    public class ResponseContentTypeAndHeaderEntity: IdentifiableEntity
+    {
+        [YamlMember(Alias = "contentType")]
+        public string ContentType { get; set; }
+
+        [YamlMember(Alias = "types")]
+        public IList<ResponseHeaderEntity> ResponseBodyEntities { get; set; }
     }
 }
