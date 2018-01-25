@@ -12,6 +12,12 @@
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
 
+        [YamlMember(Alias = "allowEmptyValue")]
+        public bool AllowEmptyValue { get; set; }
+
+        [YamlMember(Alias = "isDeprecated")]
+        public bool IsDeprecated { get; set; }
+
         [YamlMember(Alias = "types")]
         public IList<PropertyTypeEntity> Types { get; set; }
 
@@ -23,5 +29,11 @@
 
         [YamlMember(Alias = "format")]
         public string Format { get; set; }
+
+        [YamlMember(Alias = "isAnyOf")]
+        public bool IsAnyOf { get; set; }
+
+        [YamlMember(Alias = "isOneOf")]
+        public bool IsOneOf { get; set; }
     }
 }

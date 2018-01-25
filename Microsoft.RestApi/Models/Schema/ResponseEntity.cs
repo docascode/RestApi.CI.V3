@@ -15,7 +15,7 @@
         public IList<ResponseContentTypeAndBodyEntity> ResponseContentTypeAndBodies { get; set; }
 
         [YamlMember(Alias = "headers")]
-        public IList<ResponseContentTypeAndHeaderEntity> ResponseeContentTypeAndHeaders { get; set; }
+        public IList<ResponseHeaderEntity> ResponseHeades { get; set; }
     }
 
     public class ResponseContentTypeAndBodyEntity : IdentifiableEntity
@@ -28,14 +28,5 @@
 
         [YamlMember(Alias = "types")]
         public IList<PropertyTypeEntity> Types { get; set; }
-    }
-
-    public class ResponseContentTypeAndHeaderEntity: IdentifiableEntity
-    {
-        [YamlMember(Alias = "contentType")]
-        public string ContentType { get; set; }
-
-        [YamlMember(Alias = "types")]
-        public IList<ResponseHeaderEntity> ResponseBodyEntities { get; set; }
     }
 }

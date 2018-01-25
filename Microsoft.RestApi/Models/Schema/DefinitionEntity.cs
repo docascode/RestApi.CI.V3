@@ -16,6 +16,6 @@
         public string Kind { get; set; }
 
         [YamlMember(Alias = "properties")]
-        public IList<DefinitionParameterEntity> ParameterItems { get; set; }
+        public IList<PropertyEntity> PropertyItems { get; set; }
     }
 }

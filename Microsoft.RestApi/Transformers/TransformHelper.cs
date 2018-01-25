@@ -5,6 +5,7 @@
     using System.Linq;
 
     using Microsoft.OpenApi.Models;
+    using Microsoft.RestApi.Models;
 
     public static class TransformHelper
     {
@@ -18,43 +19,56 @@
             return content;
         }
 
-        public static IList<string> GetServerPaths(IList<OpenApiServer> servers)
+        public static IList<ServerEntity> GetServerEnities(IList<OpenApiServer> apiServers)
         {
-            var paths = new List<string>();
-            if (servers != null)
+            var servers = new List<ServerEntity>();
+            if (apiServers != null)
             {
-                foreach (var server in servers)
+                foreach (var apiServer in apiServers)
                 {
-                    var url = server.Url;
-                    foreach (var variable in server.Variables)
+                    var name = apiServer.Url;
+                    var serverVariables = new List<ServerVariableEntity>();
+                    foreach (var variable in apiServer.Variables)
                     {
-                        url = url.Replace($"{{{variable.Key}}}", variable.Value.Default);
+                        name = name.Replace($"{{{variable.Key}}}", variable.Value.Default);
+                        var serverVariable = new ServerVariableEntity
+                        {
+                            Name = variable.Key,
+                            DefaultValue = variable.Value.Default,
+                            Description = variable.Value.Description,
+                            Values = variable.Value.Enum
+                        };
+                        serverVariables.Add(serverVariable);
                     }
-                    paths.Add(url);
+                    servers.Add(new ServerEntity
+                    {
+                        Name = name,
+                        ServerVariables = serverVariables.Count > 0 ? serverVariables : null
+                    });
                 }
             }
-            return paths;
+            return servers;
         }
 
         public static string GetOperationId(IList<OpenApiServer> servers, string serviceName, string groupName, string operationName)
         {
-            var serverPaths = GetServerPaths(servers);
-            var defaultServerPath = serverPaths.FirstOrDefault();
+            var serverPaths = GetServerEnities(servers);
+            var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
             var defaultOperationId = $"{serviceName}.{ groupName}.{ operationName}";
             if (!string.IsNullOrEmpty(defaultServerPath))
             {
                 var uri = new Uri(defaultServerPath);
                 var basePath = uri.AbsolutePath?.Replace('/', '.').Trim('.');
                 var hostWithBasePath = $"{uri.Host}.{basePath}".Replace(" ", "").Trim('.');
-                defaultOperationId = $"{hostWithBasePath}.{serviceName}.{ groupName}.{operationName}";
+                defaultOperationId = $"{hostWithBasePath}.{serviceName}.{groupName}.{operationName}";
             }
             return defaultOperationId.Replace(" ", "").Trim('.').ToLower();
         }
 
         public static string GetOperationGroupId(IList<OpenApiServer> servers, string serviceName, string groupName)
         {
-            var serverPaths = GetServerPaths(servers);
-            var defaultServerPath = serverPaths.FirstOrDefault();
+            var serverPaths = GetServerEnities(servers);
+            var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
             var defaultOperationId = $"{serviceName}.{ groupName}";
             if (!string.IsNullOrEmpty(defaultServerPath))
             {
@@ -84,5 +98,57 @@
                     return "Other Status Codes";
             }
         }
+
+        public static string GetOpenApiPathItemKey(OpenApiDocument openApiDocument, OpenApiOperation openApiOperation)
+        {
+            foreach (var path in openApiDocument.Paths)
+            {
+                foreach (var operation in path.Value.Operations)
+                {
+                    if (openApiOperation.OperationId == operation.Value.OperationId)
+                    {
+                        return path.Key;
+                    }
+                }
+            }
+            throw new KeyNotFoundException($"Can not find the {openApiOperation.OperationId}");
+        }
+
+        //private static PropertyTypeEntity ParseOpenApiSchema(OpenApiSchema openApiSchema)
+        //{
+        //    if (openApiSchema.Type == "object")
+        //    {
+        //        if (openApiSchema.Properties != null)
+        //        {
+        //            foreach (var property in openApiSchema.Properties)
+        //            {
+        //                property.Key = "",
+        //                ParseOpenApiSchema(property.Value);
+        //            }
+        //        }
+        //        else if (openApiSchema.AdditionalProperties != null)
+        //        {
+
+        //        }
+        //    }
+        //    else if (openApiSchema.Type == "array")
+        //    {
+        //        if (openApiSchema.Items.Enum != null)
+        //        {
+        //            openApiSchema.Items.Enum;
+        //            openApiSchema.Items.Type;
+        //        }
+
+        //        openApiSchema.Items.Reference
+        //    }
+        //    else if (openApiSchema.Reference != null)
+        //    {
+
+        //    }
+        //    else
+        //    {
+        //        openApiSchema.Type;
+        //    }
+        //}
     }
 }
