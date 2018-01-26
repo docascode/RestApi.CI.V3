@@ -11,7 +11,9 @@
     {
         public static OperationEntity Transform(TransformModel transformModel)
         {
-            var uriParameters = TransformUriParameters(transformModel.Operation.Value);
+            var allUriParameters = TransformUriParameters(transformModel.Operation.Value);
+            var requiredQueryUriParameters = allUriParameters.Where(p => p.IsRequired && p.In == "Query").ToList();
+            var optionalQueryUriParameters = allUriParameters.Where(p => !p.IsRequired && p.In == "Query").ToList();
             return new OperationEntity
             {
                 Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName, transformModel.OperationName),
@@ -23,11 +25,10 @@
                 IsDeprecated = transformModel.Operation.Value.Deprecated,
                 HttpVerb = transformModel.Operation.Key.ToString(),
                 Servers = TransformHelper.GetServerEnities(transformModel.OpenApiDoc.Servers),
-                // todo: required
-                Paths = TransformPaths(transformModel.OpenApiDoc, transformModel.Operation.Value),
-                OptionalParameters = TransformOptionalParameters(uriParameters.Where(prop => prop.In == "Query").ToList()),
-
-                UriParameters = uriParameters,
+                Paths = TransformPaths(transformModel.OpenApiDoc, transformModel.Operation.Value, requiredQueryUriParameters),
+                OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
+                UriParameters = allUriParameters,
+                //todo
                 Responses = TransformResponses(transformModel.Operation.Value),
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value),
                 Definitions = TransformDefinitions(transformModel.OpenApiDoc),
@@ -37,7 +38,7 @@
             };
         }
 
-        private static IList<string> TransformPaths(OpenApiDocument openApiDocument, OpenApiOperation openApiOperation)
+        public static IList<string> TransformPaths(OpenApiDocument openApiDocument, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
         {
             var paths = new List<string>();
             foreach (var path in openApiDocument.Paths)
@@ -64,10 +65,50 @@
                     }
                 }
             }
+            if (requiredQueryUriParameters?.Count > 0)
+            {
+                var finalPaths = new List<string>();
+                foreach (var path in paths)
+                {
+                    var parameters = requiredQueryUriParameters.Select(p => new { Name = p.Name, Value = $"{{{p.Name}}}" }).ToList();
+                    if (path.Contains("?"))
+                    {
+                        var basepath = path.Split('?')[0];
+                        var querystringString = path.Split('?')[1];
+                        var querystrings = querystringString.Split('&');
+
+                        var allQueryStrings = new List<string>();
+                        foreach (var querystring in querystrings)
+                        {
+                            if (querystring.Contains("="))
+                            {
+                                var pairKey = querystring.Split('=')[0];
+                                var pairValue = querystring.Split('=')[1];
+                                if (!parameters.Any(p => p.Name == pairKey))
+                                {
+                                    parameters.Add(new { Name = pairKey, Value = pairValue });
+                                }
+                            }
+                            else
+                            {
+                                allQueryStrings.Add(querystring);
+                            }
+                        }
+                        allQueryStrings.AddRange(parameters.Select(p => $"{p.Name}={p.Value}"));
+                        allQueryStrings.Sort();
+                        finalPaths.Add(basepath + "?" + string.Join("&", allQueryStrings));
+                    }
+                    else
+                    {
+                        finalPaths.Add(path + "?" + string.Join("&", parameters.OrderBy(p => p.Name).Select(p => $"{p.Name}={p.Value}")));
+                    }
+                }
+                return finalPaths;
+            }
             return paths;
         }
 
-        private static IList<ParameterEntity> TransformUriParameters(OpenApiOperation openApiOperation)
+        public static IList<ParameterEntity> TransformUriParameters(OpenApiOperation openApiOperation)
         {
             var parameterEntities = new List<ParameterEntity>();
             foreach (var openApiParameter in openApiOperation.Parameters)
@@ -85,10 +126,7 @@
                     Format = openApiParameter.Schema?.Format,
                     Types = new List<PropertyTypeEntity>
                     {
-                        new PropertyTypeEntity
-                        {
-                            Id = openApiParameter.Schema?.Type,
-                        }
+                        TransformHelper.ParseOpenApiSchema(openApiParameter.Schema)
                     }
                 };
                 parameterEntities.Add(parameterEntity);
@@ -110,45 +148,6 @@
             return optionalParameters;
         }
 
-        private static PropertyTypeEntity GetPropertyTypeFromOpenApiSchema(OpenApiSchema openApiSchema)
-        {
-            var type = new PropertyTypeEntity
-            {
-                Id = openApiSchema.Reference?.Id ?? openApiSchema.Type
-            };
-
-            if (openApiSchema.Type == "object")
-            {
-                if (openApiSchema.Reference != null)
-                {
-                    type.Id = openApiSchema.Reference?.Id;
-                    return type;
-                }
-
-                if (openApiSchema.AdditionalProperties != null)
-                {
-                    type.IsDictionary = true;
-                    type.AdditionalTypes = new List<IdentifiableEntity> { new IdentifiableEntity { Id = openApiSchema.AdditionalProperties.Type } };
-                    return type;
-                }
-
-                if (openApiSchema.Properties != null)
-                {
-                    type.Id = string.Empty;
-                    return type;
-                }
-
-                return type;
-            }
-            else if (openApiSchema.Type == "array")
-            {
-                type.Id = GetPropertyTypeFromOpenApiSchema(openApiSchema.Items).Id;
-                type.IsArray = true;
-                return type;
-            }
-            return type;
-        }
-
         private static IList<ResponseContentTypeAndBodyEntity> GetResponseContentTypeAndBodies(OpenApiReference openApiReference, IDictionary<string, OpenApiMediaType> contents)
         {
             var responseContentTypeAndBodyEntities = new List<ResponseContentTypeAndBodyEntity>();
@@ -159,7 +158,7 @@
                 responseContentTypeAndBodyEntities.Add(new ResponseContentTypeAndBodyEntity
                 {
                     ContentType = content.Key,
-                    Types = new List<PropertyTypeEntity> { openApiReference?.Id != null ? new PropertyTypeEntity { Id = openApiReference?.Id } : GetPropertyTypeFromOpenApiSchema(content.Value.Schema) }
+                    Types = new List<PropertyTypeEntity> { openApiReference?.Id != null ? new PropertyTypeEntity { Id = openApiReference?.Id } : TransformHelper.ParseOpenApiSchema(content.Value.Schema) }
                 });
             }
             return responseContentTypeAndBodyEntities;
@@ -196,7 +195,7 @@
                     properties.Add(new PropertyEntity
                     {
                         Name = property.Key,
-                        Types = new List<PropertyTypeEntity> { GetPropertyTypeFromOpenApiSchema(property.Value) }
+                        Types = new List<PropertyTypeEntity> { TransformHelper.ParseOpenApiSchema(property.Value) }
                     });
                 }
             }
@@ -225,7 +224,7 @@
                         Description = openApiOperation.RequestBody.Description,
                         RequestBodyItems = new List<RequestBodyItemEntity> { new RequestBodyItemEntity
                         {
-                            Name = openApiOperation.RequestBody.Reference?.Id ??  GetPropertyTypeFromOpenApiSchema(requestContent.Value.Schema).Id,
+                            Name = openApiOperation.RequestBody.Reference?.Id ??  TransformHelper.ParseOpenApiSchema(requestContent.Value.Schema).Id,
                             Description = "",
                             Parameters =  GetPropertiesFromSchema(requestContent.Value.Schema)
                         } }

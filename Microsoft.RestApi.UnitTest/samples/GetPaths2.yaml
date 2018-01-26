@@ -1,0 +1,95 @@
+﻿openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+  license:
+    name: MIT
+servers:
+  - url: '{scheme}://developer.uspto.gov/{basepath}'
+    variables:
+      scheme:
+        description: 'The Data Set API is accessible via https and http'
+        enum:
+          - 'https'
+          - 'http'
+        default: 'https'
+      basepath:
+        description: 'the base path'
+        enum:
+          - 'v1'
+          - 'v2'
+        default: 'v1'
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      description: List all pets
+      operationId: listPets
+      x-ms-additional-paths: 
+        - "/pets/children?$select={$select}"
+        - "/me/pets/children?$case1={$case1}"
+        - "/sites/pets/children?$select={$select}&$zase1={$zase1}"
+        - "/users/pets/children?what"
+      tags:
+        - pets
+      parameters:
+        - name: id
+          in: path
+          description: the id of the pets
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: $orderby
+          in: query
+          description: Order items by property values
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              enum:
+                - id
+                - id desc
+              type: string
+        - name: $select
+          in: query
+          description: Select properties to be returned
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              enum:
+                - id
+              type: string
+        - name: authorization
+          in: cookie
+          required: true
+          description: the authorization in cookies
+          schema:
+            type: string
+        - name: Content-Type
+          in: header
+          required: true
+          description: the content type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An paged array of pets
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:    
+             schema:
+               type: integer
+               format: int32

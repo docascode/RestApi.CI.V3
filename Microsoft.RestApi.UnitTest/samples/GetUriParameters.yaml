@@ -28,6 +28,13 @@ paths:
       tags:
         - pets
       parameters:
+        - name: id
+          in: path
+          description: the id of the pets
+          required: true
+          schema:
+            type: integer
+            format: int32
         - name: limit
           in: query
           description: How many items to return at one time (max 100)
@@ -35,6 +42,39 @@ paths:
           schema:
             type: integer
             format: int32
+        - name: $orderby
+          in: query
+          description: Order items by property values
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              enum:
+                - id
+                - id desc
+              type: string
+        - name: $select
+          in: query
+          description: Select properties to be returned
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              enum:
+                - id
+              type: string
+        - name: authorization
+          in: cookie
+          required: true
+          description: the authorization in cookies
+          schema:
+            type: string
+        - name: Content-Type
+          in: header
+          required: true
+          description: the content type
+          schema:
+            type: string
       responses:
         '200':
           description: An paged array of pets

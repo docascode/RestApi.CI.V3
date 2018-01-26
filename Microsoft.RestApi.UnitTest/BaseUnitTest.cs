@@ -4,6 +4,7 @@
     using System.IO;
     using System.Reflection;
 
+    using Microsoft.RestApi.Common;
     using Microsoft.OpenApi.Models;
     using Microsoft.OpenApi.Readers;
 
@@ -24,6 +25,14 @@
                 var openApiDocument = new OpenApiStreamReader().Read(streamReader.BaseStream, out var context);
                 Assert.False(context.Errors?.Count > 0);
                 return openApiDocument;
+            }
+        }
+
+        public T LoadExpectedJsonObject<T>(string filePath)
+        {
+            using (var streamReader = File.OpenText(Path.Combine(GetCurrentAssemblyFolder(), filePath)))
+            {
+                return JsonUtility.FromJsonStream<T>(streamReader.BaseStream);
             }
         }
     }

@@ -6,13 +6,14 @@
 
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Models;
+    using Microsoft.OpenApi.Any;
 
     public static class TransformHelper
     {
         public static string GetOperationSummary(string summary, string description)
         {
             var content = summary;
-            if (!string.IsNullOrEmpty(description) && string.Equals(summary, description))
+            if (!string.IsNullOrEmpty(description) && !string.Equals(summary, description))
             {
                 content = string.IsNullOrEmpty(summary) ? description : $"{summary} {description}";
             }
@@ -112,6 +113,77 @@
                 }
             }
             throw new KeyNotFoundException($"Can not find the {openApiOperation.OperationId}");
+        }
+
+        private static IList<string> GetValueFromListAny(IList<IOpenApiAny> anyList)
+        {
+            var results = new List<string>();
+            if (anyList is OpenApiArray anyValues)
+            {
+                foreach (var anyValue in anyValues)
+                {
+                    if (anyValue.AnyType == AnyType.Primitive)
+                    {
+                        results.Add(Convert.ToString(anyValue));
+                    }
+                }
+            }
+            return results;
+        }
+        public static PropertyTypeEntity ParseOpenApiSchema(OpenApiSchema openApiSchema)
+        {
+            var type = new PropertyTypeEntity
+            {
+                Id = openApiSchema.Reference?.Id ?? openApiSchema.Type
+            };
+
+            if (openApiSchema.Type == "object")
+            {
+                if (openApiSchema.Reference != null)
+                {
+                    type.Id = openApiSchema.Reference?.Id;
+                    return type;
+                }
+
+                if (openApiSchema.AdditionalProperties != null)
+                {
+                    type.IsDictionary = true;
+                    type.AdditionalTypes = new List<IdentifiableEntity> { new IdentifiableEntity { Id = openApiSchema.AdditionalProperties.Type } };
+                    return type;
+                }
+
+                if (openApiSchema.Properties != null)
+                {
+                    type.Id = string.Empty;
+                    return type;
+                }
+
+                return type;
+            }
+            else if (openApiSchema.Type == "array")
+            {
+                if (openApiSchema.Items.Enum?.Count > 0)
+                {
+                    type.Kind = "enum";
+                    type.Id = openApiSchema.Items.Type;
+                    type.Values = GetValueFromListAny(openApiSchema.Items.Enum);
+                }
+                else
+                {
+                    type.Id = ParseOpenApiSchema(openApiSchema.Items).Id;
+                }
+                type.IsArray = true;
+                return type;
+            }
+            else
+            {
+                if (openApiSchema.Enum?.Count > 0)
+                {
+                    type.Kind = "enum";
+                    type.Values = GetValueFromListAny(openApiSchema.Enum);
+                }
+            }
+            return type;
         }
 
         //private static PropertyTypeEntity ParseOpenApiSchema(OpenApiSchema openApiSchema)

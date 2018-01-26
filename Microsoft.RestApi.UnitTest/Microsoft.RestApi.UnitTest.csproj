@@ -40,6 +40,9 @@
     <Reference Include="Microsoft.OpenApi.Readers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3f5743946376f042, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.OpenApi.Readers.1.0.0-beta012\lib\net46\Microsoft.OpenApi.Readers.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="SharpYaml, Version=1.6.1.0, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpYaml.1.6.1\lib\net45\SharpYaml.dll</HintPath>
     </Reference>
@@ -66,10 +69,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseUnitTest.cs" />
+    <Compile Include="Servers.UnitTest.cs" />
+    <Compile Include="OperationEntitySummary.UnitTest.cs" />
     <Compile Include="OperationEntityId.UnitTest.cs" />
+    <Compile Include="Paths.UnitTest.cs" />
+    <Compile Include="UriParameters.UnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="expects\UriParameters.json" />
     <None Include="packages.config" />
+    <None Include="samples\GetPaths2.yaml" />
+    <None Include="samples\GetPaths.yaml" />
+    <None Include="samples\GetUriParameters.yaml" />
+    <None Include="samples\GetSummary2.yaml" />
+    <None Include="samples\GetSummary.yaml" />
+    <None Include="samples\GetServers2.yaml" />
+    <None Include="samples\GetServers.yaml" />
     <None Include="samples\GetOperationId2.yaml" />
     <None Include="samples\GetOperationId.yaml" />
   </ItemGroup>
@@ -77,6 +92,10 @@
     <Analyzer Include="..\packages\xunit.analyzers.0.7.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.RestApi.Common\Microsoft.RestApi.Common.csproj">
+      <Project>{94342e12-a2a7-4fa3-86f7-9c4af17d1f01}</Project>
+      <Name>Microsoft.RestApi.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.RestApi\Microsoft.RestApi.csproj">
       <Project>{b8b8329e-2c18-4728-a1d3-68267e052433}</Project>
       <Name>Microsoft.RestApi</Name>
