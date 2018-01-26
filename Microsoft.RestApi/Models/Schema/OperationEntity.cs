@@ -28,8 +28,8 @@
         [YamlMember(Alias = "isPreview")]
         public bool IsPreview { get; set; } = false;
 
-        [YamlMember(Alias = "operator")]
-        public string Operator { get; set; }
+        [YamlMember(Alias = "httpVerb")]
+        public string HttpVerb { get; set; }
 
         [YamlMember(Alias = "servers")]
         public IList<ServerEntity> Servers { get; set; }

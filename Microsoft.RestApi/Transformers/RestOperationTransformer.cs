@@ -21,15 +21,19 @@
                 Summary = TransformHelper.GetOperationSummary(transformModel.Operation.Value.Summary, transformModel.Operation.Value.Description),
                 ApiVersion = transformModel.OpenApiDoc.Info.Version,
                 IsDeprecated = transformModel.Operation.Value.Deprecated,
-                Operator = transformModel.Operation.Key.ToString(),
+                HttpVerb = transformModel.Operation.Key.ToString(),
                 Servers = TransformHelper.GetServerEnities(transformModel.OpenApiDoc.Servers),
+                // todo: required
                 Paths = TransformPaths(transformModel.OpenApiDoc, transformModel.Operation.Value),
                 OptionalParameters = TransformOptionalParameters(uriParameters.Where(prop => prop.In == "Query").ToList()),
+
                 UriParameters = uriParameters,
                 Responses = TransformResponses(transformModel.Operation.Value),
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value),
                 Definitions = TransformDefinitions(transformModel.OpenApiDoc),
-                Securities = new List<SecurityEntity>()
+
+                Securities = new List<SecurityEntity>(),
+                SeeAlsos = new List<SeeAlsoEntity>()
             };
         }
 
@@ -79,7 +83,13 @@
                     IsDeprecated = openApiParameter.Deprecated,
                     Pattern = openApiParameter.Schema?.Pattern,
                     Format = openApiParameter.Schema?.Format,
-                    Types = new List<PropertyTypeEntity> { new PropertyTypeEntity { Id = openApiParameter.Schema?.Type } }
+                    Types = new List<PropertyTypeEntity>
+                    {
+                        new PropertyTypeEntity
+                        {
+                            Id = openApiParameter.Schema?.Type,
+                        }
+                    }
                 };
                 parameterEntities.Add(parameterEntity);
             }

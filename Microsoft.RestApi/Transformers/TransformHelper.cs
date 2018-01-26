@@ -12,7 +12,7 @@
         public static string GetOperationSummary(string summary, string description)
         {
             var content = summary;
-            if (!string.IsNullOrEmpty(description) && summary != description)
+            if (!string.IsNullOrEmpty(description) && string.Equals(summary, description))
             {
                 content = string.IsNullOrEmpty(summary) ? description : $"{summary} {description}";
             }
@@ -54,7 +54,7 @@
         {
             var serverPaths = GetServerEnities(servers);
             var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
-            var defaultOperationId = $"{serviceName}.{ groupName}.{ operationName}";
+            var defaultOperationId = $"{serviceName}.{groupName}.{operationName}";
             if (!string.IsNullOrEmpty(defaultServerPath))
             {
                 var uri = new Uri(defaultServerPath);

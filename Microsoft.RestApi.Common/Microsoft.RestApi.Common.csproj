@@ -46,7 +46,6 @@
     <Compile Include="FileUtility.cs" />
     <Compile Include="Guard.cs" />
     <Compile Include="JsonUtility.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
