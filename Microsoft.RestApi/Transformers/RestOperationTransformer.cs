@@ -33,8 +33,8 @@
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value),
                 Definitions = TransformDefinitions(transformModel.OpenApiDoc),
 
-                Securities = new List<SecurityEntity>(),
-                SeeAlsos = new List<SeeAlsoEntity>()
+                Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security: transformModel.OpenApiDoc.SecurityRequirements),
+                SeeAlsos = TransformExternalDocs(transformModel.Operation.Value)
             };
         }
 
@@ -256,6 +256,120 @@
                 }
             }
             return definitions;
+        }
+
+        public static IList<SecurityEntity> TransformSecurity(IList<OpenApiSecurityRequirement> openApiSecurityRequirements)
+        {
+            var securities = new List<SecurityEntity>();
+
+            foreach (var openApiSecurityRequirement in openApiSecurityRequirements)
+            {
+                var keyValue = openApiSecurityRequirement.Single();
+                var openApiSecurityScheme = keyValue.Key;
+                var flows = new List<FlowEntity>();
+
+                OpenApiOAuthFlow openApiOAuthFlow;
+                if ((openApiOAuthFlow = openApiSecurityScheme.Flows.AuthorizationCode) != null)
+                {
+                    flows.Add(NewFlowEntity("authorizationCode", keyValue.Value, openApiOAuthFlow));
+                }
+
+                if ((openApiOAuthFlow = openApiSecurityScheme.Flows.ClientCredentials) != null)
+                {
+                    flows.Add(NewFlowEntity("clientCredentials", keyValue.Value, openApiOAuthFlow));
+                }
+
+                if ((openApiOAuthFlow = openApiSecurityScheme.Flows.Implicit) != null)
+                {
+                    flows.Add(NewFlowEntity("implicit", keyValue.Value, openApiOAuthFlow));
+                }
+
+                if ((openApiOAuthFlow = openApiSecurityScheme.Flows.Password) != null)
+                {
+                    flows.Add(NewFlowEntity("password", keyValue.Value, openApiOAuthFlow));
+                }
+
+
+                var securityEntity = new SecurityEntity
+                {
+                    Type = openApiSecurityScheme.Type.ToString(),
+                    Description = openApiSecurityScheme.Description,
+                    In = openApiSecurityScheme.In.ToString(),
+                    Flows = flows
+                };
+                securities.Add(securityEntity);
+            }
+
+            return securities;
+        }
+
+        public static FlowEntity NewFlowEntity(string name, IList<string> scopeNames, OpenApiOAuthFlow openApiOAuthFlow)
+        {
+            var scopes = new List<SecurityScopeEntity>();
+            foreach (var scopeName in scopeNames)
+            {
+                var scope = new SecurityScopeEntity
+                {
+                    Name = scopeName,
+                    Description = openApiOAuthFlow.Scopes.Where(s => s.Key.Equals(scopeName)).Single().Value
+                };
+                scopes.Add(scope);
+            }
+
+            return new FlowEntity
+            {
+                Name = name,
+                AuthorizationUrl = openApiOAuthFlow.AuthorizationUrl.ToString(),
+                TokenUrl = openApiOAuthFlow.TokenUrl.ToString(),
+                Scopes = scopes
+            };
+        }
+
+        public static IList<SeeAlsoEntity> TransformExternalDocs(OpenApiOperation openApiOperation)
+        {
+            var seeAlsoEntities = new List<SeeAlsoEntity>();
+            if (openApiOperation.ExternalDocs != null)
+            {
+                var seeAlsoEntity = new SeeAlsoEntity
+                {
+                    Description = openApiOperation.ExternalDocs.Description,
+                    Url = openApiOperation.ExternalDocs.Url.ToString()
+                };
+                seeAlsoEntities.Add(seeAlsoEntity);
+            }
+
+            if (openApiOperation.Extensions.TryGetValue("x-ms-seeAlso", out var openApiSeeAlsos))
+            {
+                if (openApiSeeAlsos is OpenApiArray seeAlsos)
+                {
+                    foreach (var seeAlso in seeAlsos)
+                    {
+                        if (seeAlso is OpenApiObject seeAlsoObject)
+                        {
+                            var seeAlsoEntity = new SeeAlsoEntity();
+                            if (seeAlsoObject.TryGetValue("description", out var description))
+                            {
+                                if (description is OpenApiString descriptionStringValue)
+                                {
+                                    seeAlsoEntity.Description = descriptionStringValue.Value;
+                                }
+                            }
+
+                            if (seeAlsoObject.TryGetValue("url", out var url))
+                            {
+                                if (url is OpenApiString urlStringValue)
+                                {
+                                    seeAlsoEntity.Url = urlStringValue.Value;
+                                }
+                            }
+
+                            seeAlsoEntities.Add(seeAlsoEntity);
+                        }
+                    }
+                }
+            }
+
+            return seeAlsoEntities;
         }
     }
 }

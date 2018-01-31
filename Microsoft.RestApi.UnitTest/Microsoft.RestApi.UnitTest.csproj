@@ -69,6 +69,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseUnitTest.cs" />
+    <Compile Include="Security.UnitTest.cs" />
+    <Compile Include="SeeAlso.UnitTest.cs" />
     <Compile Include="Servers.UnitTest.cs" />
     <Compile Include="OperationEntitySummary.UnitTest.cs" />
     <Compile Include="OperationEntityId.UnitTest.cs" />
@@ -80,6 +82,8 @@
     <None Include="packages.config" />
     <None Include="samples\GetPaths2.yaml" />
     <None Include="samples\GetPaths.yaml" />
+    <None Include="samples\GetSecurity.yaml" />
+    <None Include="samples\GetSeeAlso.yaml" />
     <None Include="samples\GetUriParameters.yaml" />
     <None Include="samples\GetSummary2.yaml" />
     <None Include="samples\GetSummary.yaml" />
