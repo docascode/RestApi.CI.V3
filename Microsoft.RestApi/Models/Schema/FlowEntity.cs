@@ -4,11 +4,8 @@
 
     using YamlDotNet.Serialization;
 
-    public class FlowEntity
+    public class FlowEntity : NamedEntity
     {
-        [YamlMember(Alias = "name")]
-        public string Name { get; set; }
-
         [YamlMember(Alias = "authorizationUrl")]
         public string AuthorizationUrl { get; set; }
 
