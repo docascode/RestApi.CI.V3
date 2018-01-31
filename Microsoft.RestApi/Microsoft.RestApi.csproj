@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Models\RestFile\FileNameInfo.cs" />
     <Compile Include="Models\RestFile\RestFileInfo.cs" />
+    <Compile Include="Models\Schema\FlowEntity.cs" />
     <Compile Include="Models\Schema\OperationEntity.cs" />
     <Compile Include="Models\Schema\OptionalParameter.cs" />
     <Compile Include="Models\Schema\PropertyEntity.cs" />

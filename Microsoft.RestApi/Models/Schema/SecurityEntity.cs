@@ -4,11 +4,8 @@
 
     using YamlDotNet.Serialization;
 
-    public class SecurityEntity : NamedEntity
+    public class SecurityEntity
     {
-        [YamlIgnore]
-        public string Key { get; set; }
-
         [YamlMember(Alias = "type")]
         public string Type { get; set; }
 
@@ -18,16 +15,7 @@
         [YamlMember(Alias = "in")]
         public string In { get; set; }
 
-        [YamlMember(Alias = "flow")]
-        public string Flow { get; set; }
-
-        [YamlMember(Alias = "authorizationUrl")]
-        public string AuthorizationUrl { get; set; }
-
-        [YamlMember(Alias = "tokenUrl")]
-        public string TokenUrl { get; set; }
-
-        [YamlMember(Alias = "scopes")]
-        public IList<SecurityScopeEntity> Scopes { get; set; }
+        [YamlMember(Alias = "flows")]
+        public IList<FlowEntity> Flows { get; set; }
     }
 }
