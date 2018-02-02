@@ -6,8 +6,8 @@
 
     public class RequestBodyEntity : NamedEntity
     {
-        [YamlMember(Alias = "contentType")]
-        public string ContentType { get; set; }
+        [YamlMember(Alias = "mediaType")]
+        public string MediaType { get; set; }
 
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
