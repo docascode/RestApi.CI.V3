@@ -69,6 +69,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseUnitTest.cs" />
+    <Compile Include="RequestBody.UnitTest.cs" />
+    <Compile Include="Response.UnitTest.cs" />
     <Compile Include="Security.UnitTest.cs" />
     <Compile Include="SeeAlso.UnitTest.cs" />
     <Compile Include="Servers.UnitTest.cs" />
@@ -78,10 +80,14 @@
     <Compile Include="UriParameters.UnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="expects\Responses.json" />
+    <None Include="expects\Requestbodies.json" />
     <None Include="expects\UriParameters.json" />
     <None Include="packages.config" />
     <None Include="samples\GetPaths2.yaml" />
     <None Include="samples\GetPaths.yaml" />
+    <None Include="samples\GetResponse.yaml" />
+    <None Include="samples\GetRequestBody.yaml" />
     <None Include="samples\GetSecurity.yaml" />
     <None Include="samples\GetSeeAlso.yaml" />
     <None Include="samples\GetUriParameters.yaml" />

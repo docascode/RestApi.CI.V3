@@ -12,16 +12,16 @@
         public string Description { get; set; }
 
         [YamlMember(Alias = "body")]
-        public IList<ResponseContentTypeAndBodyEntity> ResponseContentTypeAndBodies { get; set; }
+        public IList<ResponseMediaTypeAndBodyEntity> ResponseMediaTypeAndBodies { get; set; }
 
         [YamlMember(Alias = "headers")]
         public IList<ResponseHeaderEntity> ResponseHeades { get; set; }
     }
 
-    public class ResponseContentTypeAndBodyEntity : IdentifiableEntity
+    public class ResponseMediaTypeAndBodyEntity : IdentifiableEntity
     {
-        [YamlMember(Alias = "contentType")]
-        public string ContentType { get; set; }
+        [YamlMember(Alias = "mediaType")]
+        public string MediaType { get; set; }
 
         [YamlMember(Alias = "typesTitle")]
         public string TypesTitle { get; set; }

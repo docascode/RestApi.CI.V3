@@ -1,6 +1,6 @@
 ﻿[
   {
-    "In": "Path",
+    "In": "path",
     "IsRequired": true,
     "Description": "the id of the pets",
     "Types": [
@@ -12,7 +12,7 @@
     "Name": "id"
   },
   {
-    "In": "Query",
+    "In": "query",
     "Description": "How many items to return at one time (max 100)",
     "Types": [
       {
@@ -23,33 +23,33 @@
     "Name": "limit"
   },
   {
-    "In": "Query",
+    "In": "query",
     "Description": "Order items by property values",
     "Types": [
       {
         "IsArray": true,
         "Kind": "enum",
-        "Values": [],
+        "Values": [ "id", "id desc" ],
         "Id": "string"
       }
     ],
     "Name": "$orderby"
   },
   {
-    "In": "Query",
+    "In": "query",
     "Description": "Select properties to be returned",
     "Types": [
       {
         "IsArray": true,
         "Kind": "enum",
-        "Values": [],
+        "Values": [ "id" ],
         "Id": "string"
       }
     ],
     "Name": "$select"
   },
   {
-    "In": "Cookie",
+    "In": "cookie",
     "Description": "the authorization in cookies",
     "IsRequired": true,
     "Types": [
@@ -60,7 +60,7 @@
     "Name": "authorization"
   },
   {
-    "In": "Header",
+    "In": "header",
     "IsRequired": true,
     "Description": "the content type",
     "Types": [

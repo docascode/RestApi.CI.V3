@@ -28,11 +28,8 @@
                 Paths = TransformPaths(transformModel.OpenApiDoc, transformModel.Operation.Value, requiredQueryUriParameters),
                 OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
                 UriParameters = allUriParameters,
-                //todo
                 Responses = TransformResponses(transformModel.Operation.Value),
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value),
-                Definitions = TransformDefinitions(transformModel.OpenApiDoc),
-
                 Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security: transformModel.OpenApiDoc.SecurityRequirements),
                 SeeAlsos = TransformExternalDocs(transformModel.Operation.Value)
             };
@@ -117,7 +114,7 @@
                 {
                     Name = openApiParameter.Name,
                     Description = openApiParameter.Description,
-                    In = openApiParameter.In.ToString(),
+                    In = openApiParameter.In.ToString().ToLower(),
                     IsRequired = openApiParameter.Required,
                     IsReadOnly = openApiParameter.Schema?.ReadOnly ?? false,
                     AllowEmptyValue = openApiParameter.AllowEmptyValue,
@@ -148,114 +145,53 @@
             return optionalParameters;
         }
 
-        private static IList<ResponseContentTypeAndBodyEntity> GetResponseContentTypeAndBodies(OpenApiReference openApiReference, IDictionary<string, OpenApiMediaType> contents)
-        {
-            var responseContentTypeAndBodyEntities = new List<ResponseContentTypeAndBodyEntity>();
-            foreach (var content in contents)
-            {
-                var propertyTypeEntities = new List<PropertyTypeEntity>();
-
-                responseContentTypeAndBodyEntities.Add(new ResponseContentTypeAndBodyEntity
-                {
-                    ContentType = content.Key,
-                    Types = new List<PropertyTypeEntity> { openApiReference?.Id != null ? new PropertyTypeEntity { Id = openApiReference?.Id } : TransformHelper.ParseOpenApiSchema(content.Value.Schema) }
-                });
-            }
-            return responseContentTypeAndBodyEntities;
-        }
-
-        private static IList<ResponseEntity> TransformResponses(OpenApiOperation openApiOperation)
-        {
-            var responseEntities = new List<ResponseEntity>();
-            if (openApiOperation.Responses?.Count > 0)
-            {
-                foreach (var openApiResponse in openApiOperation.Responses)
-                {
-                    var bodies = GetResponseContentTypeAndBodies(openApiResponse.Value.Reference, openApiResponse.Value.Content);
-                    var responseEntity = new ResponseEntity
-                    {
-                        Name = TransformHelper.GetStatusCodeString(openApiResponse.Key),
-                        Description = openApiResponse.Value.Description,
-                        ResponseContentTypeAndBodies = bodies.Count > 0 ? bodies : null,
-                        ResponseHeades = null // todo
-                    };
-                    responseEntities.Add(responseEntity);
-                }
-            }
-            return responseEntities;
-        }
-
-        public static IList<PropertyEntity> GetPropertiesFromSchema(OpenApiSchema openApiSchema)
-        {
-            var properties = new List<PropertyEntity>();
-            if (openApiSchema.Type == "object")
-            {
-                foreach (var property in openApiSchema.Properties)
-                {
-                    properties.Add(new PropertyEntity
-                    {
-                        Name = property.Key,
-                        Types = new List<PropertyTypeEntity> { TransformHelper.ParseOpenApiSchema(property.Value) }
-                    });
-                }
-            }
-            else
-            {
-
-            }
-
-            foreach (var allOf in openApiSchema.AllOf)
-            {
-                properties.AddRange(GetPropertiesFromSchema(allOf));
-            }
-            return properties;
-        }
-
-        private static IList<RequestBodyEntity> TransformRequestBody(OpenApiOperation openApiOperation)
+        public static IList<RequestBodyEntity> TransformRequestBody(OpenApiOperation openApiOperation)
         {
             var requestBodies = new List<RequestBodyEntity>();
             if (openApiOperation.RequestBody != null)
             {
                 foreach (var requestContent in openApiOperation.RequestBody.Content)
                 {
+                    var requestBodyItems = new List<RequestBodyItemEntity>
+                    {
+                        // todo, if there exist oneof/anyof will add all them to the array.
+                        new RequestBodyItemEntity
+                        {
+                            Parameters = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema)
+                        }
+                    };
+
                     requestBodies.Add(new RequestBodyEntity
                     {
-                        ContentType = requestContent.Key,
+                        MediaType = requestContent.Key,
                         Description = openApiOperation.RequestBody.Description,
-                        RequestBodyItems = new List<RequestBodyItemEntity> { new RequestBodyItemEntity
-                        {
-                            Name = openApiOperation.RequestBody.Reference?.Id ??  TransformHelper.ParseOpenApiSchema(requestContent.Value.Schema).Id,
-                            Description = "",
-                            Parameters =  GetPropertiesFromSchema(requestContent.Value.Schema)
-                        } }
+                        RequestBodyItems = requestBodyItems
                     });
-
-
                 }
             }
             return requestBodies;
         }
 
-        private static IList<DefinitionEntity> TransformDefinitions(OpenApiDocument openApiDocument)
+
+        public static IList<ResponseEntity> TransformResponses(OpenApiOperation openApiOperation)
         {
-            var definitions = new List<DefinitionEntity>();
-            if (openApiDocument.Components?.Schemas != null)
+            var responseEntities = new List<ResponseEntity>();
+            if (openApiOperation.Responses?.Count > 0)
             {
-                foreach (var schema in openApiDocument.Components?.Schemas)
+                foreach (var openApiResponse in openApiOperation.Responses)
                 {
-                    var properties = GetPropertiesFromSchema(schema.Value);
-
-                    var definition = new DefinitionEntity
+                    var bodies = GetResponseMediaTypeAndBodies(openApiResponse.Value.Reference, openApiResponse.Value.Content);
+                    var responseEntity = new ResponseEntity
                     {
-                        Name = schema.Key,
-                        Description = schema.Value.Description ?? schema.Value.Title,
-                        PropertyItems = properties
+                        Name = TransformHelper.GetStatusCodeString(openApiResponse.Key),
+                        Description = openApiResponse.Value.Description,
+                        ResponseMediaTypeAndBodies = bodies.Count > 0 ? bodies : null,
+                        ResponseHeades = null // todo
                     };
-
-                    definitions.Add(definition);
+                    responseEntities.Add(responseEntity);
                 }
             }
-            return definitions;
+            return responseEntities;
         }
 
         public static IList<SecurityEntity> TransformSecurity(IList<OpenApiSecurityRequirement> openApiSecurityRequirements)
@@ -303,28 +239,6 @@
             return securities;
         }
 
-        public static FlowEntity NewFlowEntity(string name, IList<string> scopeNames, OpenApiOAuthFlow openApiOAuthFlow)
-        {
-            var scopes = new List<SecurityScopeEntity>();
-            foreach (var scopeName in scopeNames)
-            {
-                var scope = new SecurityScopeEntity
-                {
-                    Name = scopeName,
-                    Description = openApiOAuthFlow.Scopes.Where(s => s.Key.Equals(scopeName)).Single().Value
-                };
-                scopes.Add(scope);
-            }
-
-            return new FlowEntity
-            {
-                Name = name,
-                AuthorizationUrl = openApiOAuthFlow.AuthorizationUrl.ToString(),
-                TokenUrl = openApiOAuthFlow.TokenUrl.ToString(),
-                Scopes = scopes
-            };
-        }
-
         public static IList<SeeAlsoEntity> TransformExternalDocs(OpenApiOperation openApiOperation)
         {
             var seeAlsoEntities = new List<SeeAlsoEntity>();
@@ -370,6 +284,55 @@
             }
 
             return seeAlsoEntities;
+        }
+
+        private static IList<ResponseMediaTypeAndBodyEntity> GetResponseMediaTypeAndBodies(OpenApiReference openApiReference, IDictionary<string, OpenApiMediaType> contents)
+        {
+            var responseMediaTypeAndBodyEntities = new List<ResponseMediaTypeAndBodyEntity>();
+            foreach (var content in contents)
+            {
+                var propertyTypeEntities = new List<PropertyTypeEntity>();
+                if (!string.IsNullOrEmpty(openApiReference?.Id))
+                {
+                    propertyTypeEntities.Add(new PropertyTypeEntity
+                    {
+                        Id = openApiReference?.Id
+                    });
+                }
+                else
+                {
+                    propertyTypeEntities.Add(TransformHelper.ParseOpenApiSchema(content.Value.Schema));
+                }
+
+                responseMediaTypeAndBodyEntities.Add(new ResponseMediaTypeAndBodyEntity
+                {
+                    MediaType = content.Key,
+                    Types = propertyTypeEntities
+                });
+            }
+            return responseMediaTypeAndBodyEntities;
+        }
+
+        private static FlowEntity NewFlowEntity(string name, IList<string> scopeNames, OpenApiOAuthFlow openApiOAuthFlow)
+        {
+            var scopes = new List<SecurityScopeEntity>();
+            foreach (var scopeName in scopeNames)
+            {
+                var scope = new SecurityScopeEntity
+                {
+                    Name = scopeName,
+                    Description = openApiOAuthFlow.Scopes.Where(s => s.Key.Equals(scopeName)).Single().Value
+                };
+                scopes.Add(scope);
+            }
+
+            return new FlowEntity
+            {
+                Name = name,
+                AuthorizationUrl = openApiOAuthFlow.AuthorizationUrl.ToString(),
+                TokenUrl = openApiOAuthFlow.TokenUrl.ToString(),
+                Scopes = scopes
+            };
         }
     }
 }

@@ -115,17 +115,63 @@
             throw new KeyNotFoundException($"Can not find the {openApiOperation.OperationId}");
         }
 
+        private static string GetValueFromPrimitiveType(IOpenApiAny anyPrimitive)
+        {
+            if (anyPrimitive is OpenApiInteger integerValue)
+            {
+                return integerValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiLong longValue)
+            {
+                return longValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiFloat floatValue)
+            {
+                return floatValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiDouble doubleValue)
+            {
+                return doubleValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiString stringValue)
+            {
+                return stringValue.Value;
+            }
+            if (anyPrimitive is OpenApiByte byteValue)
+            {
+                return byteValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiBinary binaryValue)
+            {
+                return binaryValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiBoolean boolValue)
+            {
+                return boolValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiDate dateValue)
+            {
+                return dateValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiDateTime dateTimeValue)
+            {
+                return dateTimeValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiPassword passwordValue)
+            {
+                return passwordValue.Value.ToString();
+            }
+            return string.Empty;
+        }
+
         private static IList<string> GetValueFromListAny(IList<IOpenApiAny> anyList)
         {
             var results = new List<string>();
-            if (anyList is OpenApiArray anyValues)
+            foreach (var anyValue in anyList)
             {
-                foreach (var anyValue in anyValues)
+                if (anyValue.AnyType == AnyType.Primitive)
                 {
-                    if (anyValue.AnyType == AnyType.Primitive)
-                    {
-                        results.Add(Convert.ToString(anyValue));
-                    }
+                    results.Add(GetValueFromPrimitiveType(anyValue));
                 }
             }
             return results;
@@ -152,9 +198,11 @@
                     return type;
                 }
 
-                if (openApiSchema.Properties != null)
+                if (openApiSchema.Properties?.Count > 0)
                 {
-                    type.Id = string.Empty;
+                    type.AnonymousChildren = new List<PropertyEntity>();
+                    type.AnonymousChildren.AddRange(GetPropertiesFromSchema(openApiSchema));
+                    type.Id = null;
                     return type;
                 }
 
@@ -186,41 +234,54 @@
             return type;
         }
 
-        //private static PropertyTypeEntity ParseOpenApiSchema(OpenApiSchema openApiSchema)
-        //{
-        //    if (openApiSchema.Type == "object")
-        //    {
-        //        if (openApiSchema.Properties != null)
-        //        {
-        //            foreach (var property in openApiSchema.Properties)
-        //            {
-        //                property.Key = "",
-        //                ParseOpenApiSchema(property.Value);
-        //            }
-        //        }
-        //        else if (openApiSchema.AdditionalProperties != null)
-        //        {
+        public static IList<PropertyEntity> GetPropertiesFromSchema(OpenApiSchema openApiSchema)
+        {
+            var properties = new List<PropertyEntity>();
+            if (openApiSchema.Type == "object")
+            {
+                foreach (var property in openApiSchema.Properties)
+                {
+                    var types = new List<PropertyTypeEntity>();
+                    if(property.Value.AnyOf?.Count() > 0)
+                    {
+                        foreach(var anyOf in property.Value.AnyOf)
+                        {
+                            types.Add(ParseOpenApiSchema(anyOf));
+                        }
+                    }
+                    else if(property.Value.OneOf?.Count() > 0)
+                    {
+                        foreach (var oneOf in property.Value.OneOf)
+                        {
+                            types.Add(ParseOpenApiSchema(oneOf));
+                        }
+                    }
+                    else
+                    {
+                        types.Add(ParseOpenApiSchema(property.Value));
+                    }
 
-        //        }
-        //    }
-        //    else if (openApiSchema.Type == "array")
-        //    {
-        //        if (openApiSchema.Items.Enum != null)
-        //        {
-        //            openApiSchema.Items.Enum;
-        //            openApiSchema.Items.Type;
-        //        }
+                    properties.Add(new PropertyEntity
+                    {
+                        Name = property.Key,
+                        IsReadOnly = property.Value.ReadOnly,
+                        IsDeprecated = property.Value.Deprecated,
+                        AllowEmptyValue = property.Value.Nullable,
+                        Description = property.Value.Description ?? property.Value.Title,
+                        Pattern = property.Value.Pattern,
+                        Format = property.Value.Format,
+                        IsAnyOf = property.Value.AnyOf?.Count() > 0,
+                        IsOneOf = property.Value.OneOf?.Count() > 0,
+                        Types = types
+                    });
+                }
+            }
 
-        //        openApiSchema.Items.Reference
-        //    }
-        //    else if (openApiSchema.Reference != null)
-        //    {
-
-        //    }
-        //    else
-        //    {
-        //        openApiSchema.Type;
-        //    }
-        //}
+            foreach (var allOf in openApiSchema.AllOf)
+            {
+                properties.AddRange(GetPropertiesFromSchema(allOf));
+            }
+            return properties;
+        }
     }
 }

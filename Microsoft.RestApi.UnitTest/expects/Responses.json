@@ -1,0 +1,44 @@
+﻿[
+  {
+    "Description": "Success",
+    "Name": "204 No Content"
+  },
+  {
+    "Description": "Retrieved entities",
+    "ResponseMediaTypeAndBodies": [
+      {
+        "MediaType": "application/json",
+        "Types": [
+          {
+            "AnonymousChildren": [
+              {
+                "Types": [
+                  {
+                    "IsArray": true,
+                    "Id": "microsoft.graph.directoryObject"
+                  }
+                ],
+                "Name": "value"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Name": "200 OK"
+  },
+  {
+    "Description": "error",
+    "ResponseMediaTypeAndBodies": [
+      {
+        "MediaType": "application/json",
+        "Types": [
+          {
+            "Id": "error"
+          }
+        ]
+      }
+    ],
+    "Name": "Other Status Codes"
+  }
+]
