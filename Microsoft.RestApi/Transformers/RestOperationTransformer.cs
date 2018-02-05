@@ -154,6 +154,7 @@
                 {
                     var requestBodyItems = new List<RequestBodyItemEntity>
                     {
+                        // todo, if there exist oneof/anyof will add all them to the array.
                         new RequestBodyItemEntity
                         {
                             Parameters = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema)

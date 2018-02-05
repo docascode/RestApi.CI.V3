@@ -7,7 +7,7 @@
     "Description": "Retrieved entities",
     "ResponseMediaTypeAndBodies": [
       {
-        "ContentType": "application/json",
+        "MediaType": "application/json",
         "Types": [
           {
             "AnonymousChildren": [
@@ -31,7 +31,7 @@
     "Description": "error",
     "ResponseMediaTypeAndBodies": [
       {
-        "ContentType": "application/json",
+        "MediaType": "application/json",
         "Types": [
           {
             "Id": "error"

@@ -276,11 +276,6 @@
                     });
                 }
             }
-            else if (openApiSchema.Type == "array")
-            {
-                var items = GetPropertiesFromSchema(openApiSchema.Items);
-               
-            }
 
             foreach (var allOf in openApiSchema.AllOf)
             {
