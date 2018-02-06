@@ -299,6 +299,19 @@
                 {
                     restFileInfo.FileNameInfos = fileNameInfos.ToList();
                 }
+
+                var model = new TransformModel
+                {
+                    OpenApiDoc = openApiDoc,
+                    ServiceName = serviceName
+                };
+                var componentGroupFileName = "components.yml";
+                var componentsDir = Path.Combine(targetDir, "components");
+                if (!Directory.Exists(Path.Combine(targetDir, componentsDir)))
+                {
+                    Directory.CreateDirectory(Path.Combine(targetDir, componentsDir));
+                }
+                _transformerFactory.TransformerComponents(model, targetDir, componentGroupFileName, componentsDir);
                 restFileInfo.TocTitle = openApiDoc.Info?.Title;
             }
             return restFileInfo;

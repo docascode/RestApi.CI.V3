@@ -4,10 +4,13 @@
 
     using YamlDotNet.Serialization;
 
-    public class DefinitionEntity
+    public class ComponentEntity : NamedEntity
     {
-        [YamlMember(Alias = "name")]
-        public string Name { get; set; }
+        [YamlMember(Alias = "apiVersion")]
+        public string ApiVersion { get; set; }
+
+        [YamlMember(Alias = "service")]
+        public string Service { get; set; }
 
         [YamlMember(Alias = "description")]
         public string Description { get; set; }

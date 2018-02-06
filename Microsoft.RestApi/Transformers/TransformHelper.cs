@@ -70,13 +70,13 @@
         {
             var serverPaths = GetServerEnities(servers);
             var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
-            var defaultOperationId = $"{serviceName}.{ groupName}";
+            var defaultOperationId = $"{serviceName}.{groupName}";
             if (!string.IsNullOrEmpty(defaultServerPath))
             {
                 var uri = new Uri(defaultServerPath);
                 var basePath = uri.AbsolutePath?.Replace('/', '.').Trim('.');
                 var hostWithBasePath = $"{uri.Host}.{basePath}".Replace(" ", "").Trim('.');
-                defaultOperationId = $"{hostWithBasePath}.{serviceName}.{ groupName}";
+                defaultOperationId = $"{hostWithBasePath}.{serviceName}.{groupName}";
             }
             return defaultOperationId.Replace(" ", "").Trim('.').ToLower();
         }

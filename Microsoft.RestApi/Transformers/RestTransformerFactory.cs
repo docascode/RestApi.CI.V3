@@ -16,7 +16,7 @@
             {
                 using (var writer = new StreamWriter(Path.Combine(targetDir, fileName)))
                 {
-                    writer.WriteLine("### YamlMime:RESTOperation");
+                    writer.WriteLine("### YamlMime:RESTOperationGroup");
                     YamlSerializer.Serialize(writer, operationGroupInfo);
                 }
             }
@@ -32,6 +32,29 @@
                     writer.WriteLine("### YamlMime:RESTOperation");
                     YamlSerializer.Serialize(writer, operationInfo);
                 }
+            }
+        }
+
+        public void TransformerComponents(TransformModel transformModel, string targetDir, string componentGroupFileName, string componentsDir)
+        {
+            var componentGroup = RestComponentsTransformer.Transform(transformModel);
+            if (componentGroup != null)
+            {
+                using (var writer = new StreamWriter(Path.Combine(targetDir, componentGroupFileName)))
+                {
+                    writer.WriteLine("### YamlMime:RESTComponentGroup");
+                    YamlSerializer.Serialize(writer, componentGroup);
+                }
+
+                foreach (var component in componentGroup.Components)
+                {
+                    using (var writer = new StreamWriter(Path.Combine(componentsDir, component.Name + ".yml")))
+                    {
+                        writer.WriteLine("### YamlMime:RESTComponent");
+                        YamlSerializer.Serialize(writer, component);
+                    }
+                }
+                
             }
         }
     }
