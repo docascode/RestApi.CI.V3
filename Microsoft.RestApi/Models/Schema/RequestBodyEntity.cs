@@ -12,6 +12,12 @@
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
 
+        [YamlMember(Alias = "isOneOf")]
+        public bool IsOneOf { get; set; }
+
+        [YamlMember(Alias = "isAnyOf")]
+        public bool IsAnyOf { get; set; }
+
         [YamlMember(Alias = "items")]
         public IList<RequestBodyItemEntity> RequestBodyItems { get; set; }
     }
@@ -21,7 +27,7 @@
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
 
-        [YamlMember(Alias = "parameters")]
-        public IList<PropertyEntity> Parameters { get; set; }
+        [YamlMember(Alias = "properties")]
+        public IList<PropertyEntity> Properties { get; set; }
     }
 }

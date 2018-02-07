@@ -1,7 +1,8 @@
 ﻿[
   {
     "Description": "Success",
-    "Name": "204 No Content"
+    "Name": "204 No Content",
+    "StatusCode": 204
   },
   {
     "Description": "Retrieved entities",
@@ -25,7 +26,8 @@
         ]
       }
     ],
-    "Name": "200 OK"
+    "Name": "200 OK",
+    "StatusCode": 200
   },
   {
     "Description": "error",
@@ -39,6 +41,7 @@
         ]
       }
     ],
-    "Name": "Other Status Codes"
+    "Name": "Other Status Codes",
+    "StatusCode": "default"
   }
 ]

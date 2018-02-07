@@ -19,7 +19,7 @@
 
                     var component = new ComponentEntity
                     {
-                        Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, "components", schema.Key),
+                        Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName, schema.Key),
                         Service = transformModel.ServiceName,
                         ApiVersion = transformModel.OpenApiDoc.Info.Version,
                         Name = schema.Key,
@@ -33,7 +33,7 @@
 
             var componentGroup = new ComponentGroupEntity
             {
-                Id = TransformHelper.GetOperationGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, "components"),
+                Id = TransformHelper.GetOperationGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName),
                 Service = transformModel.ServiceName,
                 ApiVersion = transformModel.OpenApiDoc.Info.Version,
                 Components = components

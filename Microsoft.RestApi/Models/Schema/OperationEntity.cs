@@ -53,10 +53,10 @@
             }
         }
 
-        [YamlMember(Alias = "uriParameters")]
-        public IList<ParameterEntity> UriParameters { get; set; }
+        [YamlMember(Alias = "requestParameters")]
+        public IList<ParameterEntity> RequestParameters { get; set; }
 
-        [YamlMember(Alias = "requestBody")]
+        [YamlMember(Alias = "requestBodies")]
         public IList<RequestBodyEntity> RequestBodies { get; set; }
 
         [YamlMember(Alias = "responses")]
