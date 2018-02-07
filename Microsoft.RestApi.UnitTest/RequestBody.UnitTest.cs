@@ -22,7 +22,7 @@
 
             var expects = LoadExpectedJsonObject<List<RequestBodyEntity>>("../../expects/Requestbodies.json");
             var requestbodies = RestOperationTransformer.TransformRequestBody(operation, string.Empty);
-            var test = JsonUtility.ToJsonString(requestbodies);
+
             Assert.NotNull(requestbodies);
             Assert.Equal(requestbodies.Count, expects.Count);
 
@@ -42,7 +42,7 @@
 
             var expects = LoadExpectedJsonObject<List<RequestBodyEntity>>("../../expects/Requestbodies2.json");
             var requestbodies = RestOperationTransformer.TransformRequestBody(operation, "mockServerId");
-            var test = JsonUtility.ToJsonString(requestbodies);
+
             Assert.NotNull(requestbodies);
             Assert.Equal(requestbodies.Count, expects.Count);
 
