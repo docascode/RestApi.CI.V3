@@ -1,0 +1,335 @@
+﻿{
+    "Service": "mockServerName",
+    "Components": [
+    {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "Description": "entity",
+        "PropertyItems": [
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "id"
+        }],
+        "Name": "microsoft.graph.entity",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.entity"
+    },
+    {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "PropertyItems": [
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "id"
+        }],
+        "Name": "microsoft.graph.extension",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.extension"
+    },
+      {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "Description": "geoCoordinates",
+        "PropertyItems": [
+          {
+            "AllowEmptyValue": true,
+            "Types": [
+              {
+                "Id": "number"
+              },
+              {
+                "Id": "string"
+              },
+              {
+                "Kind": "enum",
+                "Values": [ "-INF", "INF", "NaN" ]
+              }
+            ],
+            "Format": "double",
+            "IsOneOf": true,
+            "Name": "altitude"
+          },
+          {
+            "AllowEmptyValue": true,
+            "Types": [
+              {
+                "Id": "number"
+              },
+              {
+                "Id": "string"
+              },
+              {
+                "Kind": "enum",
+                "Values": [ "-INF", "INF", "NaN" ]
+              }
+            ],
+            "Format": "double",
+            "IsOneOf": true,
+            "Name": "latitude"
+          },
+          {
+            "AllowEmptyValue": true,
+            "Types": [
+              {
+                "Id": "number"
+              },
+              {
+                "Id": "string"
+              },
+              {
+                "Kind": "enum",
+                "Values": [ "-INF", "INF", "NaN" ]
+              }
+            ],
+            "Format": "double",
+            "IsOneOf": true,
+            "Name": "longitude"
+          }
+        ],
+        "Name": "microsoft.graph.geoCoordinates",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.geocoordinates"
+      },
+    {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "PropertyItems": [
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "id"
+        },
+        {
+            "AllowEmptyValue": true,
+            "Types": [
+            {
+                "Id": "number"
+            },
+            {
+                "Id": "string"
+            },
+            {
+                "Kind": "enum",
+                "Values": ["-INF", "INF", "NaN"]
+            }],
+            "Format": "double",
+            "IsOneOf": true,
+            "Name": "altitude"
+        },
+        {
+            "AllowEmptyValue": true,
+            "Types": [
+            {
+                "Id": "number"
+            },
+            {
+                "Id": "string"
+            },
+            {
+                "Kind": "enum",
+                "Values": ["-INF", "INF", "NaN"]
+            }],
+            "Format": "double",
+            "IsOneOf": true,
+            "Name": "latitude"
+        },
+        {
+            "AllowEmptyValue": true,
+            "Types": [
+            {
+                "Id": "number"
+            },
+            {
+                "Id": "string"
+            },
+            {
+                "Kind": "enum",
+                "Values": ["-INF", "INF", "NaN"],
+                "IsDictionary": false
+            }],
+            "Format": "double",
+            "IsOneOf": true,
+            "Name": "longitude"
+        },
+        {
+            "AllowEmptyValue": true,
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Pattern": "^[0-9]{4,}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]([.][0-9]{1,12})?(Z|[+-][0-9][0-9]:[0-9][0-9])$",
+            "Format": "date-time",
+            "Name": "deletedDateTime"
+        }],
+        "Name": "microsoft.graph.directoryObject",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.directoryobject"
+    },
+    {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "PropertyItems": [
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "id"
+        },
+        {
+            "AllowEmptyValue": true,
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "description"
+        },
+        {
+            "Types": [
+            {
+                "IsArray": true,
+                "Id": "string"
+            }],
+            "Name": "targetTypes"
+        },
+        {
+            "Types": [
+            {
+                "IsArray": true,
+                "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
+            }],
+            "Name": "properties"
+        },
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "status"
+        },
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "owner"
+        }],
+        "Name": "microsoft.graph.schemaExtension",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.schemaextension"
+    },
+    {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "Description": "extensionSchemaProperty",
+        "PropertyItems": [
+        {
+            "AllowEmptyValue": true,
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "name"
+        },
+        {
+            "AllowEmptyValue": true,
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "type"
+        }],
+        "Name": "microsoft.graph.extensionSchemaProperty",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
+    },
+    {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "PropertyItems": [
+        {
+            "Types": [
+            {
+                "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error.main"
+            }],
+            "Name": "error"
+        }],
+        "Name": "odata.error",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error"
+    },
+    {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "PropertyItems": [
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "code"
+        },
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "message"
+        },
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "target"
+        },
+        {
+            "Types": [
+            {
+                "IsArray": true,
+                "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error.detail"
+            }],
+            "Name": "details"
+        },
+        {
+            "Description": "The structure of this object is service-specific",
+            "Types": [
+            {
+                "Id": "object"
+            }],
+            "Name": "innererror"
+        }],
+        "Name": "odata.error.main",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error.main"
+    },
+    {
+        "ApiVersion": "1.0.1",
+        "Service": "mockServerName",
+        "PropertyItems": [
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "code"
+        },
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "message"
+        },
+        {
+            "Types": [
+            {
+                "Id": "string"
+            }],
+            "Name": "target"
+        }],
+        "Name": "odata.error.detail",
+        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error.detail"
+    }],
+    "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup"
+}

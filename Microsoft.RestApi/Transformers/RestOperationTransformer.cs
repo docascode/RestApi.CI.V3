@@ -11,15 +11,16 @@
     {
         public static OperationEntity Transform(TransformModel transformModel)
         {
-            var allUriParameters = TransformUriParameters(transformModel.Operation.Value);
+            var componentGroupId = TransformHelper.GetComponentGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.ComponentGroupName);
+            var allUriParameters = TransformUriParameters(transformModel.Operation.Value, componentGroupId);
             var requiredQueryUriParameters = allUriParameters.Where(p => p.IsRequired && p.In == "query").ToList();
             var optionalQueryUriParameters = allUriParameters.Where(p => !p.IsRequired && p.In == "query").ToList();
             return new OperationEntity
             {
-                Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName, transformModel.OperationName),
+                Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, transformModel.OperationName),
                 Name = transformModel.OperationName,
                 Service = transformModel.ServiceName,
-                GroupName = transformModel.GroupName,
+                GroupName = transformModel.OperationGroupName,
                 Summary = TransformHelper.GetOperationSummary(transformModel.Operation.Value.Summary, transformModel.Operation.Value.Description),
                 ApiVersion = transformModel.OpenApiDoc.Info.Version,
                 IsDeprecated = transformModel.Operation.Value.Deprecated,
@@ -28,8 +29,8 @@
                 Paths = TransformPaths(transformModel.OpenApiDoc, transformModel.Operation.Value, requiredQueryUriParameters),
                 OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
                 RequestParameters = allUriParameters,
-                Responses = TransformResponses(transformModel.Operation.Value),
-                RequestBodies = TransformRequestBody(transformModel.Operation.Value),
+                Responses = TransformResponses(transformModel.Operation.Value, componentGroupId),
+                RequestBodies = TransformRequestBody(transformModel.Operation.Value, componentGroupId),
                 Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security: transformModel.OpenApiDoc.SecurityRequirements),
                 SeeAlsos = TransformExternalDocs(transformModel.Operation.Value)
             };
@@ -105,7 +106,7 @@
             return paths;
         }
 
-        public static IList<ParameterEntity> TransformUriParameters(OpenApiOperation openApiOperation)
+        public static IList<ParameterEntity> TransformUriParameters(OpenApiOperation openApiOperation, string componentGroupId)
         {
             var parameterEntities = new List<ParameterEntity>();
             foreach (var openApiParameter in openApiOperation.Parameters)
@@ -123,7 +124,7 @@
                     Format = openApiParameter.Schema?.Format,
                     Types = new List<PropertyTypeEntity>
                     {
-                        TransformHelper.ParseOpenApiSchema(openApiParameter.Schema)
+                        TransformHelper.ParseOpenApiSchema(openApiParameter.Schema, componentGroupId)
                     }
                 };
                 parameterEntities.Add(parameterEntity);
@@ -145,7 +146,7 @@
             return optionalParameters;
         }
 
-        public static IList<RequestBodyEntity> TransformRequestBody(OpenApiOperation openApiOperation)
+        public static IList<RequestBodyEntity> TransformRequestBody(OpenApiOperation openApiOperation, string componentGroupId)
         {
             var requestBodies = new List<RequestBodyEntity>();
             if (openApiOperation.RequestBody != null)
@@ -157,7 +158,7 @@
                         // todo, if there exist oneof/anyof will add all them to the array.
                         new RequestBodyItemEntity
                         {
-                            Properties = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema)
+                            Properties = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema, componentGroupId)
                         }
                     };
 
@@ -173,14 +174,14 @@
         }
 
 
-        public static IList<ResponseEntity> TransformResponses(OpenApiOperation openApiOperation)
+        public static IList<ResponseEntity> TransformResponses(OpenApiOperation openApiOperation, string componentGroupId)
         {
             var responseEntities = new List<ResponseEntity>();
             if (openApiOperation.Responses?.Count > 0)
             {
                 foreach (var openApiResponse in openApiOperation.Responses)
                 {
-                    var bodies = GetResponseMediaTypeAndBodies(openApiResponse.Value.Reference, openApiResponse.Value.Content);
+                    var bodies = GetResponseMediaTypeAndBodies(openApiResponse.Value.Reference, openApiResponse.Value.Content, componentGroupId);
                     var responseEntity = new ResponseEntity
                     {
                         Name = TransformHelper.GetStatusCodeString(openApiResponse.Key),
@@ -287,7 +288,7 @@
             return seeAlsoEntities;
         }
 
-        private static IList<ResponseMediaTypeAndBodyEntity> GetResponseMediaTypeAndBodies(OpenApiReference openApiReference, IDictionary<string, OpenApiMediaType> contents)
+        private static IList<ResponseMediaTypeAndBodyEntity> GetResponseMediaTypeAndBodies(OpenApiReference openApiReference, IDictionary<string, OpenApiMediaType> contents, string componentGroupId)
         {
             var responseMediaTypeAndBodyEntities = new List<ResponseMediaTypeAndBodyEntity>();
             foreach (var content in contents)
@@ -297,12 +298,12 @@
                 {
                     propertyTypeEntities.Add(new PropertyTypeEntity
                     {
-                        Id = openApiReference?.Id
+                        Id = TransformHelper.GetReferenceId(openApiReference, componentGroupId)
                     });
                 }
                 else
                 {
-                    propertyTypeEntities.Add(TransformHelper.ParseOpenApiSchema(content.Value.Schema));
+                    propertyTypeEntities.Add(TransformHelper.ParseOpenApiSchema(content.Value.Schema, componentGroupId));
                 }
 
                 responseMediaTypeAndBodyEntities.Add(new ResponseMediaTypeAndBodyEntity

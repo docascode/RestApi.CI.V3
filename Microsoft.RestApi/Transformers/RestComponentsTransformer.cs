@@ -11,15 +11,17 @@
             var openApiDocument = transformModel.OpenApiDoc;
 
             var components = new List<ComponentEntity>();
+
+            var componentGroupId = TransformHelper.GetComponentGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.ComponentGroupName);
             if (openApiDocument.Components?.Schemas != null)
             {
                 foreach (var schema in openApiDocument.Components?.Schemas)
                 {
-                    var properties = TransformHelper.GetPropertiesFromSchema(schema.Value);
+                    var properties = TransformHelper.GetPropertiesFromSchema(schema.Value, componentGroupId);
 
                     var component = new ComponentEntity
                     {
-                        Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName, schema.Key),
+                        Id = TransformHelper.GetComponentId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.ComponentGroupName, schema.Key),
                         Service = transformModel.ServiceName,
                         ApiVersion = transformModel.OpenApiDoc.Info.Version,
                         Name = schema.Key,
@@ -33,7 +35,7 @@
 
             var componentGroup = new ComponentGroupEntity
             {
-                Id = TransformHelper.GetOperationGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName),
+                Id = componentGroupId,
                 Service = transformModel.ServiceName,
                 ApiVersion = transformModel.OpenApiDoc.Info.Version,
                 Components = components

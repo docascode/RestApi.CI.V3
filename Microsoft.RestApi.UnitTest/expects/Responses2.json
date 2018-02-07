@@ -16,7 +16,7 @@
                 "Types": [
                   {
                     "IsArray": true,
-                    "Id": "microsoft.graph.directoryobject"
+                    "Id": "mockserverid.microsoft.graph.directoryobject"
                   }
                 ],
                 "Name": "value"
@@ -36,7 +36,7 @@
         "MediaType": "application/json",
         "Types": [
           {
-            "Id": "error"
+            "Id": "mockserverid.error"
           }
         ]
       }

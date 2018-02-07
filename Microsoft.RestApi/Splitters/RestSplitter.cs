@@ -373,7 +373,7 @@
                         OpenApiDoc = openApiDoc,
                         OpenApiTag = tag,
                         ServiceName = serviceName,
-                        GroupName = fileNameInfo.TocName
+                        OperationGroupName = fileNameInfo.TocName
                     };
                     _transformerFactory?.TransformerOperationGroup(model, targetDir, fileNameInfo.FileName);
 
@@ -382,7 +382,7 @@
             }
         }
 
-        protected IEnumerable<FileNameInfo> SplitOperations(List<KeyValuePair<OperationType, OpenApiOperation>> operations, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
+        private IEnumerable<FileNameInfo> SplitOperations(List<KeyValuePair<OperationType, OpenApiOperation>> operations, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
         {
             foreach (var operation in operations)
             {
@@ -402,7 +402,8 @@
                     OpenApiDoc = openApiDoc,
                     Operation = operation,
                     ServiceName = serviceName,
-                    GroupName = groupName,
+                    OperationGroupName = groupName,
+                    ComponentGroupName = "components",
                     OperationName = fileNameInfo.TocName,
                 };
                 _transformerFactory?.TransformerOperation(model, targetDir, fileNameInfo.FileName);
@@ -416,10 +417,10 @@
             {
                 OpenApiDoc = openApiDoc,
                 ServiceName = serviceName,
-                GroupName = "components"
+                ComponentGroupName = "components"
             };
-            var componentGroupFileName = $"{model.GroupName}.yml";
-            var componentsDir = Path.Combine(targetDir, model.GroupName);
+            var componentGroupFileName = $"{model.ComponentGroupName}.yml";
+            var componentsDir = Path.Combine(targetDir, model.ComponentGroupName);
             if (!Directory.Exists(Path.Combine(targetDir, componentsDir)))
             {
                 Directory.CreateDirectory(Path.Combine(targetDir, componentsDir));
@@ -428,7 +429,7 @@
             var componentsFileNameInfo = new FileNameInfo
             {
                 FileName = componentGroupFileName,
-                TocName = model.GroupName,
+                TocName = model.ComponentGroupName,
                 ChildrenFileNameInfo = componentFileNameInfos.ToList()
             };
             return componentsFileNameInfo;
