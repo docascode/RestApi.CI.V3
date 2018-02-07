@@ -1,4 +1,4 @@
-﻿namespace Microsoft.RestApi.Model
+﻿namespace Microsoft.RestApi.Models
 {
     using System.Collections.Generic;
 

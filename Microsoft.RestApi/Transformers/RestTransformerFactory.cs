@@ -5,6 +5,7 @@
 
     using Microsoft.DocAsCode.YamlSerialization;
     using Microsoft.RestApi.Models;
+    using System;
 
     public class RestTransformerFactory
     {
@@ -36,9 +37,9 @@
             }
         }
 
-        public IList<string> TransformerComponents(TransformModel transformModel, string targetDir, string componentGroupFileName, string componentsDir)
+        public IList<FileNameInfo> TransformerComponents(TransformModel transformModel, string targetDir, string componentGroupFileName, string componentsDir)
         {
-            var componentFilePaths = new List<string>();
+            var componentFileNameInfos = new List<FileNameInfo>();
             var componentGroup = RestComponentsTransformer.Transform(transformModel);
             if (componentGroup != null)
             {
@@ -51,15 +52,23 @@
                 // todo: if exist component.Name == transformModel.GroupName should throw exception.
                 foreach (var component in componentGroup.Components)
                 {
+                    if (string.Equals(transformModel.GroupName, component.Name))
+                    {
+                        throw new Exception($"The component should not have name as same as {transformModel.GroupName}");
+                    }
                     using (var writer = new StreamWriter(Path.Combine(componentsDir, component.Name + ".yml")))
                     {
                         writer.WriteLine("### YamlMime:RESTComponentV3");
                         YamlSerializer.Serialize(writer, component);
                     }
-                    componentFilePaths.Add(component.Name + ".yml");
+                    componentFileNameInfos.Add(new FileNameInfo
+                    {
+                        TocName = component.Name,
+                        FileName = Path.Combine(transformModel.GroupName, component.Name + ".yml")
+                    }); 
                 }
             }
-            return componentFilePaths;
+            return componentFileNameInfos;
         }
     }
 }

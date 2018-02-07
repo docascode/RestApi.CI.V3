@@ -6,7 +6,7 @@
     using System.Text.RegularExpressions;
 
     using Microsoft.RestApi.Common;
-    using Microsoft.RestApi.Model;
+    using Microsoft.RestApi.Models;
     using Microsoft.OpenApi.Models;
     using System.Linq;
 

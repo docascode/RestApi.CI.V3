@@ -7,11 +7,10 @@
     using System.Text.RegularExpressions;
 
     using Microsoft.RestApi.Common;
-    using Microsoft.RestApi.Model;
+    using Microsoft.RestApi.Models;
     using Microsoft.OpenApi.Readers;
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Transformers;
-    using Microsoft.RestApi.Models;
 
     public class RestSplitter
     {
@@ -200,7 +199,7 @@
                                     writer.WriteLine($"{subTocPrefix}#{subGroupTocPrefix} {pair.Key}");
                                 }
                                 var subTocList = pair.Value;
-                                subTocList.Sort((x, y) => string.CompareOrdinal(x.Title, y.Title));
+                                subTocList.OrderBy(x => !Equals(x, "components")).ToList().Sort((x, y) => string.CompareOrdinal(x.Title, y.Title));
                                 foreach (var subToc in subTocList)
                                 {
                                     writer.WriteLine($"{subTocPrefix}##{subGroupTocPrefix} [{subToc.Title}]({subToc.FilePath})");
@@ -425,11 +424,12 @@
             {
                 Directory.CreateDirectory(Path.Combine(targetDir, componentsDir));
             }
-            var componentFileNames = _transformerFactory.TransformerComponents(model, targetDir, componentGroupFileName, componentsDir);
+            var componentFileNameInfos = _transformerFactory.TransformerComponents(model, targetDir, componentGroupFileName, componentsDir);
             var componentsFileNameInfo = new FileNameInfo
             {
                 FileName = componentGroupFileName,
-                ChildrenFileNameInfo = componentFileNames.Select(c => new FileNameInfo { FileName = c}).ToList()
+                TocName = model.GroupName,
+                ChildrenFileNameInfo = componentFileNameInfos.ToList()
             };
             return componentsFileNameInfo;
         }
