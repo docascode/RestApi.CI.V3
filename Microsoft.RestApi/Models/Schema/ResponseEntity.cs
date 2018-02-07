@@ -11,6 +11,9 @@
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
 
+        [YamlMember(Alias = "statusCode")]
+        public string StatusCode { get; set; }
+
         [YamlMember(Alias = "body")]
         public IList<ResponseMediaTypeAndBodyEntity> ResponseMediaTypeAndBodies { get; set; }
 

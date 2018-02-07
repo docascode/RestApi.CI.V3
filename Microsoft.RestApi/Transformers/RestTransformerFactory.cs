@@ -16,7 +16,7 @@
             {
                 using (var writer = new StreamWriter(Path.Combine(targetDir, fileName)))
                 {
-                    writer.WriteLine("### YamlMime:RESTOperation");
+                    writer.WriteLine("### YamlMime:RESTOperationGroupV3");
                     YamlSerializer.Serialize(writer, operationGroupInfo);
                 }
             }
@@ -29,7 +29,7 @@
             {
                 using (var writer = new StreamWriter(Path.Combine(targetDir, fileName)))
                 {
-                    writer.WriteLine("### YamlMime:RESTOperation");
+                    writer.WriteLine("### YamlMime:RESTOperationV3");
                     YamlSerializer.Serialize(writer, operationInfo);
                 }
             }

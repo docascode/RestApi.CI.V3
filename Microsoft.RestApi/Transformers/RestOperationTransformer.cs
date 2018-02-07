@@ -12,8 +12,8 @@
         public static OperationEntity Transform(TransformModel transformModel)
         {
             var allUriParameters = TransformUriParameters(transformModel.Operation.Value);
-            var requiredQueryUriParameters = allUriParameters.Where(p => p.IsRequired && p.In == "Query").ToList();
-            var optionalQueryUriParameters = allUriParameters.Where(p => !p.IsRequired && p.In == "Query").ToList();
+            var requiredQueryUriParameters = allUriParameters.Where(p => p.IsRequired && p.In == "query").ToList();
+            var optionalQueryUriParameters = allUriParameters.Where(p => !p.IsRequired && p.In == "query").ToList();
             return new OperationEntity
             {
                 Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName, transformModel.OperationName),
@@ -23,11 +23,11 @@
                 Summary = TransformHelper.GetOperationSummary(transformModel.Operation.Value.Summary, transformModel.Operation.Value.Description),
                 ApiVersion = transformModel.OpenApiDoc.Info.Version,
                 IsDeprecated = transformModel.Operation.Value.Deprecated,
-                HttpVerb = transformModel.Operation.Key.ToString(),
+                HttpVerb = transformModel.Operation.Key.ToString().ToUpper(),
                 Servers = TransformHelper.GetServerEnities(transformModel.OpenApiDoc.Servers),
                 Paths = TransformPaths(transformModel.OpenApiDoc, transformModel.Operation.Value, requiredQueryUriParameters),
                 OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
-                UriParameters = allUriParameters,
+                RequestParameters = allUriParameters,
                 Responses = TransformResponses(transformModel.Operation.Value),
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value),
                 Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security: transformModel.OpenApiDoc.SecurityRequirements),
@@ -157,7 +157,7 @@
                         // todo, if there exist oneof/anyof will add all them to the array.
                         new RequestBodyItemEntity
                         {
-                            Parameters = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema)
+                            Properties = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema)
                         }
                     };
 
@@ -184,6 +184,7 @@
                     var responseEntity = new ResponseEntity
                     {
                         Name = TransformHelper.GetStatusCodeString(openApiResponse.Key),
+                        StatusCode = openApiResponse.Key,
                         Description = openApiResponse.Value.Description,
                         ResponseMediaTypeAndBodies = bodies.Count > 0 ? bodies : null,
                         ResponseHeades = null // todo
