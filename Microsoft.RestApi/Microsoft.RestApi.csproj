@@ -61,12 +61,13 @@
   <ItemGroup>
     <Compile Include="Models\RestFile\FileNameInfo.cs" />
     <Compile Include="Models\RestFile\RestFileInfo.cs" />
+    <Compile Include="Models\Schema\ComponentGroupEntity.cs" />
+    <Compile Include="Models\Schema\ComponentEntity.cs" />
     <Compile Include="Models\Schema\FlowEntity.cs" />
     <Compile Include="Models\Schema\OperationEntity.cs" />
     <Compile Include="Models\Schema\OptionalParameter.cs" />
     <Compile Include="Models\Schema\PropertyEntity.cs" />
     <Compile Include="Models\Schema\PropertyTypeEntity.cs" />
-    <Compile Include="Models\Schema\DefinitionEntity.cs" />
     <Compile Include="Models\Schema\HeaderEntity.cs" />
     <Compile Include="Models\Schema\IdentifiableEntity.cs" />
     <Compile Include="Models\Schema\NamedEntity.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Models\Schema\ServerEntity.cs" />
     <Compile Include="Models\Schema\ServerVariableEntity.cs" />
     <Compile Include="Models\TransformModel.cs" />
+    <Compile Include="Transformers\RestComponentsTransformer.cs" />
     <Compile Include="Transformers\TransformHelper.cs" />
     <Compile Include="Transformers\RestOperationGroupTransformer.cs" />
     <Compile Include="Transformers\RestOperationTransformer.cs" />

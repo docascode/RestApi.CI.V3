@@ -300,6 +300,9 @@
                     restFileInfo.FileNameInfos = fileNameInfos.ToList();
                 }
                 restFileInfo.TocTitle = openApiDoc.Info?.Title;
+
+                var componentsFileNameInfo = GenerateComponentToc(targetDir, openApiDoc, serviceName);
+                restFileInfo.FileNameInfos.Add(componentsFileNameInfo);
             }
             return restFileInfo;
         }
@@ -406,6 +409,29 @@
                 _transformerFactory?.TransformerOperation(model, targetDir, fileNameInfo.FileName);
                 yield return fileNameInfo;
             }
+        }
+
+        private FileNameInfo GenerateComponentToc(string targetDir, OpenApiDocument openApiDoc, string serviceName)
+        {
+            var model = new TransformModel
+            {
+                OpenApiDoc = openApiDoc,
+                ServiceName = serviceName,
+                GroupName = "components"
+            };
+            var componentGroupFileName = $"{model.GroupName}.yml";
+            var componentsDir = Path.Combine(targetDir, model.GroupName);
+            if (!Directory.Exists(Path.Combine(targetDir, componentsDir)))
+            {
+                Directory.CreateDirectory(Path.Combine(targetDir, componentsDir));
+            }
+            var componentFileNames = _transformerFactory.TransformerComponents(model, targetDir, componentGroupFileName, componentsDir);
+            var componentsFileNameInfo = new FileNameInfo
+            {
+                FileName = componentGroupFileName,
+                ChildrenFileNameInfo = componentFileNames.Select(c => new FileNameInfo { FileName = c}).ToList()
+            };
+            return componentsFileNameInfo;
         }
     }
 }

@@ -62,9 +62,6 @@
         [YamlMember(Alias = "responses")]
         public IList<ResponseEntity> Responses { get; set; }
 
-        [YamlMember(Alias = "definitions")]
-        public IList<DefinitionEntity> Definitions { get; set; }
-
         [YamlMember(Alias = "security")]
         public IList<SecurityEntity> Securities { get; set; }
 
