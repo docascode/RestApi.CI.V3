@@ -52,9 +52,9 @@
                 // todo: if exist component.Name == transformModel.GroupName should throw exception.
                 foreach (var component in componentGroup.Components)
                 {
-                    if (string.Equals(transformModel.GroupName, component.Name))
+                    if (string.Equals(transformModel.ComponentGroupName, component.Name))
                     {
-                        throw new Exception($"The component should not have name as same as {transformModel.GroupName}");
+                        throw new Exception($"The component should not have name as same as {transformModel.ComponentGroupName}");
                     }
                     using (var writer = new StreamWriter(Path.Combine(componentsDir, component.Name + ".yml")))
                     {
@@ -64,7 +64,7 @@
                     componentFileNameInfos.Add(new FileNameInfo
                     {
                         TocName = component.Name,
-                        FileName = Path.Combine(transformModel.GroupName, component.Name + ".yml")
+                        FileName = Path.Combine(transformModel.ComponentGroupName, component.Name + ".yml")
                     }); 
                 }
             }

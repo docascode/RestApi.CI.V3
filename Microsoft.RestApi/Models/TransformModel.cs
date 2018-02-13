@@ -14,7 +14,9 @@
 
         public string ServiceName { get; set; }
 
-        public string GroupName { get; set; }
+        public string OperationGroupName { get; set; }
+
+        public string ComponentGroupName { get; set; }
 
         public string OperationName { get; set; }
 

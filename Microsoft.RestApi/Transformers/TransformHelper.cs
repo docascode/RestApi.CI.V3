@@ -51,34 +51,43 @@
             return servers;
         }
 
-        public static string GetOperationId(IList<OpenApiServer> servers, string serviceName, string groupName, string operationName)
+        private static string GetServiceId(IList<OpenApiServer> servers, string serviceName)
         {
             var serverPaths = GetServerEnities(servers);
             var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
-            var defaultOperationId = $"{serviceName}.{groupName}.{operationName}";
+            var defaultServiceId = $"{serviceName}";
             if (!string.IsNullOrEmpty(defaultServerPath))
             {
                 var uri = new Uri(defaultServerPath);
                 var basePath = uri.AbsolutePath?.Replace('/', '.').Trim('.');
                 var hostWithBasePath = $"{uri.Host}.{basePath}".Replace(" ", "").Trim('.');
-                defaultOperationId = $"{hostWithBasePath}.{serviceName}.{groupName}.{operationName}";
+                defaultServiceId = $"{hostWithBasePath}.{serviceName}";
             }
-            return defaultOperationId.Replace(" ", "").Trim('.').ToLower();
+            return defaultServiceId.Replace(" ", "").Trim('.').ToLower();
+        }
+
+        public static string GetOperationId(IList<OpenApiServer> servers, string serviceName, string groupName, string operationName)
+        {
+            var serviceId = GetServiceId(servers, serviceName);
+            var operationId = $"{serviceId}.{groupName}.{operationName}";
+            return operationId.Replace(" ", "").Trim('.').ToLower();
         }
 
         public static string GetOperationGroupId(IList<OpenApiServer> servers, string serviceName, string groupName)
         {
-            var serverPaths = GetServerEnities(servers);
-            var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
-            var defaultOperationId = $"{serviceName}.{groupName}";
-            if (!string.IsNullOrEmpty(defaultServerPath))
-            {
-                var uri = new Uri(defaultServerPath);
-                var basePath = uri.AbsolutePath?.Replace('/', '.').Trim('.');
-                var hostWithBasePath = $"{uri.Host}.{basePath}".Replace(" ", "").Trim('.');
-                defaultOperationId = $"{hostWithBasePath}.{serviceName}.{groupName}";
-            }
-            return defaultOperationId.Replace(" ", "").Trim('.').ToLower();
+            var serviceId = GetServiceId(servers, serviceName);
+            var operationId = $"{serviceId}.{groupName}";
+            return operationId.Replace(" ", "").Trim('.').ToLower();
+        }
+
+        public static string GetComponentId(IList<OpenApiServer> servers, string serviceName, string componentGroupName, string componentName)
+        {
+            return GetOperationId(servers, serviceName, componentGroupName, componentName);
+        }
+
+        public static string GetComponentGroupId(IList<OpenApiServer> servers, string serviceName, string componentGroupName)
+        {
+            return GetOperationGroupId(servers, serviceName, componentGroupName);
         }
 
         public static string GetStatusCodeString(string statusCode)
@@ -176,18 +185,30 @@
             }
             return results;
         }
-        public static PropertyTypeEntity ParseOpenApiSchema(OpenApiSchema openApiSchema)
+
+        public static string GetReferenceId(OpenApiReference openApiReference, string componentGroupId)
+        {
+            if(openApiReference != null)
+            {
+                var referenceId = $"{componentGroupId}.{openApiReference.Id}";
+                return referenceId.Replace(" ", "").Trim('.').ToLower();
+                
+            }
+            return null;
+        }
+
+        public static PropertyTypeEntity ParseOpenApiSchema(OpenApiSchema openApiSchema, string componentGroupId)
         {
             var type = new PropertyTypeEntity
             {
-                Id = openApiSchema.Reference?.Id ?? openApiSchema.Type
+                Id = GetReferenceId(openApiSchema.Reference, componentGroupId) ?? openApiSchema.Type
             };
 
             if (openApiSchema.Type == "object")
             {
                 if (openApiSchema.Reference != null)
                 {
-                    type.Id = openApiSchema.Reference?.Id;
+                    type.Id = GetReferenceId(openApiSchema.Reference, componentGroupId);
                     return type;
                 }
 
@@ -201,7 +222,7 @@
                 if (openApiSchema.Properties?.Count > 0)
                 {
                     type.AnonymousChildren = new List<PropertyEntity>();
-                    type.AnonymousChildren.AddRange(GetPropertiesFromSchema(openApiSchema));
+                    type.AnonymousChildren.AddRange(GetPropertiesFromSchema(openApiSchema, componentGroupId));
                     type.Id = null;
                     return type;
                 }
@@ -218,7 +239,7 @@
                 }
                 else
                 {
-                    type.Id = ParseOpenApiSchema(openApiSchema.Items).Id;
+                    type.Id = ParseOpenApiSchema(openApiSchema.Items, componentGroupId).Id;
                 }
                 type.IsArray = true;
                 return type;
@@ -234,7 +255,7 @@
             return type;
         }
 
-        public static IList<PropertyEntity> GetPropertiesFromSchema(OpenApiSchema openApiSchema)
+        public static IList<PropertyEntity> GetPropertiesFromSchema(OpenApiSchema openApiSchema, string componentGroupId)
         {
             var properties = new List<PropertyEntity>();
             if (openApiSchema.Type == "object")
@@ -246,19 +267,19 @@
                     {
                         foreach(var anyOf in property.Value.AnyOf)
                         {
-                            types.Add(ParseOpenApiSchema(anyOf));
+                            types.Add(ParseOpenApiSchema(anyOf, componentGroupId));
                         }
                     }
                     else if(property.Value.OneOf?.Count() > 0)
                     {
                         foreach (var oneOf in property.Value.OneOf)
                         {
-                            types.Add(ParseOpenApiSchema(oneOf));
+                            types.Add(ParseOpenApiSchema(oneOf, componentGroupId));
                         }
                     }
                     else
                     {
-                        types.Add(ParseOpenApiSchema(property.Value));
+                        types.Add(ParseOpenApiSchema(property.Value, componentGroupId));
                     }
 
                     properties.Add(new PropertyEntity
@@ -279,7 +300,7 @@
 
             foreach (var allOf in openApiSchema.AllOf)
             {
-                properties.AddRange(GetPropertiesFromSchema(allOf));
+                properties.AddRange(GetPropertiesFromSchema(allOf, componentGroupId));
             }
             return properties;
         }

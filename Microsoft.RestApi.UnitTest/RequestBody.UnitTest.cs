@@ -21,8 +21,28 @@
             var operation = openApiDocument.Paths.Values.First().Operations.Values.First();
 
             var expects = LoadExpectedJsonObject<List<RequestBodyEntity>>("../../expects/Requestbodies.json");
-            var requestbodies = RestOperationTransformer.TransformRequestBody(operation);
-            var test = JsonUtility.ToJsonString(requestbodies);
+            var requestbodies = RestOperationTransformer.TransformRequestBody(operation, string.Empty);
+
+            Assert.NotNull(requestbodies);
+            Assert.Equal(requestbodies.Count, expects.Count);
+
+            foreach (var expect in expects)
+            {
+                var foundRequestBody = requestbodies.SingleOrDefault(p => p.MediaType == expect.MediaType);
+                Assert.NotNull(foundRequestBody);
+                Assert.Equal(JsonUtility.ToJsonString(expect), JsonUtility.ToJsonString(foundRequestBody));
+            }
+        }
+
+        [Fact]
+        public void OperationEntity_GetRequestBody_With_ServerId()
+        {
+            var openApiDocument = LoadOpenApiDocument("../../samples/GetRequestBody2.yaml");
+            var operation = openApiDocument.Paths.Values.First().Operations.Values.First();
+
+            var expects = LoadExpectedJsonObject<List<RequestBodyEntity>>("../../expects/Requestbodies2.json");
+            var requestbodies = RestOperationTransformer.TransformRequestBody(operation, "mockServerId");
+
             Assert.NotNull(requestbodies);
             Assert.Equal(requestbodies.Count, expects.Count);
 

@@ -16,16 +16,16 @@
                 var operationName = openApiOperation.Value.OperationId;
                 var operation = new Operation
                 {
-                    Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName, operationName), 
+                    Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, operationName), 
                     Summary = TransformHelper.GetOperationSummary(openApiOperation.Value?.Summary, openApiOperation.Value?.Description)
                 };
                 operations.Add(operation);
             }
             return new OperationGroupEntity
             {
-                Id = TransformHelper.GetOperationGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.GroupName),
+                Id = TransformHelper.GetOperationGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName),
                 ApiVersion = transformModel.OpenApiDoc.Info?.Version,
-                Name = transformModel.GroupName,
+                Name = transformModel.OperationGroupName,
                 Service = transformModel.ServiceName,
                 Operations = operations,
                 Summary = transformModel.OpenApiTag.Description
