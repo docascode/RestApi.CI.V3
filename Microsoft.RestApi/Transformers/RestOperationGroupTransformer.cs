@@ -16,8 +16,9 @@
                 var operationName = openApiOperation.Value.OperationId;
                 var operation = new Operation
                 {
-                    Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, operationName), 
-                    Summary = TransformHelper.GetOperationSummary(openApiOperation.Value?.Summary, openApiOperation.Value?.Description)
+                    Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, operationName)
+                    // Remove this for now
+                    //Summary = TransformHelper.GetOperationSummary(openApiOperation.Value?.Summary, openApiOperation.Value?.Description)
                 };
                 operations.Add(operation);
             }
