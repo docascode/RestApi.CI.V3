@@ -16,12 +16,6 @@
         public string Service { get; set; }
 
         [YamlMember(Alias = "operations")]
-        public IList<Operation> Operations { get; set; }
-    }
-
-    public class Operation : IdentifiableEntity
-    {
-        [YamlMember(Alias = "summary")]
-        public string Summary { get; set; }
+        public IList<string> Operations { get; set; }
     }
 }

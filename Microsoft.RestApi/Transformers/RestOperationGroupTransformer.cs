@@ -10,16 +10,12 @@
         public static OperationGroupEntity Transform(TransformModel transformModel)
         {
             var openApiOperations = SplitHelper.FindOperationsByTag(transformModel.OpenApiDoc.Paths, transformModel.OpenApiTag);
-            var operations = new List<Operation>();
+            var operations = new List<string>();
             foreach (var openApiOperation in openApiOperations)
             {
                 var operationName = openApiOperation.Value.OperationId;
-                var operation = new Operation
-                {
-                    Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, operationName)
-                    // Remove this for now
-                    //Summary = TransformHelper.GetOperationSummary(openApiOperation.Value?.Summary, openApiOperation.Value?.Description)
-                };
+                var operation = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, operationName);
+
                 operations.Add(operation);
             }
             return new OperationGroupEntity
