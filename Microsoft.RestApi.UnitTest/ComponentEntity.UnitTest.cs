@@ -1,6 +1,5 @@
 ﻿namespace Microsoft.RestApi.UnitTest
 {
-    using System.Collections.Generic;
     using System.Linq;
 
     using Microsoft.RestApi.Common;
