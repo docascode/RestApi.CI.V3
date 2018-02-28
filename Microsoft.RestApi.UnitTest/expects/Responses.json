@@ -23,7 +23,8 @@
               }
             ]
           }
-        ]
+        ],
+        "Types": []
       }
     ],
     "Name": "200 OK",
@@ -38,7 +39,8 @@
           {
             "Id": "error"
           }
-        ]
+        ],
+        "ResponseBodySchemas": []
       }
     ],
     "Name": "Other Status Codes",
