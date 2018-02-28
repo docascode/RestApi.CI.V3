@@ -18,11 +18,11 @@
         [YamlMember(Alias = "isAnyOf")]
         public bool IsAnyOf { get; set; }
 
-        [YamlMember(Alias = "items")]
-        public IList<RequestBodyItemEntity> RequestBodyItems { get; set; }
+        [YamlMember(Alias = "schemas")]
+        public IList<RequestBodySchemaEntity> RequestBodySchemas { get; set; }
     }
 
-    public class RequestBodyItemEntity : NamedEntity
+    public class RequestBodySchemaEntity : NamedEntity
     {
         [YamlMember(Alias = "description")]
         public string Description { get; set; }

@@ -27,7 +27,8 @@
                 HttpVerb = transformModel.Operation.Key.ToString().ToUpper(),
                 Servers = TransformHelper.GetServerEnities(transformModel.OpenApiDoc.Servers),
                 Paths = TransformPaths(transformModel.OpenApiDoc, transformModel.Operation.Value, requiredQueryUriParameters),
-                OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
+                // remove this for now
+                // OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
                 RequestParameters = allUriParameters,
                 Responses = TransformResponses(transformModel.Operation.Value, componentGroupId),
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value, componentGroupId),
@@ -153,10 +154,10 @@
             {
                 foreach (var requestContent in openApiOperation.RequestBody.Content)
                 {
-                    var requestBodyItems = new List<RequestBodyItemEntity>
+                    var requestBodySchemas = new List<RequestBodySchemaEntity>
                     {
                         // todo, if there exist oneof/anyof will add all them to the array.
-                        new RequestBodyItemEntity
+                        new RequestBodySchemaEntity
                         {
                             Properties = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema, componentGroupId)
                         }
@@ -166,7 +167,7 @@
                     {
                         MediaType = requestContent.Key,
                         Description = openApiOperation.RequestBody.Description,
-                        RequestBodyItems = requestBodyItems
+                        RequestBodySchemas = requestBodySchemas
                     });
                 }
             }
@@ -293,10 +294,12 @@
             var responseMediaTypeAndBodyEntities = new List<ResponseMediaTypeAndBodyEntity>();
             foreach (var content in contents)
             {
+                var typeEntities = new List<IdentifiableEntity>();
                 var propertyTypeEntities = new List<PropertyTypeEntity>();
+
                 if (!string.IsNullOrEmpty(openApiReference?.Id))
                 {
-                    propertyTypeEntities.Add(new PropertyTypeEntity
+                    typeEntities.Add(new IdentifiableEntity
                     {
                         Id = TransformHelper.GetReferenceId(openApiReference, componentGroupId)
                     });
@@ -309,7 +312,8 @@
                 responseMediaTypeAndBodyEntities.Add(new ResponseMediaTypeAndBodyEntity
                 {
                     MediaType = content.Key,
-                    Types = propertyTypeEntities
+                    Types = typeEntities,
+                    ResponseBodySchemas = propertyTypeEntities
                 });
             }
             return responseMediaTypeAndBodyEntities;

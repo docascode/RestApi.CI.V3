@@ -30,6 +30,9 @@
         public string TypesTitle { get; set; }
 
         [YamlMember(Alias = "types")]
-        public IList<PropertyTypeEntity> Types { get; set; }
+        public IList<IdentifiableEntity> Types { get; set; }
+
+        [YamlMember(Alias = "schemas")]
+        public IList<PropertyTypeEntity> ResponseBodySchemas { get; set; }
     }
 }
