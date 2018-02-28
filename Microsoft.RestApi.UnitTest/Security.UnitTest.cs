@@ -1,10 +1,7 @@
 ﻿namespace Microsoft.RestApi.UnitTest
 {
-    using System.Collections.Generic;
     using System.Linq;
 
-    using Microsoft.RestApi.Common;
-    using Microsoft.RestApi.Models;
     using Microsoft.RestApi.Transformers;
 
     using Xunit;

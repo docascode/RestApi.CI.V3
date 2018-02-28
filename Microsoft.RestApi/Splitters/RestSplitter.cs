@@ -342,8 +342,8 @@
 
             foreach (var tag in openApiDoc.Tags)
             {
-                var filteredOperations = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
-                if (filteredOperations.Count > 0)
+                var filteredPathAndOperations = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
+                if (filteredPathAndOperations.Count > 0)
                 {
                     var fileNameInfo = new FileNameInfo
                     {
@@ -362,7 +362,7 @@
                     }
 
                     // Split operation group to operation
-                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredOperations, openApiDoc, serviceName, fileNameInfo.TocName, targetDir, newTagName));
+                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredPathAndOperations, openApiDoc, serviceName, fileNameInfo.TocName, targetDir, newTagName));
                     // Sort
                     fileNameInfo.ChildrenFileNameInfo.Sort((a, b) => string.CompareOrdinal(a.TocName, b.TocName));
 
@@ -382,11 +382,11 @@
             }
         }
 
-        private IEnumerable<FileNameInfo> SplitOperations(List<KeyValuePair<OperationType, OpenApiOperation>> operations, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
+        private IEnumerable<FileNameInfo> SplitOperations(List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>> pathAndOperations, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
         {
-            foreach (var operation in operations)
+            foreach (var pathAndOperation in pathAndOperations)
             {
-                var operationName = operation.Value.OperationId;
+                var operationName = pathAndOperation.Value.Value.OperationId;
                 var fileNameInfo = new FileNameInfo
                 {
                     TocName = Utility.ExtractPascalNameByRegex(operationName),
@@ -400,7 +400,8 @@
                 var model = new TransformModel
                 {
                     OpenApiDoc = openApiDoc,
-                    Operation = operation,
+                    Operation = pathAndOperation.Value,
+                    Path = pathAndOperation.Key,
                     ServiceName = serviceName,
                     OperationGroupName = groupName,
                     ComponentGroupName = "components",

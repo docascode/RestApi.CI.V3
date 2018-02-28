@@ -26,7 +26,7 @@
                 IsDeprecated = transformModel.Operation.Value.Deprecated,
                 HttpVerb = transformModel.Operation.Key.ToString().ToUpper(),
                 Servers = TransformHelper.GetServerEnities(transformModel.OpenApiDoc.Servers),
-                Paths = TransformPaths(transformModel.OpenApiDoc, transformModel.Operation.Value, requiredQueryUriParameters),
+                Paths = TransformPaths(transformModel.Path, transformModel.Operation.Value, requiredQueryUriParameters),
                 // remove this for now
                 // OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
                 RequestParameters = allUriParameters,
@@ -37,19 +37,9 @@
             };
         }
 
-        public static IList<string> TransformPaths(OpenApiDocument openApiDocument, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
+        public static IList<string> TransformPaths(string defaultPath, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
         {
-            var paths = new List<string>();
-            foreach (var path in openApiDocument.Paths)
-            {
-                foreach (var operation in path.Value.Operations)
-                {
-                    if (openApiOperation.OperationId == operation.Value.OperationId)
-                    {
-                        paths.Add(path.Key);
-                    }
-                }
-            }
+            var paths = new List<string> { defaultPath };
 
             if (openApiOperation.Extensions.TryGetValue("x-ms-additional-paths", out var openApiArrayAdditionalPaths))
             {
@@ -312,8 +302,8 @@
                 responseMediaTypeAndBodyEntities.Add(new ResponseMediaTypeAndBodyEntity
                 {
                     MediaType = content.Key,
-                    Types = typeEntities,
-                    ResponseBodySchemas = propertyTypeEntities
+                    Types = typeEntities.Count > 0 ? typeEntities : null,
+                    ResponseBodySchemas = propertyTypeEntities.Count > 0 ? propertyTypeEntities : null
                 });
             }
             return responseMediaTypeAndBodyEntities;
