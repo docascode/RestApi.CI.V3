@@ -2,7 +2,7 @@
   {
     "MediaType": "application/json",
     "Description": "Action parameters",
-    "RequestBodyItems": [
+    "RequestBodySchemas": [
       {
         "Properties": [
           {
@@ -30,7 +30,7 @@
   {
     "MediaType": "application/json2",
     "Description": "Action parameters",
-    "RequestBodyItems": [
+    "RequestBodySchemas": [
       {
         "Properties": [
           {

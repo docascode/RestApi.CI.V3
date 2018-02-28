@@ -9,7 +9,7 @@
     "ResponseMediaTypeAndBodies": [
       {
         "MediaType": "application/json",
-        "Types": [
+        "ResponseBodySchemas": [
           {
             "AnonymousChildren": [
               {
