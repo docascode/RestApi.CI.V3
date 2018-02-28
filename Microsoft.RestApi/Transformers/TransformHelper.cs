@@ -297,6 +297,18 @@
                     });
                 }
             }
+            else if(openApiSchema.Enum?.Count > 0)
+            {
+                var enumValues = GetValueFromListAny(openApiSchema.Enum);
+                foreach(var enumValue in enumValues)
+                {
+                    properties.Add(new PropertyEntity
+                    {
+                        Name = enumValue,
+                        Types = new List<PropertyTypeEntity> { new PropertyTypeEntity { Id = openApiSchema.Type } }
+                    });
+                }
+            }
 
             foreach (var allOf in openApiSchema.AllOf)
             {
