@@ -29,24 +29,22 @@
             return mappingFile;
         }
 
-        public static string GetApiDirectory(string rootDirectory, string targetApiRootDir)
+        public static string GetOutputDirectory(string outputRootDir)
         {
-            Guard.ArgumentNotNullOrEmpty(rootDirectory, nameof(rootDirectory));
-            Guard.ArgumentNotNullOrEmpty(targetApiRootDir, nameof(targetApiRootDir));
+            Guard.ArgumentNotNullOrEmpty(outputRootDir, nameof(outputRootDir));
 
-            var targetApiDir = Path.Combine(rootDirectory, targetApiRootDir);
-            if (Directory.Exists(targetApiDir))
+            if (Directory.Exists(outputRootDir))
             {
-                // Clear last built target api folder
-                Directory.Delete(targetApiDir, true);
-                Console.WriteLine($"Done cleaning previous existing {targetApiDir}");
+                // Clear last built output folder
+                Directory.Delete(outputRootDir, true);
+                Console.WriteLine($"Done cleaning previous existing {outputRootDir}");
             }
-            Directory.CreateDirectory(targetApiDir);
-            if (!targetApiDir.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            Directory.CreateDirectory(outputRootDir);
+            if (!outputRootDir.EndsWith(Path.DirectorySeparatorChar.ToString()))
             {
-                targetApiDir = targetApiDir + Path.DirectorySeparatorChar;
+                outputRootDir = outputRootDir + Path.DirectorySeparatorChar;
             }
-            return targetApiDir;
+            return outputRootDir;
         }
 
         public static string GenerateIndexHRef(string targetRootDir, string indexRelativePath, string targetApiDir)
