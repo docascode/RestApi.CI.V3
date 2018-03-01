@@ -118,20 +118,20 @@
             return str + "#";
         }
 
-        public static List<KeyValuePair<OperationType, OpenApiOperation>> FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
+        public static List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>> FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
         {
-            var operations = new List<KeyValuePair<OperationType, OpenApiOperation>>();
+            var pathAndOperations = new List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>();
             foreach (var path in openApiPaths)
             {
                 foreach(var operation in path.Value.Operations)
                 {
                     if (operation.Value.Tags?.Any(t => t.Name == tag.Name) == true)
                     {
-                        operations.Add(operation);
+                        pathAndOperations.Add(new KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>(path.Key, operation));
                     }
                 }
             }
-            return operations;
+            return pathAndOperations;
         }
     }
 }
