@@ -294,12 +294,11 @@
             var responseMediaTypeAndBodyEntities = new List<ResponseMediaTypeAndBodyEntity>();
             foreach (var content in contents)
             {
-                var typeEntities = new List<IdentifiableEntity>();
                 var propertyTypeEntities = new List<PropertyTypeEntity>();
 
                 if (!string.IsNullOrEmpty(openApiReference?.Id))
                 {
-                    typeEntities.Add(new IdentifiableEntity
+                    propertyTypeEntities.Add(new PropertyTypeEntity
                     {
                         Id = TransformHelper.GetReferenceId(openApiReference, componentGroupId)
                     });
@@ -312,7 +311,6 @@
                 responseMediaTypeAndBodyEntities.Add(new ResponseMediaTypeAndBodyEntity
                 {
                     MediaType = content.Key,
-                    Types = typeEntities,
                     ResponseBodySchemas = propertyTypeEntities
                 });
             }
