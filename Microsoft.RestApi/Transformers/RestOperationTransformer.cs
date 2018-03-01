@@ -301,7 +301,7 @@
                 responseMediaTypeAndBodyEntities.Add(new ResponseMediaTypeAndBodyEntity
                 {
                     MediaType = content.Key,
-                    ResponseBodySchemas = propertyTypeEntities
+                    ResponseBodySchemas = propertyTypeEntities.Count > 0 ? propertyTypeEntities : null
                 });
             }
             return responseMediaTypeAndBodyEntities;

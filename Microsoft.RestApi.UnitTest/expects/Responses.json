@@ -34,7 +34,7 @@
     "ResponseMediaTypeAndBodies": [
       {
         "MediaType": "application/json",
-        "Types": [
+        "ResponseBodySchemas": [
           {
             "Id": "error"
           }
