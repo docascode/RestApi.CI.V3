@@ -59,9 +59,7 @@
             if (!string.IsNullOrEmpty(defaultServerPath))
             {
                 var uri = new Uri(defaultServerPath);
-                var basePath = uri.AbsolutePath?.Replace('/', '.').Trim('.');
-                var hostWithBasePath = $"{uri.Host}.{basePath}".Replace(" ", "").Trim('.');
-                defaultServiceId = $"{hostWithBasePath}.{serviceName}";
+                defaultServiceId = $"{uri.Host}.{serviceName}".Replace(" ", "").Trim('.');
             }
             return defaultServiceId.Replace(" ", "").Trim('.').ToLower();
         }

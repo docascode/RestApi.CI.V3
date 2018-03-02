@@ -14,7 +14,7 @@
             "Name": "id"
         }],
         "Name": "microsoft.graph.entity",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.entity"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.entity"
     },
     {
         "ApiVersion": "1.0.1",
@@ -28,7 +28,7 @@
             "Name": "id"
         }],
         "Name": "microsoft.graph.extension",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.extension"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extension"
     },
       {
         "ApiVersion": "1.0.1",
@@ -91,7 +91,7 @@
           }
         ],
         "Name": "microsoft.graph.geoCoordinates",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.geocoordinates"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.geocoordinates"
       },
     {
         "ApiVersion": "1.0.1",
@@ -167,7 +167,7 @@
             "Name": "deletedDateTime"
         }],
         "Name": "microsoft.graph.directoryObject",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.directoryobject"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.directoryobject"
     },
     {
         "ApiVersion": "1.0.1",
@@ -200,7 +200,7 @@
             "Types": [
             {
                 "IsArray": true,
-                "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
+                "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
             }],
             "Name": "properties"
         },
@@ -219,7 +219,7 @@
             "Name": "owner"
         }],
         "Name": "microsoft.graph.schemaExtension",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.schemaextension"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.schemaextension"
     },
     {
         "ApiVersion": "1.0.1",
@@ -243,7 +243,7 @@
             "Name": "type"
         }],
         "Name": "microsoft.graph.extensionSchemaProperty",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
     },
     {
         "ApiVersion": "1.0.1",
@@ -252,12 +252,12 @@
         {
             "Types": [
             {
-                "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error.main"
+                "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.main"
             }],
             "Name": "error"
         }],
         "Name": "odata.error",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error"
     },
     {
         "ApiVersion": "1.0.1",
@@ -288,7 +288,7 @@
             "Types": [
             {
                 "IsArray": true,
-                "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error.detail"
+                "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.detail"
             }],
             "Name": "details"
         },
@@ -301,7 +301,7 @@
             "Name": "innererror"
         }],
         "Name": "odata.error.main",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error.main"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.main"
     },
     {
         "ApiVersion": "1.0.1",
@@ -329,7 +329,7 @@
             "Name": "target"
         }],
         "Name": "odata.error.detail",
-        "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup.odata.error.detail"
+        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.detail"
     }],
-    "Id": "graph.microsoft.com.beta.mockservername.mockcomponentgroup"
+    "Id": "graph.microsoft.com.mockservername.mockcomponentgroup"
 }
