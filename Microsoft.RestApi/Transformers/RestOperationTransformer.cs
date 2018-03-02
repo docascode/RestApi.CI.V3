@@ -149,6 +149,7 @@
                         // todo, if there exist oneof/anyof will add all them to the array.
                         new RequestBodySchemaEntity
                         {
+                            Name = "default",
                             Properties = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema, componentGroupId)
                         }
                     };
@@ -296,12 +297,13 @@
                 else
                 {
                     var type = TransformHelper.ParseOpenApiSchema(content.Value.Schema, componentGroupId);
-                    if(type.AnonymousChildren != null)
+                    if(type.AnonymousChildren != null && type.AnonymousChildren.Count > 0)
                     {
                         propertyEntities.AddRange(type.AnonymousChildren);
                     }
                     else
                     {
+                        type.AnonymousChildren = null;
                         propertyTypeEntities.Add(type);
                     }
                 }
