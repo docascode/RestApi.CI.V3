@@ -11,7 +11,7 @@
         {
             try
             {
-                if (args.Length != 3)
+                if (args.Length != 4)
                 {
                     Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [source_root_directory] [target_root_directory] [mappingfile.json] [output_directory]");
                     return 1;
