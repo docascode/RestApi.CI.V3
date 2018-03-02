@@ -225,7 +225,6 @@
                     }
                 }
             }
- 
         }
 
         private SortedDictionary<string, List<SwaggerToc>> SplitSwaggers(string targetApiVersionDir, ServiceInfo service, string version)
