@@ -11,13 +11,13 @@
         {
             try
             {
-                if (args.Length != 3)
+                if (args.Length != 4)
                 {
-                    Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [source_root_directory] [target_root_directory] [mappingfile.json]");
+                    Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [source_root_directory] [target_root_directory] [mappingfile.json] [output_directory]");
                     return 1;
                 }
                 var transformerFactory = new RestTransformerFactory();
-                var restFileInfos = new RestSplitter(args[0], args[1], args[2], transformerFactory);
+                var restFileInfos = new RestSplitter(args[0], args[1], args[2], args[3], transformerFactory);
                 restFileInfos.Process();
                 return 0;
             }

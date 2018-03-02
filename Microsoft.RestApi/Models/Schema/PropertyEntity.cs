@@ -9,6 +9,9 @@
         [YamlMember(Alias = "isReadyOnly")]
         public bool IsReadOnly { get; set; }
 
+        [YamlMember(Alias = "isRequired")]
+        public bool IsRequired { get; set; }
+
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
 

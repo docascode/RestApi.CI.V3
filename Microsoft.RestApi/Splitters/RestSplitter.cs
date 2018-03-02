@@ -16,13 +16,14 @@
     {
         private readonly string _sourceRootDir;
         private readonly string _targetRootDir;
+        private readonly string _outputDir;
         private readonly MappingFile _mappingFile;
         private readonly RestTransformerFactory _transformerFactory;
 
         protected const string TocFileName = "toc.md";
         protected static readonly Regex TocRegex = new Regex(@"^(?<headerLevel>#+)(( |\t)*)\[(?<tocTitle>.+)\]\((?<tocLink>(?!http[s]?://).*?)\)( |\t)*#*( |\t)*(\n|$)", RegexOptions.Compiled);
 
-        public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, RestTransformerFactory transformerFactory)
+        public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir, RestTransformerFactory transformerFactory)
         {
             Guard.ArgumentNotNullOrEmpty(sourceRootDir, nameof(sourceRootDir));
             if (!Directory.Exists(sourceRootDir))
@@ -38,6 +39,7 @@
 
             _sourceRootDir = sourceRootDir;
             _targetRootDir = targetRootDir;
+            _outputDir = outputDir;
             _mappingFile = JsonUtility.ReadFromFile<MappingFile>(mappingFilePath).SortMappingFile();
             _transformerFactory = transformerFactory;
         }
@@ -111,7 +113,7 @@
 
         private void WriteToc()
         {
-            var targetApiDir = SplitHelper.GetApiDirectory(_targetRootDir, _mappingFile.TargetApiRootDir);
+            var targetApiDir = SplitHelper.GetOutputDirectory(_outputDir);
             foreach (var version in _mappingFile.VersionList)
             {
                 var targetApiVersionDir = Path.Combine(targetApiDir, version);

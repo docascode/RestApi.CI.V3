@@ -8,6 +8,12 @@
     [Serializable]
     public class MappingFile
     {
+        [JsonProperty("enable_markdown_fragment")]
+        public bool EnableMarkdownFragment { get; set; }
+
+        [JsonProperty("temp_target_api_root_dir")]
+        public string TempTargetApiRootDir { get; set; }
+
         [JsonProperty("target_api_root_dir")]
         public string TargetApiRootDir { get; set; }
 
