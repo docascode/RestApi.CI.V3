@@ -9,8 +9,5 @@
     {
         [YamlMember(Alias = "in")]
         public string In { get; set; }
-
-        [YamlMember(Alias = "isRequired")]
-        public bool IsRequired { get; set; }
     }
 }

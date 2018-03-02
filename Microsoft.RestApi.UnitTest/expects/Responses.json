@@ -11,17 +11,13 @@
         "MediaType": "application/json",
         "ResponseBodySchemas": [
           {
-            "AnonymousChildren": [
+            "Types": [
               {
-                "Types": [
-                  {
-                    "IsArray": true,
-                    "Id": "microsoft.graph.directoryobject"
-                  }
-                ],
-                "Name": "value"
+                "IsArray": true,
+                "Id": "microsoft.graph.directoryobject"
               }
-            ]
+            ],
+            "Name": "value"
           }
         ]
       }
@@ -34,7 +30,7 @@
     "ResponseMediaTypeAndBodies": [
       {
         "MediaType": "application/json",
-        "ResponseBodySchemas": [
+        "ResponseBodyTypes": [
           {
             "Id": "error"
           }

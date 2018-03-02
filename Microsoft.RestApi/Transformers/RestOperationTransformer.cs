@@ -285,7 +285,7 @@
             foreach (var content in contents)
             {
                 var propertyTypeEntities = new List<PropertyTypeEntity>();
-
+                var propertyEntities = new List<PropertyEntity>();
                 if (!string.IsNullOrEmpty(openApiReference?.Id))
                 {
                     propertyTypeEntities.Add(new PropertyTypeEntity
@@ -295,13 +295,22 @@
                 }
                 else
                 {
-                    propertyTypeEntities.Add(TransformHelper.ParseOpenApiSchema(content.Value.Schema, componentGroupId));
+                    var type = TransformHelper.ParseOpenApiSchema(content.Value.Schema, componentGroupId);
+                    if(type.AnonymousChildren != null)
+                    {
+                        propertyEntities.AddRange(type.AnonymousChildren);
+                    }
+                    else
+                    {
+                        propertyTypeEntities.Add(type);
+                    }
                 }
 
                 responseMediaTypeAndBodyEntities.Add(new ResponseMediaTypeAndBodyEntity
                 {
                     MediaType = content.Key,
-                    ResponseBodySchemas = propertyTypeEntities.Count > 0 ? propertyTypeEntities : null
+                    ResponseBodyTypes = propertyTypeEntities.Count > 0 ? propertyTypeEntities : null,
+                    ResponseBodySchemas = propertyEntities.Count > 0 ? propertyEntities : null
                 });
             }
             return responseMediaTypeAndBodyEntities;
