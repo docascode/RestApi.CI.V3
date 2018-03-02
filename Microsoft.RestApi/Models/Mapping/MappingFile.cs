@@ -35,6 +35,9 @@
         [JsonProperty("apis_page_options")]
         public ApisPageOptions ApisPageOptions { get; set; }
 
+        [JsonProperty("version_list")]
+        public List<string> VersionList { get; set; }
+
         [JsonProperty("organizations")]
         public List<OrganizationInfo> OrganizationInfos { get; set; }
 
