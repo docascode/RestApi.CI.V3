@@ -47,25 +47,25 @@
             return outputRootDir;
         }
 
-        public static string GenerateIndexHRef(string targetRootDir, string indexRelativePath, string targetApiDir)
+        public static string GenerateIndexHRef(string targetRootDir, string indexRelativePath, string targetApiVersionDir)
         {
             Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
             Guard.ArgumentNotNullOrEmpty(indexRelativePath, nameof(indexRelativePath));
-            Guard.ArgumentNotNullOrEmpty(targetApiDir, nameof(targetApiDir));
+            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
 
             var indexPath = Path.Combine(targetRootDir, indexRelativePath);
             if (!File.Exists(indexPath))
             {
                 throw new FileNotFoundException($"Index file '{indexPath}' not exists.");
             }
-            return FileUtility.GetRelativePath(indexPath, targetApiDir);
+            return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
         }
 
-        public static IEnumerable<string> GenerateDocTocItems(string targetRootDir, string tocRelativePath, string targetApiDir)
+        public static IEnumerable<string> GenerateDocTocItems(string targetRootDir, string tocRelativePath, string targetApiVersionDir)
         {
             Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
             Guard.ArgumentNotNullOrEmpty(tocRelativePath, nameof(tocRelativePath));
-            Guard.ArgumentNotNullOrEmpty(targetApiDir, nameof(targetApiDir));
+            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
 
             var tocPath = Path.Combine(targetRootDir, tocRelativePath);
             if (!File.Exists(tocPath))
@@ -77,7 +77,7 @@
             {
                 throw new InvalidOperationException($"Currently only '{tocFileName}' is supported as conceptual toc, please update the toc path '{tocRelativePath}'.");
             }
-            var tocRelativeDirectoryToApi = FileUtility.GetRelativePath(Path.GetDirectoryName(tocPath), targetApiDir);
+            var tocRelativeDirectoryToApi = FileUtility.GetRelativePath(Path.GetDirectoryName(tocPath), targetApiVersionDir);
 
             foreach (var tocLine in File.ReadLines(tocPath))
             {
@@ -95,10 +95,10 @@
                         var tocTitle = match.Groups["tocTitle"].Value;
                         var headerLevel = match.Groups["headerLevel"].Value.Length;
                         var tocLinkRelativePath = tocRelativeDirectoryToApi + "/" + tocLink;
-                        var linkPath = Path.Combine(targetApiDir, tocLinkRelativePath);
+                        var linkPath = Path.Combine(targetApiVersionDir, tocLinkRelativePath);
                         if (!File.Exists(linkPath))
                         {
-                            throw new FileNotFoundException($"Link '{tocLinkRelativePath}' not exist in '{tocRelativePath}', when merging into '{tocFileName}' of '{targetApiDir}'");
+                            throw new FileNotFoundException($"Link '{tocLinkRelativePath}' not exist in '{tocRelativePath}', when merging into '{tocFileName}' of '{targetApiVersionDir}'");
                         }
                         yield return $"{new string('#', headerLevel)} [{tocTitle}]({tocLinkRelativePath})";
                     }

@@ -114,102 +114,111 @@
         private void WriteToc()
         {
             var targetApiDir = SplitHelper.GetOutputDirectory(_outputDir);
-            var targetTocPath = Path.Combine(targetApiDir, TocFileName);
-           
-            using (var writer = new StreamWriter(targetTocPath))
+            foreach (var version in _mappingFile.VersionList)
             {
-                // Write auto generated apis page
-                if (_mappingFile.ApisPageOptions?.EnableAutoGenerate == true)
+                var targetApiVersionDir = Path.Combine(targetApiDir, version);
+                Directory.CreateDirectory(targetApiVersionDir);
+                if (!targetApiVersionDir.EndsWith(Path.DirectorySeparatorChar.ToString()))
                 {
-                    if (string.IsNullOrEmpty(_mappingFile.ApisPageOptions.TargetFile))
-                    {
-                        throw new InvalidOperationException("Target file of apis page options should not be null or empty.");
-                    }
-                    var targetIndexPath = Path.Combine(_targetRootDir, _mappingFile.ApisPageOptions.TargetFile);
-                    writer.WriteLine($"# [{_mappingFile.ApisPageOptions.TocTitle}]({FileUtility.GetRelativePath(targetIndexPath, targetApiDir)})");
+                    targetApiVersionDir = targetApiVersionDir + Path.DirectorySeparatorChar;
                 }
+                var targetTocPath = Path.Combine(targetApiVersionDir, TocFileName);
 
-                // Write organization info
-                foreach (var orgInfo in _mappingFile.OrganizationInfos)
+                using (var writer = new StreamWriter(targetTocPath))
                 {
-                    // Deal with org name and index
-                    var subTocPrefix = string.Empty;
-                    if (!string.IsNullOrEmpty(orgInfo.OrganizationName))
+                    // Write auto generated apis page
+                    if (_mappingFile.ApisPageOptions?.EnableAutoGenerate == true)
                     {
-                        // Write index
-                        writer.WriteLine(!string.IsNullOrEmpty(orgInfo.OrganizationIndex)
-                            ? $"# [{orgInfo.OrganizationName}]({SplitHelper.GenerateIndexHRef(_targetRootDir, orgInfo.OrganizationIndex, targetApiDir)})"
-                            : $"# {orgInfo.OrganizationName}");
-                        subTocPrefix = "#";
-                    }
-                    else if (_mappingFile.ApisPageOptions?.EnableAutoGenerate != true && !string.IsNullOrEmpty(orgInfo.DefaultTocTitle) && !string.IsNullOrEmpty(orgInfo.OrganizationIndex))
-                    {
-                        writer.WriteLine($"# [{orgInfo.DefaultTocTitle}]({SplitHelper.GenerateIndexHRef(_targetRootDir, orgInfo.OrganizationIndex, targetApiDir)})");
+                        if (string.IsNullOrEmpty(_mappingFile.ApisPageOptions.TargetFile))
+                        {
+                            throw new InvalidOperationException("Target file of apis page options should not be null or empty.");
+                        }
+                        var targetIndexPath = Path.Combine(_targetRootDir, _mappingFile.ApisPageOptions.TargetFile);
+                        writer.WriteLine($"# [{_mappingFile.ApisPageOptions.TocTitle}]({FileUtility.GetRelativePath(targetIndexPath, targetApiVersionDir)})");
                     }
 
-                    // Sort by service name
-                    orgInfo.Services.Sort((a, b) => a.TocTitle.CompareTo(b.TocTitle));
-
-                    // Write service info
-                    foreach (var service in orgInfo.Services)
+                    // Write organization info
+                    foreach (var orgInfo in _mappingFile.OrganizationInfos)
                     {
-                        // 1. Top toc
-                        Console.WriteLine($"Created conceptual toc item '{service.TocTitle}'");
-                        writer.WriteLine(!string.IsNullOrEmpty(service.IndexFile)
-                            ? $"{subTocPrefix}# [{service.TocTitle}]({SplitHelper.GenerateIndexHRef(_targetRootDir, service.IndexFile, targetApiDir)})"
-                            : $"{subTocPrefix}# {service.TocTitle}");
-
-                        // 2. Parse and split REST swaggers
-                        var subTocDict = new SortedDictionary<string, List<SwaggerToc>>();
-                        if (service.SwaggerInfo != null)
+                        // Deal with org name and index
+                        var subTocPrefix = string.Empty;
+                        if (!string.IsNullOrEmpty(orgInfo.OrganizationName))
                         {
-                            subTocDict = SplitSwaggers(targetApiDir, service);
+                            // Write index
+                            writer.WriteLine(!string.IsNullOrEmpty(orgInfo.OrganizationIndex)
+                                ? $"# [{orgInfo.OrganizationName}]({SplitHelper.GenerateIndexHRef(_targetRootDir, orgInfo.OrganizationIndex, targetApiVersionDir)})"
+                                : $"# {orgInfo.OrganizationName}");
+                            subTocPrefix = "#";
+                        }
+                        else if (_mappingFile.ApisPageOptions?.EnableAutoGenerate != true && !string.IsNullOrEmpty(orgInfo.DefaultTocTitle) && !string.IsNullOrEmpty(orgInfo.OrganizationIndex))
+                        {
+                            writer.WriteLine($"# [{orgInfo.DefaultTocTitle}]({SplitHelper.GenerateIndexHRef(_targetRootDir, orgInfo.OrganizationIndex, targetApiVersionDir)})");
                         }
 
-                        // 3. Conceptual toc
-                        List<string> tocLines = null;
-                        if (!string.IsNullOrEmpty(service.TocFile))
-                        {
-                            tocLines = SplitHelper.GenerateDocTocItems(_targetRootDir, service.TocFile, targetApiDir).Where(i => !string.IsNullOrEmpty(i)).ToList();
-                            if (tocLines.Any())
-                            {
-                                foreach (var tocLine in tocLines)
-                                {
-                                    // Insert one heading before to make it sub toc
-                                    writer.WriteLine($"{subTocPrefix}#{tocLine}");
-                                }
-                                Console.WriteLine($"-- Created sub referenced toc items under conceptual toc item '{service.TocTitle}'");
-                            }
-                        }
+                        // Sort by service name
+                        orgInfo.Services.Sort((a, b) => a.TocTitle.CompareTo(b.TocTitle));
 
-                        // 4. Write REST toc
-                        if (service.SwaggerInfo != null)
+                        // Write service info
+                        foreach (var service in orgInfo.Services)
                         {
-                            var subRefTocPrefix = string.Empty;
-                            if (tocLines != null && tocLines.Count > 0)
+                            // 1. Top toc
+                            Console.WriteLine($"Created conceptual toc item '{service.TocTitle}'");
+                            writer.WriteLine(!string.IsNullOrEmpty(service.IndexFile)
+                                ? $"{subTocPrefix}# [{service.TocTitle}]({SplitHelper.GenerateIndexHRef(_targetRootDir, service.IndexFile, targetApiVersionDir)})"
+                                : $"{subTocPrefix}# {service.TocTitle}");
+
+                            // 2. Parse and split REST swaggers
+                            var subTocDict = new SortedDictionary<string, List<SwaggerToc>>();
+                            if (service.SwaggerInfo != null)
                             {
-                                subRefTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
-                                writer.WriteLine($"{subTocPrefix}#{subRefTocPrefix} Reference");
+                                subTocDict = SplitSwaggers(targetApiVersionDir, service, version);
                             }
 
-                            foreach (var pair in subTocDict)
+                            // 3. Conceptual toc
+                            List<string> tocLines = null;
+                            if (!string.IsNullOrEmpty(service.TocFile))
                             {
-                                var subGroupTocPrefix = subRefTocPrefix;
-                                if (!string.IsNullOrEmpty(pair.Key))
+                                tocLines = SplitHelper.GenerateDocTocItems(_targetRootDir, service.TocFile, targetApiVersionDir).Where(i => !string.IsNullOrEmpty(i)).ToList();
+                                if (tocLines.Any())
                                 {
-                                    subGroupTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
-                                    writer.WriteLine($"{subTocPrefix}#{subGroupTocPrefix} {pair.Key}");
-                                }
-                                var subTocList = pair.Value;
-                                subTocList.OrderBy(x => !Equals(x, "components")).ToList().Sort((x, y) => string.CompareOrdinal(x.Title, y.Title));
-                                foreach (var subToc in subTocList)
-                                {
-                                    writer.WriteLine($"{subTocPrefix}##{subGroupTocPrefix} [{subToc.Title}]({subToc.FilePath})");
-                                    if (subToc.ChildrenToc.Count > 0)
+                                    foreach (var tocLine in tocLines)
                                     {
-                                        foreach (var child in subToc.ChildrenToc)
+                                        // Insert one heading before to make it sub toc
+                                        writer.WriteLine($"{subTocPrefix}#{tocLine}");
+                                    }
+                                    Console.WriteLine($"-- Created sub referenced toc items under conceptual toc item '{service.TocTitle}'");
+                                }
+                            }
+
+                            // 4. Write REST toc
+                            if (service.SwaggerInfo != null)
+                            {
+                                var subRefTocPrefix = string.Empty;
+                                if (tocLines != null && tocLines.Count > 0)
+                                {
+                                    subRefTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
+                                    writer.WriteLine($"{subTocPrefix}#{subRefTocPrefix} Reference");
+                                }
+
+                                foreach (var pair in subTocDict)
+                                {
+                                    var subGroupTocPrefix = subRefTocPrefix;
+                                    if (!string.IsNullOrEmpty(pair.Key))
+                                    {
+                                        subGroupTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
+                                        writer.WriteLine($"{subTocPrefix}#{subGroupTocPrefix} {pair.Key}");
+                                    }
+                                    var subTocList = pair.Value;
+                                    subTocList.OrderBy(x => !Equals(x, "components")).ToList().Sort((x, y) => string.CompareOrdinal(x.Title, y.Title));
+                                    foreach (var subToc in subTocList)
+                                    {
+                                        writer.WriteLine($"{subTocPrefix}##{subGroupTocPrefix} [{subToc.Title}]({subToc.FilePath})");
+                                        if (subToc.ChildrenToc.Count > 0)
                                         {
-                                            writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix} [{child.Title}]({child.FilePath})");
+                                            foreach (var child in subToc.ChildrenToc)
+                                            {
+                                                writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix} [{child.Title}]({child.FilePath})");
+                                            }
                                         }
                                     }
                                 }
@@ -220,53 +229,56 @@
             }
         }
 
-        private SortedDictionary<string, List<SwaggerToc>> SplitSwaggers(string targetApiDir, ServiceInfo service)
+        private SortedDictionary<string, List<SwaggerToc>> SplitSwaggers(string targetApiVersionDir, ServiceInfo service, string version)
         {
             var subTocDict = new SortedDictionary<string, List<SwaggerToc>>();
 
             foreach (var swagger in service.SwaggerInfo)
             {
-                var targetDir = FileUtility.CreateDirectoryIfNotExist(Path.Combine(targetApiDir, service.UrlGroup));
-                var sourceFile = Path.Combine(_sourceRootDir, swagger.Source.TrimEnd());
-
-                if (!File.Exists(sourceFile))
+                if (string.Equals(swagger.Version, version))
                 {
-                    throw new ArgumentException($"{nameof(sourceFile)} '{sourceFile}' should exist.");
-                }
+                    var targetDir = FileUtility.CreateDirectoryIfNotExist(Path.Combine(targetApiVersionDir, service.UrlGroup));
+                    var sourceFile = Path.Combine(_sourceRootDir, swagger.Source.TrimEnd());
 
-                var restFileInfo = SplitSwaggersByTag(targetDir, sourceFile, service.TocTitle, swagger.OperationGroupMapping, _mappingFile);
-               
-                var tocTitle = Utility.ExtractPascalNameByRegex(restFileInfo.TocTitle);
-                var subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
-                List<SwaggerToc> subTocList;
-                if (!subTocDict.TryGetValue(subGroupName, out subTocList))
-                {
-                    subTocList = new List<SwaggerToc>();
-                    subTocDict.Add(subGroupName, subTocList);
-                }
-
-                foreach (var fileNameInfo in restFileInfo.FileNameInfos)
-                {
-                    var subTocTitle = fileNameInfo.TocName;
-                    var filePath = FileUtility.NormalizePath(Path.Combine(service.UrlGroup, fileNameInfo.FileName));
-
-                    if (subTocList.Any(toc => toc.Title == subTocTitle))
+                    if (!File.Exists(sourceFile))
                     {
-                        throw new InvalidOperationException($"Sub toc '{subTocTitle}' under '{tocTitle}' has been added into toc.md, please add operation group name mapping for file '{swagger.Source}' to avoid conflicting");
+                        throw new ArgumentException($"{nameof(sourceFile)} '{sourceFile}' should exist.");
                     }
 
-                    var childrenToc = new List<SwaggerToc>();
-                    if (fileNameInfo.ChildrenFileNameInfo != null && fileNameInfo.ChildrenFileNameInfo.Count > 0)
+                    var restFileInfo = SplitSwaggersByTag(targetDir, sourceFile, service.TocTitle, swagger.OperationGroupMapping, _mappingFile);
+
+                    var tocTitle = Utility.ExtractPascalNameByRegex(restFileInfo.TocTitle);
+                    var subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
+                    List<SwaggerToc> subTocList;
+                    if (!subTocDict.TryGetValue(subGroupName, out subTocList))
                     {
-                        foreach (var nameInfo in fileNameInfo.ChildrenFileNameInfo)
+                        subTocList = new List<SwaggerToc>();
+                        subTocDict.Add(subGroupName, subTocList);
+                    }
+
+                    foreach (var fileNameInfo in restFileInfo.FileNameInfos)
+                    {
+                        var subTocTitle = fileNameInfo.TocName;
+                        var filePath = FileUtility.NormalizePath(Path.Combine(service.UrlGroup, fileNameInfo.FileName));
+
+                        if (subTocList.Any(toc => toc.Title == subTocTitle))
                         {
-                            childrenToc.Add(new SwaggerToc(nameInfo.TocName, FileUtility.NormalizePath(Path.Combine(service.UrlGroup, nameInfo.FileName))));
+                            throw new InvalidOperationException($"Sub toc '{subTocTitle}' under '{tocTitle}' has been added into toc.md, please add operation group name mapping for file '{swagger.Source}' to avoid conflicting");
                         }
-                    }
 
-                    subTocList.Add(new SwaggerToc(subTocTitle, filePath, childrenToc));
+                        var childrenToc = new List<SwaggerToc>();
+                        if (fileNameInfo.ChildrenFileNameInfo != null && fileNameInfo.ChildrenFileNameInfo.Count > 0)
+                        {
+                            foreach (var nameInfo in fileNameInfo.ChildrenFileNameInfo)
+                            {
+                                childrenToc.Add(new SwaggerToc(nameInfo.TocName, FileUtility.NormalizePath(Path.Combine(service.UrlGroup, nameInfo.FileName))));
+                            }
+                        }
+
+                        subTocList.Add(new SwaggerToc(subTocTitle, filePath, childrenToc));
+                    }
+                    Console.WriteLine($"Done splitting swagger file from '{swagger.Source}' to '{service.UrlGroup}'");
                 }
-                Console.WriteLine($"Done splitting swagger file from '{swagger.Source}' to '{service.UrlGroup}'");
             }
 
             return subTocDict;
