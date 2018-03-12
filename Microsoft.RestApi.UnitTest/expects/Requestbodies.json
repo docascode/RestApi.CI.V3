@@ -4,6 +4,7 @@
     "Description": "Action parameters",
     "RequestBodySchemas": [
       {
+        "Name": "default",
         "Properties": [
           {
             "Types": [
@@ -32,6 +33,7 @@
     "Description": "Action parameters",
     "RequestBodySchemas": [
       {
+        "Name": "default",
         "Properties": [
           {
             "Types": [
