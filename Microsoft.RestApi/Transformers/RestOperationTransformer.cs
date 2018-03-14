@@ -287,7 +287,7 @@
             {
                 var propertyTypeEntities = new List<PropertyTypeEntity>();
                 var propertyEntities = new List<PropertyEntity>();
-                if (!string.IsNullOrEmpty(openApiReference?.Id))
+                if (!string.IsNullOrEmpty(openApiReference?.Id) && openApiReference?.ReferenceV3?.Contains("responses") == false)
                 {
                     propertyTypeEntities.Add(new PropertyTypeEntity
                     {

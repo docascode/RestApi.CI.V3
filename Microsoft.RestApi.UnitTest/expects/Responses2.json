@@ -32,7 +32,7 @@
         "MediaType": "application/json",
         "ResponseBodyTypes": [
           {
-            "Id": "mockserverid.error"
+            "Id": "mockserverid.odata.error"
           }
         ]
       }
