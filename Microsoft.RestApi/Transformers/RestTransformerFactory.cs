@@ -12,7 +12,7 @@
         public static readonly string YamlExtension = ".yml";
         public static readonly YamlSerializer YamlSerializer = new YamlSerializer();
 
-        public string TransformerOperationGroup(TransformModel transformModel, string targetDir)
+        public FileNameInfo TransformerOperationGroup(TransformModel transformModel, string targetDir)
         {
             var operationGroupInfo = RestOperationGroupTransformer.Transform(transformModel);
             if (operationGroupInfo != null)
@@ -34,12 +34,16 @@
                     writer.WriteLine("### YamlMime:RESTOperationGroupV3");
                     YamlSerializer.Serialize(writer, operationGroupInfo);
                 }
-                return $"{filePath}{YamlExtension}";
+                return new FileNameInfo
+                {
+                    FileId = operationGroupInfo.Id,
+                    FileName = $"{filePath}{YamlExtension}"
+                };
             }
             throw new Exception("Transform operation group failed");
         }
 
-        public string TransformerOperation(TransformModel transformModel, string targetDir)
+        public FileNameInfo TransformerOperation(TransformModel transformModel, string targetDir)
         {
             var operationInfo = RestOperationTransformer.Transform(transformModel);
             if (operationInfo != null)
@@ -57,7 +61,11 @@
                     writer.WriteLine("### YamlMime:RESTOperationV3");
                     YamlSerializer.Serialize(writer, operationInfo);
                 }
-                return $"{filePath}{YamlExtension}";
+                return new FileNameInfo
+                {
+                    FileId = operationInfo.Id,
+                    FileName = $"{filePath}{YamlExtension}"
+                };
             }
             throw new Exception("Transform operation failed");
         }
@@ -102,11 +110,13 @@
                     componentFileNameInfos.Add(new FileNameInfo
                     {
                         TocName = component.Name,
-                        FileName = $"{componentFilePath}{YamlExtension}"
+                        FileName = $"{componentFilePath}{YamlExtension}",
+                        FileId = component.Id
                     }); 
                 }
                 return new FileNameInfo
                 {
+                    FileId = componentGroup.Id,
                     FileName = $"{filePath}{YamlExtension}",
                     TocName = ComponentGroupName,
                     ChildrenFileNameInfo = componentFileNameInfos

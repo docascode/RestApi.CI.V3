@@ -8,12 +8,15 @@
 
         public string FilePath { get; }
 
+        public string Uid { get; }
+
         public List<SwaggerToc> ChildrenToc { get; }
 
-        public SwaggerToc(string title, string filePath, List<SwaggerToc> childrenToc = null)
+        public SwaggerToc(string title, string filePath, string uid, List<SwaggerToc> childrenToc = null)
         {
             Title = title;
             FilePath = filePath;
+            Uid = uid;
             ChildrenToc = childrenToc;
         }
     }

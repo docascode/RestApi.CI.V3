@@ -4,6 +4,8 @@
 
     public class FileNameInfo
     {
+        public string FileId { get; set; }
+
         public string FileName { get; set; }
 
         public List<FileNameInfo> ChildrenFileNameInfo { get; set; }

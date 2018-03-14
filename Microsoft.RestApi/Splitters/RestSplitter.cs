@@ -212,12 +212,12 @@
                                     subTocList.OrderBy(x => !Equals(x, "components")).ToList().Sort((x, y) => string.CompareOrdinal(x.Title, y.Title));
                                     foreach (var subToc in subTocList)
                                     {
-                                        writer.WriteLine($"{subTocPrefix}##{subGroupTocPrefix} [{subToc.Title}]({subToc.FilePath})");
+                                        writer.WriteLine($"{subTocPrefix}##{subGroupTocPrefix} [{subToc.Title}](xref:{subToc.Uid})");
                                         if (subToc.ChildrenToc.Count > 0)
                                         {
                                             foreach (var child in subToc.ChildrenToc)
                                             {
-                                                writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix} [{child.Title}]({child.FilePath})");
+                                                writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix} [{child.Title}](xref:{child.Uid})");
                                             }
                                         }
                                     }
@@ -226,7 +226,12 @@
                         }
                     }
                 }
-
+                var destTocPath = Path.Combine(Directory.GetDirectories(Path.GetDirectoryName(targetTocPath)).First(), Path.GetFileName(targetTocPath));
+                File.Copy(targetTocPath, destTocPath);
+                if (File.Exists(targetTocPath))
+                {
+                    File.Delete(targetTocPath);
+                }
                 //TocConverter.Convert(targetTocPath);
                 //if (File.Exists(targetTocPath))
                 //{
@@ -277,11 +282,11 @@
                         {
                             foreach (var nameInfo in fileNameInfo.ChildrenFileNameInfo)
                             {
-                                childrenToc.Add(new SwaggerToc(nameInfo.TocName, FileUtility.NormalizePath(Path.Combine(service.UrlGroup, nameInfo.FileName))));
+                                childrenToc.Add(new SwaggerToc(nameInfo.TocName, nameInfo.FileName, nameInfo.FileId));
                             }
                         }
 
-                        subTocList.Add(new SwaggerToc(subTocTitle, filePath, childrenToc));
+                        subTocList.Add(new SwaggerToc(subTocTitle, filePath, fileNameInfo.FileId, childrenToc));
                     }
                     Console.WriteLine($"Done splitting swagger file from '{swagger.Source}' to '{service.UrlGroup}'");
                 }
@@ -393,7 +398,9 @@
                         ServiceName = serviceName,
                         OperationGroupName = fileNameInfo.TocName
                     };
-                    fileNameInfo.FileName = _transformerFactory?.TransformerOperationGroup(model, targetDir);
+                    var nameInfo = _transformerFactory?.TransformerOperationGroup(model, targetDir);
+                    fileNameInfo.FileId = nameInfo.FileId;
+                    fileNameInfo.FileName = nameInfo.FileName;
 
                     yield return fileNameInfo;
                 }
@@ -421,7 +428,9 @@
                     ComponentGroupName = "components",
                     OperationName = fileNameInfo.TocName,
                 };
-                fileNameInfo.FileName =  _transformerFactory?.TransformerOperation(model, targetDir);
+                var nameInfo =  _transformerFactory?.TransformerOperation(model, targetDir);
+                fileNameInfo.FileId = nameInfo.FileId;
+                fileNameInfo.FileName = nameInfo.FileName;
                 yield return fileNameInfo;
             }
         }
