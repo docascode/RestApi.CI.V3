@@ -9,54 +9,92 @@
 
     public class RestTransformerFactory
     {
+        public static readonly string YamlExtension = ".yml";
         public static readonly YamlSerializer YamlSerializer = new YamlSerializer();
 
-        public void TransformerOperationGroup(TransformModel transformModel, string targetDir, string fileName)
+        public string TransformerOperationGroup(TransformModel transformModel, string targetDir)
         {
             var operationGroupInfo = RestOperationGroupTransformer.Transform(transformModel);
             if (operationGroupInfo != null)
             {
-                using (var writer = new StreamWriter(Path.Combine(targetDir, fileName)))
+                if (!Directory.Exists(targetDir))
+                {
+                    throw new ArgumentException($"{nameof(targetDir)} '{targetDir}' should exist.");
+                }
+
+                var filePath = TransformHelper.GetOperationGroupPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName);
+
+                var absolutePath = Path.Combine(targetDir, $"{filePath}{YamlExtension}");
+                if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
+                }
+                using (var writer = new StreamWriter(absolutePath))
                 {
                     writer.WriteLine("### YamlMime:RESTOperationGroupV3");
                     YamlSerializer.Serialize(writer, operationGroupInfo);
                 }
+                return filePath;
             }
+            throw new Exception("Transform operation group failed");
         }
 
-        public void TransformerOperation(TransformModel transformModel, string targetDir, string fileName)
+        public string TransformerOperation(TransformModel transformModel, string targetDir)
         {
             var operationInfo = RestOperationTransformer.Transform(transformModel);
             if (operationInfo != null)
             {
-                using (var writer = new StreamWriter(Path.Combine(targetDir, fileName)))
+                var filePath = TransformHelper.GetOperationPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, transformModel.OperationName);
+
+                var absolutePath = Path.Combine(targetDir, $"{filePath}{YamlExtension}");
+                if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
+                }
+
+                using (var writer = new StreamWriter(absolutePath))
                 {
                     writer.WriteLine("### YamlMime:RESTOperationV3");
                     YamlSerializer.Serialize(writer, operationInfo);
                 }
+                return filePath;
             }
+            throw new Exception("Transform operation failed");
         }
 
-        public IList<FileNameInfo> TransformerComponents(TransformModel transformModel, string targetDir, string componentGroupFileName, string componentsDir)
+        public FileNameInfo TransformerComponents(TransformModel transformModel, string targetDir, string ComponentGroupName)
         {
             var componentFileNameInfos = new List<FileNameInfo>();
             var componentGroup = RestComponentsTransformer.Transform(transformModel);
             if (componentGroup != null)
             {
-                using (var writer = new StreamWriter(Path.Combine(targetDir, componentGroupFileName)))
+                var filePath = TransformHelper.GetComponentGroupPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.ComponentGroupName);
+                var absolutePath = Path.Combine(targetDir, $"{filePath}{YamlExtension}");
+                if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
+                }
+
+                using (var writer = new StreamWriter(absolutePath))
                 {
                     writer.WriteLine("### YamlMime:RESTComponentGroupV3");
                     YamlSerializer.Serialize(writer, componentGroup);
                 }
 
-                // todo: if exist component.Name == transformModel.GroupName should throw exception.
                 foreach (var component in componentGroup.Components)
                 {
                     if (string.Equals(transformModel.ComponentGroupName, component.Name))
                     {
                         throw new Exception($"The component should not have name as same as {transformModel.ComponentGroupName}");
                     }
-                    using (var writer = new StreamWriter(Path.Combine(componentsDir, component.Name + ".yml")))
+
+                    var componentFilePath = TransformHelper.GetComponentPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.ComponentGroupName, component.Name);
+                    var componentAbsolutePath = Path.Combine(targetDir, $"{componentFilePath}{YamlExtension}");
+                    if (!Directory.Exists(Path.GetDirectoryName(componentAbsolutePath)))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(componentAbsolutePath));
+                    }
+                    using (var writer = new StreamWriter(componentAbsolutePath))
                     {
                         writer.WriteLine("### YamlMime:RESTComponentV3");
                         YamlSerializer.Serialize(writer, component);
@@ -64,11 +102,18 @@
                     componentFileNameInfos.Add(new FileNameInfo
                     {
                         TocName = component.Name,
-                        FileName = Path.Combine(transformModel.ComponentGroupName, component.Name + ".yml")
+                        FileName = componentFilePath
                     }); 
                 }
+                return new FileNameInfo
+                {
+                    FileName = filePath,
+                    TocName = ComponentGroupName,
+                    ChildrenFileNameInfo = componentFileNameInfos
+                };
             }
-            return componentFileNameInfos;
+
+            throw new Exception("Transform component group and components failed");
         }
     }
 }

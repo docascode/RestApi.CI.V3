@@ -380,8 +380,6 @@
                     // Sort
                     fileNameInfo.ChildrenFileNameInfo.Sort((a, b) => string.CompareOrdinal(a.TocName, b.TocName));
 
-                    fileNameInfo.FileName = $"{newTagName}.yml";
-
                     var model = new TransformModel
                     {
                         OpenApiDoc = openApiDoc,
@@ -389,7 +387,7 @@
                         ServiceName = serviceName,
                         OperationGroupName = fileNameInfo.TocName
                     };
-                    _transformerFactory?.TransformerOperationGroup(model, targetDir, fileNameInfo.FileName);
+                    fileNameInfo.FileName = _transformerFactory?.TransformerOperationGroup(model, targetDir);
 
                     yield return fileNameInfo;
                 }
@@ -406,10 +404,6 @@
                     TocName = Utility.ExtractPascalNameByRegex(operationName),
                     FileName = Path.Combine(tag, $"{operationName}.yml")
                 };
-                if (!Directory.Exists(Path.Combine(targetDir, tag)))
-                {
-                    Directory.CreateDirectory(Path.Combine(targetDir, tag));
-                }
 
                 var model = new TransformModel
                 {
@@ -421,7 +415,7 @@
                     ComponentGroupName = "components",
                     OperationName = fileNameInfo.TocName,
                 };
-                _transformerFactory?.TransformerOperation(model, targetDir, fileNameInfo.FileName);
+                fileNameInfo.FileName =  _transformerFactory?.TransformerOperation(model, targetDir);
                 yield return fileNameInfo;
             }
         }
@@ -434,20 +428,10 @@
                 ServiceName = serviceName,
                 ComponentGroupName = "components"
             };
-            var componentGroupFileName = $"{model.ComponentGroupName}.yml";
-            var componentsDir = Path.Combine(targetDir, model.ComponentGroupName);
-            if (!Directory.Exists(Path.Combine(targetDir, componentsDir)))
-            {
-                Directory.CreateDirectory(Path.Combine(targetDir, componentsDir));
-            }
-            var componentFileNameInfos = _transformerFactory.TransformerComponents(model, targetDir, componentGroupFileName, componentsDir);
-            var componentsFileNameInfo = new FileNameInfo
-            {
-                FileName = componentGroupFileName,
-                TocName = model.ComponentGroupName,
-                ChildrenFileNameInfo = componentFileNameInfos.ToList()
-            };
-            return componentsFileNameInfo;
+           
+            var componentsToc = _transformerFactory.TransformerComponents(model, targetDir, model.ComponentGroupName);
+           
+            return componentsToc;
         }
     }
 }

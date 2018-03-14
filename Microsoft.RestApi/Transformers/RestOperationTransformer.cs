@@ -32,7 +32,7 @@
                 RequestParameters = allUriParameters,
                 Responses = TransformResponses(transformModel.Operation.Value, componentGroupId),
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value, componentGroupId),
-                Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security: transformModel.OpenApiDoc.SecurityRequirements),
+                Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security : transformModel.OpenApiDoc.SecurityRequirements),
                 SeeAlsos = TransformExternalDocs(transformModel.Operation.Value)
             };
         }

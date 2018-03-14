@@ -67,5 +67,8 @@
 
         [YamlMember(Alias = "seeAlso")]
         public IList<SeeAlsoEntity> SeeAlsos { get; set; }
+
+        [YamlIgnore]
+        public string FilePath { get; set; }
     }
 }
