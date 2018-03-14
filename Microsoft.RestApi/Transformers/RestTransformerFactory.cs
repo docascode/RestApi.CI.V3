@@ -34,7 +34,7 @@
                     writer.WriteLine("### YamlMime:RESTOperationGroupV3");
                     YamlSerializer.Serialize(writer, operationGroupInfo);
                 }
-                return filePath;
+                return $"{filePath}{YamlExtension}";
             }
             throw new Exception("Transform operation group failed");
         }
@@ -57,7 +57,7 @@
                     writer.WriteLine("### YamlMime:RESTOperationV3");
                     YamlSerializer.Serialize(writer, operationInfo);
                 }
-                return filePath;
+                return $"{filePath}{YamlExtension}";
             }
             throw new Exception("Transform operation failed");
         }
@@ -102,12 +102,12 @@
                     componentFileNameInfos.Add(new FileNameInfo
                     {
                         TocName = component.Name,
-                        FileName = componentFilePath
+                        FileName = $"{componentFilePath}{YamlExtension}"
                     }); 
                 }
                 return new FileNameInfo
                 {
-                    FileName = filePath,
+                    FileName = $"{filePath}{YamlExtension}",
                     TocName = ComponentGroupName,
                     ChildrenFileNameInfo = componentFileNameInfos
                 };
