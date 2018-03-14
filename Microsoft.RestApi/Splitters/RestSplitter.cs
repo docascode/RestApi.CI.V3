@@ -226,11 +226,12 @@
                         }
                     }
                 }
-                TocConverter.Convert(targetTocPath);
-                if (File.Exists(targetTocPath))
-                {
-                    File.Delete(targetTocPath);
-                }
+
+                //TocConverter.Convert(targetTocPath);
+                //if (File.Exists(targetTocPath))
+                //{
+                //    File.Delete(targetTocPath);
+                //}
             }
         }
 
@@ -250,7 +251,7 @@
                         throw new ArgumentException($"{nameof(sourceFile)} '{sourceFile}' should exist.");
                     }
 
-                    var restFileInfo = SplitSwaggersByTag(targetDir, sourceFile, service.TocTitle, swagger.OperationGroupMapping, _mappingFile);
+                    var restFileInfo = SplitSwaggersByTag(targetDir, sourceFile, service.Name, swagger.OperationGroupMapping, _mappingFile);
 
                     var tocTitle = Utility.ExtractPascalNameByRegex(restFileInfo.TocTitle);
                     var subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
