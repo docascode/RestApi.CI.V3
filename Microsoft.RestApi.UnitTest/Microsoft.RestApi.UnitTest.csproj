@@ -81,6 +81,7 @@
     <Compile Include="UriParameters.UnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="expects\Requestbodies2.json" />
     <None Include="expects\Components.json" />
     <None Include="expects\Responses2.json" />
