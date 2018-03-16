@@ -226,12 +226,6 @@
                         }
                     }
                 }
-                var destTocPath = Path.Combine(Directory.GetDirectories(Path.GetDirectoryName(targetTocPath)).First(), Path.GetFileName(targetTocPath));
-                File.Copy(targetTocPath, destTocPath);
-                if (File.Exists(targetTocPath))
-                {
-                    File.Delete(targetTocPath);
-                }
                 //TocConverter.Convert(targetTocPath);
                 //if (File.Exists(targetTocPath))
                 //{
