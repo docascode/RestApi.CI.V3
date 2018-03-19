@@ -224,7 +224,7 @@
                 {
                     Type = openApiSecurityScheme.Type.ToString(),
                     Description = openApiSecurityScheme.Description,
-                    In = openApiSecurityScheme.In.ToString(),
+                    In = openApiSecurityScheme.In.ToString().ToLower(),
                     Flows = flows
                 };
                 securities.Add(securityEntity);
@@ -323,19 +323,23 @@
             var scopes = new List<SecurityScopeEntity>();
             foreach (var scopeName in scopeNames)
             {
-                var scope = new SecurityScopeEntity
+                var flowScope = openApiOAuthFlow.Scopes.SingleOrDefault(s => s.Key.Equals(scopeName));
+                if(flowScope.Value != null)
                 {
-                    Name = scopeName,
-                    Description = openApiOAuthFlow.Scopes.Where(s => s.Key.Equals(scopeName)).Single().Value
-                };
-                scopes.Add(scope);
+                    var scope = new SecurityScopeEntity
+                    {
+                        Name = scopeName,
+                        Description = flowScope.Value
+                    };
+                    scopes.Add(scope);
+                }
             }
 
             return new FlowEntity
             {
                 Name = name,
-                AuthorizationUrl = openApiOAuthFlow.AuthorizationUrl.ToString(),
-                TokenUrl = openApiOAuthFlow.TokenUrl.ToString(),
+                AuthorizationUrl = openApiOAuthFlow.AuthorizationUrl?.ToString(),
+                TokenUrl = openApiOAuthFlow.TokenUrl?.ToString(),
                 Scopes = scopes
             };
         }
