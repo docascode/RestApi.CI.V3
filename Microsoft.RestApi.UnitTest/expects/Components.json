@@ -36,7 +36,7 @@
         "Description": "geoCoordinates",
         "PropertyItems": [
           {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
               {
                 "Id": "number"
@@ -54,7 +54,7 @@
             "Name": "altitude"
           },
           {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
               {
                 "Id": "number"
@@ -72,7 +72,7 @@
             "Name": "latitude"
           },
           {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
               {
                 "Id": "number"
@@ -105,7 +105,7 @@
             "Name": "id"
         },
         {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
             {
                 "Id": "number"
@@ -122,7 +122,7 @@
             "Name": "altitude"
         },
         {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
             {
                 "Id": "number"
@@ -139,7 +139,7 @@
             "Name": "latitude"
         },
         {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
             {
                 "Id": "number"
@@ -157,7 +157,7 @@
             "Name": "longitude"
         },
         {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
             {
                 "Id": "string"
@@ -181,7 +181,7 @@
             "Name": "id"
         },
         {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
             {
                 "Id": "string"
@@ -227,7 +227,7 @@
         "Description": "extensionSchemaProperty",
         "PropertyItems": [
         {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
             {
                 "Id": "string"
@@ -235,7 +235,7 @@
             "Name": "name"
         },
         {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
             {
                 "Id": "string"

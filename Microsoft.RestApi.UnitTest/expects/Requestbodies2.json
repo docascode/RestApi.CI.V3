@@ -16,7 +16,7 @@
             "Name": "groupIds"
           },
           {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
               {
                 "Id": "boolean"
@@ -44,7 +44,7 @@
             "Name": "id"
           },
           {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
               {
                 "Id": "number"
@@ -66,7 +66,7 @@
             "Name": "altitude"
           },
           {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
               {
                 "Id": "number"
@@ -88,7 +88,7 @@
             "Name": "latitude"
           },
           {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
               {
                 "Id": "number"
@@ -110,7 +110,7 @@
             "Name": "longitude"
           },
           {
-            "AllowEmptyValue": true,
+            "Nullable": true,
             "Types": [
               {
                 "Id": "string"

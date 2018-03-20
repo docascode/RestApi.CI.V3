@@ -109,7 +109,7 @@
                     In = openApiParameter.In.ToString().ToLower(),
                     IsRequired = openApiParameter.Required,
                     IsReadOnly = openApiParameter.Schema?.ReadOnly ?? false,
-                    AllowEmptyValue = openApiParameter.AllowEmptyValue,
+                    Nullable = openApiParameter.Schema?.Nullable ?? true,
                     IsDeprecated = openApiParameter.Deprecated,
                     Pattern = openApiParameter.Schema?.Pattern,
                     Format = openApiParameter.Schema?.Format,
