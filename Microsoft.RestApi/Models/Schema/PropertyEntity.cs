@@ -15,7 +15,7 @@
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
 
-        [YamlMember(Alias = "nullable")]
+        [YamlMember(Alias = "isNullable")]
         public bool Nullable { get; set; }
 
         [YamlMember(Alias = "isDeprecated")]

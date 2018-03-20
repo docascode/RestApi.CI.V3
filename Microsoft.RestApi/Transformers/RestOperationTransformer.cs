@@ -219,7 +219,6 @@
                     flows.Add(NewFlowEntity("password", keyValue.Value, openApiOAuthFlow));
                 }
 
-
                 var securityEntity = new SecurityEntity
                 {
                     Type = openApiSecurityScheme.Type.ToString(),
