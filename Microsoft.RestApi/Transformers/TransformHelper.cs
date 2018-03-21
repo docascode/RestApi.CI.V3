@@ -330,7 +330,7 @@
                         Name = property.Key,
                         IsReadOnly = property.Value.ReadOnly,
                         IsDeprecated = property.Value.Deprecated,
-                        AllowEmptyValue = property.Value.Nullable,
+                        Nullable = property.Value.Nullable,
                         Description = property.Value.Description ?? property.Value.Title,
                         Pattern = property.Value.Pattern,
                         Format = property.Value.Format,
