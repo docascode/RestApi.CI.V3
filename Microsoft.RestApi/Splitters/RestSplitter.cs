@@ -226,11 +226,11 @@
                         }
                     }
                 }
-                //TocConverter.Convert(targetTocPath);
-                //if (File.Exists(targetTocPath))
-                //{
-                //    File.Delete(targetTocPath);
-                //}
+                TocConverter.Convert(targetTocPath);
+                if (File.Exists(targetTocPath))
+                {
+                    File.Delete(targetTocPath);
+                }
             }
         }
 
