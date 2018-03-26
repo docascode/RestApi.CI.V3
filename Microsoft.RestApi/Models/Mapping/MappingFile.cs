@@ -47,6 +47,19 @@
         [JsonProperty("organizations")]
         public List<OrganizationInfo> OrganizationInfos { get; set; }
 
-       
+        [JsonProperty("tag_separator")]
+        public string TagSeparator { get; set; }
+
+        [JsonProperty("conceptual_folder")]
+        public string ConceptualFolder { get; set; }
+
+        [JsonProperty("component_prefix")]
+        public string ComponentPrefix { get; set; }
+
+        [JsonProperty("first_level_toc_order")]
+        public string[] FirstLevelTocOrders { get; set; }
+
+        [JsonProperty("second_level_toc_order")]
+        public Dictionary<string, List<string>> SecondLevelTocOrders { get; set; }
     }
 }

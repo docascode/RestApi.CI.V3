@@ -11,5 +11,7 @@
         public List<FileNameInfo> ChildrenFileNameInfo { get; set; }
 
         public string TocName { get; set; }
+
+        public bool IsComponentGroup { get; set; }
     }
 }

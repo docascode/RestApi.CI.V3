@@ -130,7 +130,9 @@
     <Compile Include="Models\Schema\SeeAlsoEntity.cs" />
     <Compile Include="Models\Schema\ServerEntity.cs" />
     <Compile Include="Models\Schema\ServerVariableEntity.cs" />
+    <Compile Include="Models\Schema\TocEntity.cs" />
     <Compile Include="Models\TransformModel.cs" />
+    <Compile Include="Splitters\GraphRestSplitter.cs" />
     <Compile Include="TocConverter.cs" />
     <Compile Include="Transformers\RestComponentsTransformer.cs" />
     <Compile Include="Transformers\TransformHelper.cs" />

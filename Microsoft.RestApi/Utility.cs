@@ -85,12 +85,6 @@
                 return name.Replace('_', ' ').Replace('-', ' ');
             }
 
-            // remove it, this is a temporary solution.
-            if (name.Contains("##"))
-            {
-                return name.Replace("##", " ");
-            }
-
             var result = new List<string>();
             var p = string.Format(Pattern, string.Join("|", Keyword));
             while (name.Length > 0)

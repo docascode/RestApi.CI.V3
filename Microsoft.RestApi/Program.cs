@@ -17,7 +17,7 @@
                     return 1;
                 }
                 var transformerFactory = new RestTransformerFactory();
-                var restFileInfos = new RestSplitter(args[0], args[1], args[2], args[3], transformerFactory);
+                var restFileInfos = new GraphRestSplitter(args[0], args[1], args[2], args[3], transformerFactory);
                 restFileInfos.Process();
                 return 0;
             }
