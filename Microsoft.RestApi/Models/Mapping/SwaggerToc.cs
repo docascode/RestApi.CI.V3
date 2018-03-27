@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
 
-    public class SwaggerToc : ICloneable, IComparable
+    public class SwaggerToc
     {
         public string Title { get; }
 
@@ -22,17 +22,6 @@
             Uid = uid;
             ChildrenToc = childrenToc;
             IsComponentGroup = isComponentGroup;
-        }
-
-        public object Clone()
-        {
-            return this.MemberwiseClone();
-        }
-
-        public int CompareTo(object obj)
-        {
-            var newSwaggerToc = (SwaggerToc)obj;
-            return string.Compare(this.Title, newSwaggerToc.Title);
         }
     }
 }

@@ -145,7 +145,7 @@
             return SplitHelper.GenerateHref(Path.Combine(TargetRootDir, MappingFile.ConceptualFolder), conceptualFile, targetApiVersionDir);
         }
 
-        public string GetSecondLevelComponentId(List<SwaggerToc> swaggerTocList, string componentFile)
+        private string GetSecondLevelComponentId(List<SwaggerToc> swaggerTocList, string componentFile)
         {
             foreach (var swaggerToc in swaggerTocList)
             {
