@@ -158,7 +158,7 @@
 
                         if (!string.IsNullOrEmpty(componentName) && componentName.Equals(componentFile))
                         {
-                            return swaggerToc.Uid;
+                            return childSwaggerToc.Uid;
                         }
                     }
                 }

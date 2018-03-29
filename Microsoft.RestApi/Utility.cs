@@ -84,6 +84,10 @@
             {
                 return name.Replace('_', ' ').Replace('-', ' ');
             }
+            if (name.Contains("."))
+            {
+                name = name.Replace(".", "");
+            }
 
             var result = new List<string>();
             var p = string.Format(Pattern, string.Join("|", Keyword));

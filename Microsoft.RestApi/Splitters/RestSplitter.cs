@@ -426,6 +426,12 @@
             foreach (var pathAndOperation in pathAndOperations)
             {
                 var operationName = pathAndOperation.Value.Value.OperationId;
+
+                // todo: remove this after the Graph team fix the operation Id.
+                if (operationName.Length > 50)
+                {
+                    operationName = operationName.Split('.').Last().Substring(0, 20);
+                }
                 var fileNameInfo = new FileNameInfo
                 {
                     TocName = operationName,
@@ -440,7 +446,7 @@
                     ServiceName = serviceName,
                     OperationGroupName = groupName,
                     ComponentGroupName = ComponentGroupName,
-                    OperationName = fileNameInfo.TocName,
+                    OperationName = Utility.ExtractPascalNameByRegex(fileNameInfo.TocName),
                 };
                 var nameInfo = TransformerFactory?.TransformerOperation(model, targetDir);
                 fileNameInfo.FileId = nameInfo.FileId;
