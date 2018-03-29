@@ -8,6 +8,9 @@
     [Serializable]
     public class MappingFile
     {
+        [JsonProperty("product")]
+        public string Product { get; set; }
+
         [JsonProperty("enable_markdown_fragment")]
         public bool EnableMarkdownFragment { get; set; }
 

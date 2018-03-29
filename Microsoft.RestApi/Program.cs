@@ -17,7 +17,7 @@
                     return 1;
                 }
                 var transformerFactory = new RestTransformerFactory();
-                var restSplitter = RestSplitterFactory.GetRestSplitter("Graph", args[0], args[1], args[2], args[3], transformerFactory);
+                var restSplitter = RestSplitterFactory.GetRestSplitter(args[0], args[1], args[2], args[3], transformerFactory);
                 restSplitter.Process();
                 return 0;
             }
