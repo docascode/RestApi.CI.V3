@@ -61,6 +61,20 @@
             return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
         }
 
+        public static string GenerateHref(string targetRootDir, string relativePath, string targetApiVersionDir)
+        {
+            Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
+            Guard.ArgumentNotNullOrEmpty(relativePath, nameof(relativePath));
+            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
+
+            var indexPath = Path.Combine(targetRootDir, relativePath);
+            if (!File.Exists(indexPath))
+            {
+                return null;
+            }
+            return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
+        }
+
         public static IEnumerable<string> GenerateDocTocItems(string targetRootDir, string tocRelativePath, string targetApiVersionDir)
         {
             Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
@@ -116,20 +130,45 @@
             return str + "#";
         }
 
-        public static List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>> FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
+        public static Tuple<List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>, List<string>> FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
         {
             var pathAndOperations = new List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>();
+            var extendTagNames = new List<string>();
             foreach (var path in openApiPaths)
             {
                 foreach(var operation in path.Value.Operations)
                 {
-                    if (operation.Value.Tags?.Any(t => t.Name == tag.Name) == true)
+                    var firstTag = operation.Value.Tags?.FirstOrDefault();
+                    if (firstTag != null)
                     {
-                        pathAndOperations.Add(new KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>(path.Key, operation));
+                        if (firstTag.Name == tag.Name)
+                        {
+                            pathAndOperations.Add(new KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>(path.Key, operation));
+
+                            foreach (var etag in operation.Value.Tags)
+                            {
+                                if (etag.Name != firstTag.Name && !extendTagNames.Any(t => t == etag.Name))
+                                {
+                                    extendTagNames.Add(etag.Name);
+                                }
+                            }
+                        }
                     }
                 }
             }
-            return pathAndOperations;
+            return new Tuple<List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>, List<string>>(pathAndOperations, extendTagNames);
+        }
+
+        public static IEnumerable<T> OrderBySequence<T, TId>(this IEnumerable<T> source, IEnumerable<TId> order, Func<T, TId> idSelector)
+        {
+            var lookup = source.ToLookup(idSelector, t => t);
+            foreach (var id in order)
+            {
+                foreach (var t in lookup[id])
+                {
+                    yield return t;
+                }
+            }
         }
     }
 }

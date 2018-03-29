@@ -84,11 +84,9 @@
             {
                 return name.Replace('_', ' ').Replace('-', ' ');
             }
-
-            // remove it, this is a temporary solution.
-            if (name.Contains("##"))
+            if (name.Contains("."))
             {
-                return name.Replace("##", " ");
+                name = name.Replace(".", "");
             }
 
             var result = new List<string>();

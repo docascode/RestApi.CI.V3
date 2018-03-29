@@ -2,7 +2,6 @@
 {
     using System;
 
-    using Newtonsoft.Json;
     using YamlDotNet.Serialization;
 
     [Serializable]
