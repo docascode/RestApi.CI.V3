@@ -19,6 +19,9 @@
         [YamlMember(Alias = "summary")]
         public string Summary { get; set; }
 
+        [YamlMember(Alias = "description")]
+        public string Description { get; set; }
+
         [YamlMember(Alias = "remarks")]
         public string Remarks { get; set; }
 

@@ -14,7 +14,7 @@
         [YamlMember(Alias = "statusCode")]
         public string StatusCode { get; set; }
 
-        [YamlMember(Alias = "body")]
+        [YamlMember(Alias = "bodies")]
         public IList<ResponseMediaTypeAndBodyEntity> ResponseMediaTypeAndBodies { get; set; }
 
         [YamlMember(Alias = "headers")]
