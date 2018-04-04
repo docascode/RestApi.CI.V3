@@ -19,7 +19,7 @@
         public static readonly YamlDotNet.Serialization.Deserializer YamlDeserializer = new YamlDotNet.Serialization.Deserializer();
         public static readonly YamlDotNet.Serialization.Serializer YamlSerializer = new YamlDotNet.Serialization.Serializer();
         public static readonly string Pattern = @"(?:{0}|[A-Z]+?(?={0}|[A-Z][a-z]|$)|[A-Z](?:[a-z]*?)(?={0}|[A-Z]|$)|(?:[a-z]+?)(?={0}|[A-Z]|$))";
-        public static readonly HashSet<string> Keyword = new HashSet<string> { "BI", "IP", "ML", "MAM", "OS", "VM", "VMs", "APIM", "vCenters" };
+        public static readonly HashSet<string> Keyword = new HashSet<string> { "BI", "IP", "ML", "MAM", "OS", "VM", "VMs", "APIM", "vCenters", "oneNote" };
 
         public static object GetYamlHeaderByMeta(string filePath, string metaName)
         {
@@ -74,6 +74,19 @@
             }
         }
 
+        public static string FirstLetterToUpper(this string str)
+        {
+            if (str == null)
+            {
+                return null;
+            }
+            if (str.Length > 1)
+            {
+                return char.ToUpper(str[0]) + str.Substring(1);
+            }
+            return str.ToUpper();
+        }
+
         public static string ExtractPascalNameByRegex(string name)
         {
             if (name.Contains(" "))
@@ -101,7 +114,7 @@
                 result.Add(m.Value);
                 name = name.Substring(m.Length);
             }
-            return string.Join(" ", result);
+            return string.Join(" ", result).FirstLetterToUpper();
         }
     }
 }

@@ -22,7 +22,7 @@
         public bool IsDeprecated { get; set; }
 
         [YamlMember(Alias = "types")]
-        public IList<PropertyTypeEntity> Types { get; set; }
+        public List<PropertyTypeEntity> Types { get; set; }
 
         [YamlMember(Alias = "typesTitle")]
         public string TypesTitle { get; set; }

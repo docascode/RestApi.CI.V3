@@ -278,7 +278,7 @@
                 {
                     type.Kind = "enum";
                     type.Id = openApiSchema.Items.Type;
-                    type.Values = GetValueFromListAny(openApiSchema.Items.Enum);
+                    type.Values = GetValueFromListAny(openApiSchema.Items.Enum).ToList();
                 }
                 else
                 {
@@ -292,7 +292,7 @@
                 if (openApiSchema.Enum?.Count > 0)
                 {
                     type.Kind = "enum";
-                    type.Values = GetValueFromListAny(openApiSchema.Enum);
+                    type.Values = GetValueFromListAny(openApiSchema.Enum).ToList();
                 }
             }
             return type;
