@@ -70,7 +70,6 @@
   <ItemGroup>
     <Compile Include="BaseUnitTest.cs" />
     <Compile Include="ComponentEntity.UnitTest.cs" />
-    <Compile Include="GraphComponent.UnitTest.cs" />
     <Compile Include="RequestBody.UnitTest.cs" />
     <Compile Include="Response.UnitTest.cs" />
     <Compile Include="Security.UnitTest.cs" />
