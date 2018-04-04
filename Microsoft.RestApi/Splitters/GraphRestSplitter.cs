@@ -97,7 +97,7 @@
                     foreach (var secondLevelGroupToc in secondLevelGroupTocs)
                     {
                         var primaryComponent = false;
-                        if(secondLevelSortOrders.IndexOf(secondLevelGroupToc.Title) > 0)
+                        if (secondLevelSortOrders.IndexOf(secondLevelGroupToc.Title) >= 0)
                         {
                             primaryComponent = true;
                         }
