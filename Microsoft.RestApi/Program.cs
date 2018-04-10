@@ -19,6 +19,14 @@
                 var transformerFactory = new RestTransformerFactory();
                 var restSplitter = RestSplitterFactory.GetRestSplitter(args[0], args[1], args[2], args[3], transformerFactory);
                 restSplitter.Process();
+
+                if (restSplitter.Errors.Count > 0)
+                {
+                    foreach(var error in restSplitter.Errors)
+                    {
+                        Console.WriteLine(error);
+                    }
+                }
                 return 0;
             }
             catch (Exception ex)

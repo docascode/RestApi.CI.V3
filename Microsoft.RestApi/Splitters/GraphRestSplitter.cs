@@ -74,7 +74,6 @@
                     var secondLevelGroupTocs = new List<SwaggerToc>();
                     if (secondLevelSortOrders.Count > 0)
                     {
-
                         secondLevelGroupTocs = firstLevelGroupToc.Value.OrderBy(x =>
                         {
                             var index = secondLevelSortOrders.IndexOf(x.Title);
@@ -129,12 +128,12 @@
                     }
                     else
                     {
-                        //warning
+                        Errors.Add($"Tag {swaggerToc.Title} should have one tag separator: {MappingFile.TagSeparator}");
                     }
                 }
                 else
                 {
-                    //warning
+                    Errors.Add($"Tag {swaggerToc.Title} should have tag separator: {MappingFile.TagSeparator}");
                 }
             }
             return finalTocDict;
@@ -163,6 +162,7 @@
                     }
                 }
             }
+            Errors.Add($"Can not find the component file: {componentFile}");
             return null;
         }
     }

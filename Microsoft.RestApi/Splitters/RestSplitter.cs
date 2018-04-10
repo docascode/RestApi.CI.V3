@@ -24,6 +24,8 @@
         public MappingFile MappingFile { get; }
         public RestTransformerFactory TransformerFactory { get; }
 
+        public IList<string> Errors { get; set; }
+
         public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir, RestTransformerFactory transformerFactory)
         {
             Guard.ArgumentNotNullOrEmpty(sourceRootDir, nameof(sourceRootDir));
@@ -37,7 +39,7 @@
             {
                 throw new ArgumentException($"mappingFilePath '{mappingFilePath}' should exist.");
             }
-
+            Errors = new List<string>();
             SourceRootDir = sourceRootDir;
             TargetRootDir = targetRootDir;
             OutputDir = outputDir;
