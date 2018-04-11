@@ -141,7 +141,12 @@
 
         private string GetFirstLevelConceptual(string conceptualFile, string targetApiVersionDir)
         {
-            return SplitHelper.GenerateHref(Path.Combine(TargetRootDir, MappingFile.ConceptualFolder), conceptualFile, targetApiVersionDir);
+            var conceptualHref = SplitHelper.GenerateHref(Path.Combine(TargetRootDir, MappingFile.ConceptualFolder), conceptualFile, targetApiVersionDir);
+            if (string.IsNullOrEmpty(conceptualHref))
+            {
+                Errors.Add($"Can not find the conceptual file: {conceptualFile}");
+            }
+            return conceptualHref;
         }
 
         private string GetSecondLevelComponentId(List<SwaggerToc> swaggerTocList, string componentFile)
