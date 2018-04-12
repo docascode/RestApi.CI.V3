@@ -97,6 +97,7 @@
                             : $"{subTocPrefix}##{subGroupTocPrefix}{fistLevelTocPrefix} {Utility.ExtractPascalNameByRegex(secondLevelGroupToc.Title)}");
                         if (secondLevelGroupToc.ChildrenToc.Count > 0)
                         {
+                            secondLevelGroupToc.ChildrenToc.Sort((a, b) => a.Title.CompareTo(b.Title));
                             foreach (var child in secondLevelGroupToc.ChildrenToc)
                             {
                                 writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix}{fistLevelTocPrefix} [{Utility.ExtractPascalNameByRegex(child.Title)}](xref:{child.Uid})");
@@ -113,27 +114,30 @@
 
             foreach (var swaggerToc in swaggerTocList)
             {
-                if (!swaggerToc.IsComponentGroup && swaggerToc.Title.Contains(MappingFile.TagSeparator))
+                if (!swaggerToc.IsComponentGroup)
                 {
-                    var groups = swaggerToc.Title.Split(new[] { MappingFile.TagSeparator }, StringSplitOptions.None);
-                    if (groups.Count() == 2)
+                    if (swaggerToc.Title.Contains(MappingFile.TagSeparator))
                     {
-                        List<SwaggerToc> newSwaggerTocList;
-                        if (!finalTocDict.TryGetValue(groups[0], out newSwaggerTocList))
+                        var groups = swaggerToc.Title.Split(new[] { MappingFile.TagSeparator }, StringSplitOptions.None);
+                        if (groups.Count() == 2)
                         {
-                            newSwaggerTocList = new List<SwaggerToc>();
-                            finalTocDict.Add(groups[0], newSwaggerTocList);
+                            List<SwaggerToc> newSwaggerTocList;
+                            if (!finalTocDict.TryGetValue(groups[0], out newSwaggerTocList))
+                            {
+                                newSwaggerTocList = new List<SwaggerToc>();
+                                finalTocDict.Add(groups[0], newSwaggerTocList);
+                            }
+                            newSwaggerTocList.Add(new SwaggerToc(groups[1], swaggerToc.FilePath, swaggerToc.Uid, swaggerToc.ChildrenToc));
                         }
-                        newSwaggerTocList.Add(new SwaggerToc(groups[1], swaggerToc.FilePath, swaggerToc.Uid, swaggerToc.ChildrenToc));
+                        else
+                        {
+                            Errors.Add($"Tag {swaggerToc.Title} should have one tag separator: {MappingFile.TagSeparator}");
+                        }
                     }
                     else
                     {
-                        Errors.Add($"Tag {swaggerToc.Title} should have one tag separator: {MappingFile.TagSeparator}");
+                        Errors.Add($"Tag {swaggerToc.Title} should have tag separator: {MappingFile.TagSeparator}");
                     }
-                }
-                else
-                {
-                    Errors.Add($"Tag {swaggerToc.Title} should have tag separator: {MappingFile.TagSeparator}");
                 }
             }
             return finalTocDict;

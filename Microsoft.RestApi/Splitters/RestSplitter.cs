@@ -239,7 +239,22 @@
                 {
                     File.Delete(targetTocPath);
                 }
+
+                PrintAndClearError();
             }
+        }
+
+        private void PrintAndClearError()
+        {
+            if (Errors.Count > 0)
+            {
+                Errors = Errors.Distinct().ToList();
+                foreach (var error in Errors)
+                {
+                    Console.WriteLine(error);
+                }
+            }
+            Errors = new List<string>();
         }
 
         private SortedDictionary<string, List<SwaggerToc>> SplitSwaggers(string targetApiVersionDir, ServiceInfo service, string version)
