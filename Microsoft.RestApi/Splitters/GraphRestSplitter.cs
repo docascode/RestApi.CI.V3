@@ -5,11 +5,15 @@
     using System.IO;
     using System.Linq;
 
+    using Microsoft.DocAsCode.YamlSerialization;
     using Microsoft.RestApi.Models;
     using Microsoft.RestApi.Transformers;
 
     public class GraphRestSplitter : RestSplitter
     {
+        public static readonly YamlSerializer YamlSerializer = new YamlSerializer();
+        public static readonly YamlDeserializer YamlDeserializer = new YamlDeserializer();
+
         public GraphRestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir, RestTransformerFactory transformerFactory)
             : base(sourceRootDir, targetRootDir, mappingFilePath, outputDir, transformerFactory)
         {
@@ -72,6 +76,7 @@
                         secondLevelSortOrders = new List<string>();
                     }
                     var secondLevelGroupTocs = new List<SwaggerToc>();
+
                     if (secondLevelSortOrders.Count > 0)
                     {
                         secondLevelGroupTocs = firstLevelGroupToc.Value.OrderBy(x =>
@@ -91,6 +96,12 @@
 
                     foreach (var secondLevelGroupToc in secondLevelGroupTocs)
                     {
+                        var primaryComponent = false;
+                        if (secondLevelSortOrders.IndexOf(secondLevelGroupToc.Title) >= 0)
+                        {
+                            primaryComponent = true;
+                        }
+
                         var componentId = GetSecondLevelComponentId(pair.Value, MappingFile.ComponentPrefix + secondLevelGroupToc.Title.ToLower() + ".yml");
                         writer.WriteLine(!string.IsNullOrEmpty(componentId)
                             ? $"{subTocPrefix}##{subGroupTocPrefix}{fistLevelTocPrefix} [{Utility.ExtractPascalNameByRegex(secondLevelGroupToc.Title)}](xref:{componentId})"
@@ -101,6 +112,24 @@
                             foreach (var child in secondLevelGroupToc.ChildrenToc)
                             {
                                 writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix}{fistLevelTocPrefix} [{Utility.ExtractPascalNameByRegex(child.Title)}](xref:{child.Uid})");
+                            }
+
+                            var componentFilePath = GetSecondLevelComponentPath(pair.Value, MappingFile.ComponentPrefix + secondLevelGroupToc.Title.ToLower() + ".yml", targetApiVersionDir);
+                            if (!string.IsNullOrEmpty(componentFilePath) && File.Exists(componentFilePath))
+                            {
+                                if (primaryComponent)
+                                {
+                                    List<SwaggerToc> allTocs = new List<SwaggerToc>();
+                                    foreach(var secondToc in secondLevelGroupTocs)
+                                    {
+                                        allTocs.AddRange(secondToc.ChildrenToc);
+                                    }
+                                    UpdateTheComponentYaml(componentFilePath, allTocs);
+                                }
+                                else
+                                {
+                                    UpdateTheComponentYaml(componentFilePath, secondLevelGroupToc.ChildrenToc);
+                                }
                             }
                         }
                     }
@@ -173,6 +202,52 @@
             }
             Errors.Add($"Can not find the component file: {componentFile}");
             return null;
+        }
+
+        private string GetSecondLevelComponentPath(List<SwaggerToc> swaggerTocList, string componentFile, string targetApiVersionDir)
+        {
+            foreach (var swaggerToc in swaggerTocList)
+            {
+                if (swaggerToc.IsComponentGroup)
+                {
+                    foreach (var childSwaggerToc in swaggerToc.ChildrenToc)
+                    {
+                        var fileName = childSwaggerToc.FilePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                        var componentName = fileName.ToLower().Split(Path.DirectorySeparatorChar)?.Last();
+
+                        if (!string.IsNullOrEmpty(componentName) && componentName.Equals(componentFile))
+                        {
+                            return Path.Combine(targetApiVersionDir, fileName);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static void UpdateTheComponentYaml(string componentYamlFile, List<SwaggerToc> secondLevelTocs)
+        {
+            ComponentEntity componentEntity = null;
+            using (var reader = new StreamReader(componentYamlFile))
+            {
+                componentEntity = YamlDeserializer.Deserialize<ComponentEntity>(reader);
+                componentEntity.Operations = componentEntity.Operations ?? new List<string>();
+                foreach (var secondLevelToc in secondLevelTocs)
+                {
+                    if (!componentEntity.Operations.Any(o => o == secondLevelToc.Uid))
+                    {
+                        componentEntity.Operations.Add(secondLevelToc.Uid);
+                    }
+                }
+            }
+            if (componentEntity != null)
+            {
+                using (var writer = new StreamWriter(componentYamlFile))
+                {
+                    writer.WriteLine("### YamlMime:RESTComponentV3");
+                    YamlSerializer.Serialize(writer, componentEntity);
+                }
+            }
         }
     }
 }

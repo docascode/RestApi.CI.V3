@@ -1,6 +1,7 @@
 ﻿namespace Microsoft.RestApi.Transformers
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     using Microsoft.RestApi.Models;
 
@@ -26,7 +27,7 @@
                         ApiVersion = transformModel.OpenApiDoc.Info.Version,
                         Name = schema.Key,
                         Description = schema.Value.Description ?? schema.Value.Title,
-                        PropertyItems = properties
+                        PropertyItems = properties.ToList()
                     };
 
                     components.Add(component);
