@@ -65,7 +65,7 @@
         [YamlMember(Alias = "responses")]
         public IList<ResponseEntity> Responses { get; set; }
 
-        [YamlMember(Alias = "security")]
+        [YamlMember(Alias = "securities")]
         public IList<SecurityEntity> Securities { get; set; }
 
         [YamlMember(Alias = "seeAlso")]

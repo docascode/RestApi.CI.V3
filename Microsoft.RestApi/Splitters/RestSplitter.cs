@@ -24,6 +24,8 @@
         public MappingFile MappingFile { get; }
         public RestTransformerFactory TransformerFactory { get; }
 
+        public IList<string> Errors { get; set; }
+
         public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir, RestTransformerFactory transformerFactory)
         {
             Guard.ArgumentNotNullOrEmpty(sourceRootDir, nameof(sourceRootDir));
@@ -37,7 +39,7 @@
             {
                 throw new ArgumentException($"mappingFilePath '{mappingFilePath}' should exist.");
             }
-
+            Errors = new List<string>();
             SourceRootDir = sourceRootDir;
             TargetRootDir = targetRootDir;
             OutputDir = outputDir;
@@ -237,7 +239,22 @@
                 {
                     File.Delete(targetTocPath);
                 }
+
+                PrintAndClearError();
             }
+        }
+
+        private void PrintAndClearError()
+        {
+            if (Errors.Count > 0)
+            {
+                Errors = Errors.Distinct().ToList();
+                foreach (var error in Errors)
+                {
+                    Console.WriteLine(error);
+                }
+            }
+            Errors = new List<string>();
         }
 
         private SortedDictionary<string, List<SwaggerToc>> SplitSwaggers(string targetApiVersionDir, ServiceInfo service, string version)
