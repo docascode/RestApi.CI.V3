@@ -8,6 +8,9 @@
     [Serializable]
     public class OrganizationInfo
     {
+        [JsonProperty("version")]
+        public string Version { get; set; }
+
         [JsonProperty("name")]
         public string OrganizationName { get; set; }
 

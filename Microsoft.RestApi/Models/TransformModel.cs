@@ -18,6 +18,8 @@
 
         public string OperationGroupName { get; set; }
 
+        public string OperationGroupPath { get; set; }
+
         public string ComponentGroupName { get; set; }
 
         public string OperationName { get; set; }
