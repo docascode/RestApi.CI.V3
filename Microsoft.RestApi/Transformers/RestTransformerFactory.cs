@@ -22,7 +22,7 @@
                     throw new ArgumentException($"{nameof(targetDir)} '{targetDir}' should exist.");
                 }
 
-                var filePath = TransformHelper.GetOperationGroupPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName);
+                var filePath = TransformHelper.GetOperationGroupPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupPath);
 
                 var absolutePath = Path.Combine(targetDir, $"{filePath}{YamlExtension}");
                 if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
@@ -48,7 +48,7 @@
             var operationInfo = RestOperationTransformer.Transform(transformModel);
             if (operationInfo != null)
             {
-                var filePath = TransformHelper.GetOperationPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, transformModel.OperationName);
+                var filePath = TransformHelper.GetOperationPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupPath, transformModel.OperationName);
 
                 var absolutePath = Path.Combine(targetDir, $"{filePath}{YamlExtension}");
                 if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))

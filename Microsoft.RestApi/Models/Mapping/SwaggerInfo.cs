@@ -13,9 +13,6 @@
         [JsonProperty("sub_group_toc_title")]
         public string SubGroupTocTitle { get; set; }
 
-        [JsonProperty("version")]
-        public string Version { get; set; }
-
         [JsonProperty("operation_group_mapping")]
         public OperationGroupMapping OperationGroupMapping { get; set; }
     }
