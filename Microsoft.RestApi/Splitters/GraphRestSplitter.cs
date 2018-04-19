@@ -102,7 +102,9 @@
                             primaryComponent = true;
                         }
 
-                        var componentId = GetSecondLevelComponentId(pair.Value, MappingFile.ComponentPrefix + secondLevelGroupToc.Title.ToLower() + ".yml");
+                        var componentId = secondLevelGroupToc.TocType == TocType.Page 
+                            ? GetSecondLevelComponentId(pair.Value, MappingFile.ComponentPrefix + secondLevelGroupToc.Title.ToLower() + ".yml")
+                            : null;
                         writer.WriteLine(!string.IsNullOrEmpty(componentId)
                             ? $"{subTocPrefix}##{subGroupTocPrefix}{fistLevelTocPrefix} [{Utility.ExtractPascalNameByRegex(secondLevelGroupToc.Title)}](xref:{componentId})"
                             : $"{subTocPrefix}##{subGroupTocPrefix}{fistLevelTocPrefix} {Utility.ExtractPascalNameByRegex(secondLevelGroupToc.Title)}");

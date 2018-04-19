@@ -15,13 +15,16 @@
 
         public bool IsComponentGroup { get; }
 
-        public SwaggerToc(string title, string filePath, string uid, List<SwaggerToc> childrenToc = null, bool isComponentGroup = false)
+        public TocType TocType { get; }
+
+        public SwaggerToc(string title, string filePath, string uid, List<SwaggerToc> childrenToc = null, bool isComponentGroup = false, TocType tocType = TocType.Page)
         {
             Title = title;
             FilePath = filePath;
             Uid = uid;
             ChildrenToc = childrenToc;
             IsComponentGroup = isComponentGroup;
+            TocType = tocType;
         }
     }
 }

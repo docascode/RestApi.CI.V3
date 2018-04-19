@@ -12,6 +12,8 @@
 
         public string TocName { get; set; }
 
+        public TocType TocType { get; set; }
+
         public bool IsComponentGroup { get; set; }
     }
 }

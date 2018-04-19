@@ -110,6 +110,7 @@
   <ItemGroup>
     <Compile Include="Models\RestFile\FileNameInfo.cs" />
     <Compile Include="Models\RestFile\RestFileInfo.cs" />
+    <Compile Include="Models\RestFile\TocType.cs" />
     <Compile Include="Models\Schema\ComponentGroupEntity.cs" />
     <Compile Include="Models\Schema\ComponentEntity.cs" />
     <Compile Include="Models\Schema\FlowEntity.cs" />

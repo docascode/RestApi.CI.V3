@@ -313,7 +313,7 @@
                         }
                     }
 
-                    subTocList.Add(new SwaggerToc(subTocTitle, filePath, fileNameInfo.FileId, childrenToc, fileNameInfo.IsComponentGroup));
+                    subTocList.Add(new SwaggerToc(subTocTitle, filePath, fileNameInfo.FileId, childrenToc, fileNameInfo.IsComponentGroup, fileNameInfo.TocType));
                 }
                 Console.WriteLine($"Done splitting swagger file from '{swagger.Source}' to '{service.UrlGroup}'");
             }
@@ -348,7 +348,8 @@
                 var fileNameInfos = SplitOperationGroups(targetDir, filePath, openApiDoc, serviceName, operationGroupMapping, mappingFile);
                 if (fileNameInfos.Any())
                 {
-                    restFileInfo.FileNameInfos = fileNameInfos.ToList();
+                    restFileInfo.FileNameInfos = AddTocType(openApiDoc.Tags, fileNameInfos);
+                   
                 }
                 restFileInfo.TocTitle = openApiDoc.Info?.Title;
 
@@ -357,6 +358,22 @@
                 restFileInfo.FileNameInfos.Add(componentsFileNameInfo);
             }
             return restFileInfo;
+        }
+
+        private List<FileNameInfo> AddTocType(IList<OpenApiTag>tags, IEnumerable<FileNameInfo> fileNameInfos)
+        {
+            foreach(var fileNameInfo in fileNameInfos)
+            {
+                var foundTag =tags.FirstOrDefault(t => t.Name == fileNameInfo.TocName);
+                if (foundTag != null && foundTag.Extensions.TryGetValue("x-ms-docs-toc-type", out var tagType))
+                {
+                    if (Enum.TryParse<TocType>(tagType.ToString(), out var tocType))
+                    {
+                        fileNameInfo.TocType = tocType;
+                    }
+                }
+            }
+            return fileNameInfos.ToList();
         }
 
         private OpenApiDocument ExtractOpenApiTagsFromPaths(OpenApiDocument openApiDoc)
