@@ -11,6 +11,7 @@
     using Microsoft.OpenApi.Readers;
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Transformers;
+    using Microsoft.OpenApi.Any;
 
     public class RestSplitter
     {
@@ -313,7 +314,7 @@
                         }
                     }
 
-                    subTocList.Add(new SwaggerToc(subTocTitle, filePath, fileNameInfo.FileId, childrenToc, fileNameInfo.IsComponentGroup));
+                    subTocList.Add(new SwaggerToc(subTocTitle, filePath, fileNameInfo.FileId, childrenToc, fileNameInfo.IsComponentGroup, fileNameInfo.TocType));
                 }
                 Console.WriteLine($"Done splitting swagger file from '{swagger.Source}' to '{service.UrlGroup}'");
             }
@@ -348,7 +349,8 @@
                 var fileNameInfos = SplitOperationGroups(targetDir, filePath, openApiDoc, serviceName, operationGroupMapping, mappingFile);
                 if (fileNameInfos.Any())
                 {
-                    restFileInfo.FileNameInfos = fileNameInfos.ToList();
+                    restFileInfo.FileNameInfos = AddTocType(openApiDoc.Tags, fileNameInfos);
+                   
                 }
                 restFileInfo.TocTitle = openApiDoc.Info?.Title;
 
@@ -357,6 +359,27 @@
                 restFileInfo.FileNameInfos.Add(componentsFileNameInfo);
             }
             return restFileInfo;
+        }
+
+        private List<FileNameInfo> AddTocType(IList<OpenApiTag>tags, IEnumerable<FileNameInfo> fileNameInfos)
+        {
+            var results = new List<FileNameInfo>();
+            foreach (var fileNameInfo in fileNameInfos)
+            {
+                var foundTag =tags.FirstOrDefault(t => t.Name == fileNameInfo.TocName);
+                if (foundTag != null && foundTag.Extensions.TryGetValue("x-ms-docs-toc-type", out var tagType))
+                {
+                    if (tagType is OpenApiString stringValue)
+                    {
+                        if (Enum.TryParse<TocType>(stringValue.Value, true, out var tocType))
+                        {
+                            fileNameInfo.TocType = tocType;
+                        }
+                    }
+                }
+                results.Add(fileNameInfo);
+            }
+            return results;
         }
 
         private OpenApiDocument ExtractOpenApiTagsFromPaths(OpenApiDocument openApiDoc)

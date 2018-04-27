@@ -63,10 +63,10 @@
       <HintPath>..\packages\Microsoft.DocAsCode.YamlSerialization.2.32.2\lib\net461\Microsoft.DocAsCode.YamlSerialization.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.OpenApi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3f5743946376f042, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.OpenApi.1.0.0-beta015\lib\net46\Microsoft.OpenApi.dll</HintPath>
+      <HintPath>..\packages\Microsoft.OpenApi.1.0.0-beta016\lib\net46\Microsoft.OpenApi.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.OpenApi.Readers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3f5743946376f042, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.OpenApi.Readers.1.0.0-beta015\lib\net46\Microsoft.OpenApi.Readers.dll</HintPath>
+      <HintPath>..\packages\Microsoft.OpenApi.Readers.1.0.0-beta016\lib\net46\Microsoft.OpenApi.Readers.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -110,6 +110,7 @@
   <ItemGroup>
     <Compile Include="Models\RestFile\FileNameInfo.cs" />
     <Compile Include="Models\RestFile\RestFileInfo.cs" />
+    <Compile Include="Models\RestFile\TocType.cs" />
     <Compile Include="Models\Schema\ComponentGroupEntity.cs" />
     <Compile Include="Models\Schema\ComponentEntity.cs" />
     <Compile Include="Models\Schema\FlowEntity.cs" />
