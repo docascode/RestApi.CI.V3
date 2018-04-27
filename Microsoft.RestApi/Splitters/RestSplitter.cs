@@ -11,6 +11,7 @@
     using Microsoft.OpenApi.Readers;
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Transformers;
+    using Microsoft.OpenApi.Any;
 
     public class RestSplitter
     {
@@ -367,9 +368,12 @@
                 var foundTag =tags.FirstOrDefault(t => t.Name == fileNameInfo.TocName);
                 if (foundTag != null && foundTag.Extensions.TryGetValue("x-ms-docs-toc-type", out var tagType))
                 {
-                    if (Enum.TryParse<TocType>(tagType.ToString(), out var tocType))
+                    if (tagType is OpenApiString stringValue)
                     {
-                        fileNameInfo.TocType = tocType;
+                        if (Enum.TryParse<TocType>(stringValue.Value, true, out var tocType))
+                        {
+                            fileNameInfo.TocType = tocType;
+                        }
                     }
                 }
             }
