@@ -363,7 +363,8 @@
 
         private List<FileNameInfo> AddTocType(IList<OpenApiTag>tags, IEnumerable<FileNameInfo> fileNameInfos)
         {
-            foreach(var fileNameInfo in fileNameInfos)
+            var results = new List<FileNameInfo>();
+            foreach (var fileNameInfo in fileNameInfos)
             {
                 var foundTag =tags.FirstOrDefault(t => t.Name == fileNameInfo.TocName);
                 if (foundTag != null && foundTag.Extensions.TryGetValue("x-ms-docs-toc-type", out var tagType))
@@ -376,8 +377,9 @@
                         }
                     }
                 }
+                results.Add(fileNameInfo);
             }
-            return fileNameInfos.ToList();
+            return results;
         }
 
         private OpenApiDocument ExtractOpenApiTagsFromPaths(OpenApiDocument openApiDoc)

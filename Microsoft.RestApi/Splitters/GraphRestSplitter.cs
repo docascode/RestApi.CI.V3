@@ -158,7 +158,7 @@
                                 newSwaggerTocList = new List<SwaggerToc>();
                                 finalTocDict.Add(groups[0], newSwaggerTocList);
                             }
-                            newSwaggerTocList.Add(new SwaggerToc(groups[1], swaggerToc.FilePath, swaggerToc.Uid, swaggerToc.ChildrenToc));
+                            newSwaggerTocList.Add(new SwaggerToc(groups[1], swaggerToc.FilePath, swaggerToc.Uid, swaggerToc.ChildrenToc, false, swaggerToc.TocType));
                         }
                         else
                         {
