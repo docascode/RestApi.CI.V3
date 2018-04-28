@@ -19,6 +19,9 @@
         public string Kind { get; set; }
 
         [YamlMember(Alias = "properties")]
-        public IList<PropertyEntity> PropertyItems { get; set; }
+        public List<PropertyEntity> PropertyItems { get; set; }
+
+        [YamlMember(Alias = "operations")]
+        public List<string> Operations { get; set; }
     }
 }

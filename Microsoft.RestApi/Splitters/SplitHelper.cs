@@ -29,45 +29,57 @@
             return mappingFile;
         }
 
-        public static string GetApiDirectory(string rootDirectory, string targetApiRootDir)
+        public static string GetOutputDirectory(string outputRootDir)
         {
-            Guard.ArgumentNotNullOrEmpty(rootDirectory, nameof(rootDirectory));
-            Guard.ArgumentNotNullOrEmpty(targetApiRootDir, nameof(targetApiRootDir));
+            Guard.ArgumentNotNullOrEmpty(outputRootDir, nameof(outputRootDir));
 
-            var targetApiDir = Path.Combine(rootDirectory, targetApiRootDir);
-            if (Directory.Exists(targetApiDir))
+            if (Directory.Exists(outputRootDir))
             {
-                // Clear last built target api folder
-                Directory.Delete(targetApiDir, true);
-                Console.WriteLine($"Done cleaning previous existing {targetApiDir}");
+                // Clear last built output folder
+                Directory.Delete(outputRootDir, true);
+                Console.WriteLine($"Done cleaning previous existing {outputRootDir}");
             }
-            Directory.CreateDirectory(targetApiDir);
-            if (!targetApiDir.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            Directory.CreateDirectory(outputRootDir);
+            if (!outputRootDir.EndsWith(Path.DirectorySeparatorChar.ToString()))
             {
-                targetApiDir = targetApiDir + Path.DirectorySeparatorChar;
+                outputRootDir = outputRootDir + Path.DirectorySeparatorChar;
             }
-            return targetApiDir;
+            return outputRootDir;
         }
 
-        public static string GenerateIndexHRef(string targetRootDir, string indexRelativePath, string targetApiDir)
+        public static string GenerateIndexHRef(string targetRootDir, string indexRelativePath, string targetApiVersionDir)
         {
             Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
             Guard.ArgumentNotNullOrEmpty(indexRelativePath, nameof(indexRelativePath));
-            Guard.ArgumentNotNullOrEmpty(targetApiDir, nameof(targetApiDir));
+            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
 
             var indexPath = Path.Combine(targetRootDir, indexRelativePath);
             if (!File.Exists(indexPath))
             {
                 throw new FileNotFoundException($"Index file '{indexPath}' not exists.");
             }
-            return FileUtility.GetRelativePath(indexPath, targetApiDir);
+            return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
         }
 
-        public static IEnumerable<string> GenerateDocTocItems(string targetRootDir, string tocRelativePath, string targetApiDir)
+        public static string GenerateHref(string targetRootDir, string relativePath, string targetApiVersionDir)
+        {
+            Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
+            Guard.ArgumentNotNullOrEmpty(relativePath, nameof(relativePath));
+            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
+
+            var indexPath = Path.Combine(targetRootDir, relativePath);
+            if (!File.Exists(indexPath))
+            {
+                return null;
+            }
+            return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
+        }
+
+        public static IEnumerable<string> GenerateDocTocItems(string targetRootDir, string tocRelativePath, string targetApiVersionDir)
         {
             Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
             Guard.ArgumentNotNullOrEmpty(tocRelativePath, nameof(tocRelativePath));
-            Guard.ArgumentNotNullOrEmpty(targetApiDir, nameof(targetApiDir));
+            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
 
             var tocPath = Path.Combine(targetRootDir, tocRelativePath);
             if (!File.Exists(tocPath))
@@ -79,7 +91,7 @@
             {
                 throw new InvalidOperationException($"Currently only '{tocFileName}' is supported as conceptual toc, please update the toc path '{tocRelativePath}'.");
             }
-            var tocRelativeDirectoryToApi = FileUtility.GetRelativePath(Path.GetDirectoryName(tocPath), targetApiDir);
+            var tocRelativeDirectoryToApi = FileUtility.GetRelativePath(Path.GetDirectoryName(tocPath), targetApiVersionDir);
 
             foreach (var tocLine in File.ReadLines(tocPath))
             {
@@ -97,10 +109,10 @@
                         var tocTitle = match.Groups["tocTitle"].Value;
                         var headerLevel = match.Groups["headerLevel"].Value.Length;
                         var tocLinkRelativePath = tocRelativeDirectoryToApi + "/" + tocLink;
-                        var linkPath = Path.Combine(targetApiDir, tocLinkRelativePath);
+                        var linkPath = Path.Combine(targetApiVersionDir, tocLinkRelativePath);
                         if (!File.Exists(linkPath))
                         {
-                            throw new FileNotFoundException($"Link '{tocLinkRelativePath}' not exist in '{tocRelativePath}', when merging into '{tocFileName}' of '{targetApiDir}'");
+                            throw new FileNotFoundException($"Link '{tocLinkRelativePath}' not exist in '{tocRelativePath}', when merging into '{tocFileName}' of '{targetApiVersionDir}'");
                         }
                         yield return $"{new string('#', headerLevel)} [{tocTitle}]({tocLinkRelativePath})";
                     }
@@ -118,20 +130,45 @@
             return str + "#";
         }
 
-        public static List<KeyValuePair<OperationType, OpenApiOperation>> FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
+        public static Tuple<List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>, List<string>> FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
         {
-            var operations = new List<KeyValuePair<OperationType, OpenApiOperation>>();
+            var pathAndOperations = new List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>();
+            var extendTagNames = new List<string>();
             foreach (var path in openApiPaths)
             {
                 foreach(var operation in path.Value.Operations)
                 {
-                    if (operation.Value.Tags?.Any(t => t.Name == tag.Name) == true)
+                    var firstTag = operation.Value.Tags?.FirstOrDefault();
+                    if (firstTag != null)
                     {
-                        operations.Add(operation);
+                        if (firstTag.Name == tag.Name)
+                        {
+                            pathAndOperations.Add(new KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>(path.Key, operation));
+
+                            foreach (var etag in operation.Value.Tags)
+                            {
+                                if (etag.Name != firstTag.Name && !extendTagNames.Any(t => t == etag.Name))
+                                {
+                                    extendTagNames.Add(etag.Name);
+                                }
+                            }
+                        }
                     }
                 }
             }
-            return operations;
+            return new Tuple<List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>, List<string>>(pathAndOperations, extendTagNames);
+        }
+
+        public static IEnumerable<T> OrderBySequence<T, TId>(this IEnumerable<T> source, IEnumerable<TId> order, Func<T, TId> idSelector)
+        {
+            var lookup = source.ToLookup(idSelector, t => t);
+            foreach (var id in order)
+            {
+                foreach (var t in lookup[id])
+                {
+                    yield return t;
+                }
+            }
         }
     }
 }

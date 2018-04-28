@@ -9,17 +9,20 @@
         [YamlMember(Alias = "isReadyOnly")]
         public bool IsReadOnly { get; set; }
 
+        [YamlMember(Alias = "isRequired")]
+        public bool IsRequired { get; set; }
+
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
 
-        [YamlMember(Alias = "allowEmptyValue")]
-        public bool AllowEmptyValue { get; set; }
+        [YamlMember(Alias = "isNullable")]
+        public bool Nullable { get; set; }
 
         [YamlMember(Alias = "isDeprecated")]
         public bool IsDeprecated { get; set; }
 
         [YamlMember(Alias = "types")]
-        public IList<PropertyTypeEntity> Types { get; set; }
+        public List<PropertyTypeEntity> Types { get; set; }
 
         [YamlMember(Alias = "typesTitle")]
         public string TypesTitle { get; set; }

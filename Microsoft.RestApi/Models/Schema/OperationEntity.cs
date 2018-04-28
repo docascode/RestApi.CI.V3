@@ -19,6 +19,9 @@
         [YamlMember(Alias = "summary")]
         public string Summary { get; set; }
 
+        [YamlMember(Alias = "description")]
+        public string Description { get; set; }
+
         [YamlMember(Alias = "remarks")]
         public string Remarks { get; set; }
 
@@ -62,10 +65,13 @@
         [YamlMember(Alias = "responses")]
         public IList<ResponseEntity> Responses { get; set; }
 
-        [YamlMember(Alias = "security")]
+        [YamlMember(Alias = "securities")]
         public IList<SecurityEntity> Securities { get; set; }
 
         [YamlMember(Alias = "seeAlso")]
         public IList<SeeAlsoEntity> SeeAlsos { get; set; }
+
+        [YamlIgnore]
+        public string FilePath { get; set; }
     }
 }

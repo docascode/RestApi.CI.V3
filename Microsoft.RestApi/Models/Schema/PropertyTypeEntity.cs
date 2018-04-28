@@ -15,7 +15,8 @@
         /// <summary>
         ///  when then kind = "enum", then the values should be enum values.
         /// </summary>
-        public IList<string> Values { get; set; }
+        [YamlMember(Alias = "enumValues")]
+        public List<string> Values { get; set; }
 
 
         [YamlMember(Alias = "isDictionary")]

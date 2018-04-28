@@ -14,7 +14,7 @@
         [YamlMember(Alias = "statusCode")]
         public string StatusCode { get; set; }
 
-        [YamlMember(Alias = "body")]
+        [YamlMember(Alias = "bodies")]
         public IList<ResponseMediaTypeAndBodyEntity> ResponseMediaTypeAndBodies { get; set; }
 
         [YamlMember(Alias = "headers")]
@@ -30,9 +30,9 @@
         public string TypesTitle { get; set; }
 
         [YamlMember(Alias = "types")]
-        public IList<IdentifiableEntity> Types { get; set; }
+        public IList<PropertyTypeEntity> ResponseBodyTypes { get; set; }
 
         [YamlMember(Alias = "schemas")]
-        public IList<PropertyTypeEntity> ResponseBodySchemas { get; set; }
+        public IList<PropertyEntity> ResponseBodySchemas { get; set; }
     }
 }

@@ -8,6 +8,15 @@
     [Serializable]
     public class MappingFile
     {
+        [JsonProperty("product")]
+        public string Product { get; set; }
+
+        [JsonProperty("enable_markdown_fragment")]
+        public bool EnableMarkdownFragment { get; set; }
+
+        [JsonProperty("temp_target_api_root_dir")]
+        public string TempTargetApiRootDir { get; set; }
+
         [JsonProperty("target_api_root_dir")]
         public string TargetApiRootDir { get; set; }
 
@@ -35,9 +44,25 @@
         [JsonProperty("apis_page_options")]
         public ApisPageOptions ApisPageOptions { get; set; }
 
+        [JsonProperty("version_list")]
+        public List<string> VersionList { get; set; }
+
         [JsonProperty("organizations")]
         public List<OrganizationInfo> OrganizationInfos { get; set; }
 
-       
+        [JsonProperty("tag_separator")]
+        public string TagSeparator { get; set; }
+
+        [JsonProperty("conceptual_folder")]
+        public string ConceptualFolder { get; set; }
+
+        [JsonProperty("component_prefix")]
+        public string ComponentPrefix { get; set; }
+
+        [JsonProperty("first_level_toc_order")]
+        public string[] FirstLevelTocOrders { get; set; }
+
+        [JsonProperty("second_level_toc_order")]
+        public Dictionary<string, List<string>> SecondLevelTocOrders { get; set; }
     }
 }

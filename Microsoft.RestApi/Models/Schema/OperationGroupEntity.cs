@@ -17,5 +17,8 @@
 
         [YamlMember(Alias = "operations")]
         public IList<string> Operations { get; set; }
+
+        [YamlIgnore]
+        public string FilePath { get; set; }
     }
 }

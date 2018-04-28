@@ -11,18 +11,23 @@
     using Microsoft.OpenApi.Readers;
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Transformers;
+    using Microsoft.OpenApi.Any;
 
     public class RestSplitter
     {
-        private readonly string _sourceRootDir;
-        private readonly string _targetRootDir;
-        private readonly MappingFile _mappingFile;
-        private readonly RestTransformerFactory _transformerFactory;
-
+        protected static readonly string ComponentGroupName = "components";
         protected const string TocFileName = "toc.md";
         protected static readonly Regex TocRegex = new Regex(@"^(?<headerLevel>#+)(( |\t)*)\[(?<tocTitle>.+)\]\((?<tocLink>(?!http[s]?://).*?)\)( |\t)*#*( |\t)*(\n|$)", RegexOptions.Compiled);
 
-        public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, RestTransformerFactory transformerFactory)
+        public string SourceRootDir { get; }
+        public string TargetRootDir { get; }
+        public string OutputDir { get; }
+        public MappingFile MappingFile { get; }
+        public RestTransformerFactory TransformerFactory { get; }
+
+        public IList<string> Errors { get; set; }
+
+        public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir, RestTransformerFactory transformerFactory)
         {
             Guard.ArgumentNotNullOrEmpty(sourceRootDir, nameof(sourceRootDir));
             if (!Directory.Exists(sourceRootDir))
@@ -35,11 +40,12 @@
             {
                 throw new ArgumentException($"mappingFilePath '{mappingFilePath}' should exist.");
             }
-
-            _sourceRootDir = sourceRootDir;
-            _targetRootDir = targetRootDir;
-            _mappingFile = JsonUtility.ReadFromFile<MappingFile>(mappingFilePath).SortMappingFile();
-            _transformerFactory = transformerFactory;
+            Errors = new List<string>();
+            SourceRootDir = sourceRootDir;
+            TargetRootDir = targetRootDir;
+            OutputDir = outputDir;
+            MappingFile = JsonUtility.ReadFromFile<MappingFile>(mappingFilePath).SortMappingFile();
+            TransformerFactory = transformerFactory;
         }
 
         public void Process()
@@ -47,19 +53,70 @@
             // Generate auto summary page
             GenerateAutoPage();
 
+            var targetApiDir = SplitHelper.GetOutputDirectory(OutputDir);
             // Write toc structure from MappingFile
-            WriteToc();
+            if (MappingFile.VersionList != null)
+            {
+                // Generate with version infos
+                foreach (var version in MappingFile.VersionList)
+                {
+                    var targetApiVersionDir = Path.Combine(targetApiDir, version);
+                    Directory.CreateDirectory(targetApiVersionDir);
+                    if (!targetApiVersionDir.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                    {
+                        targetApiVersionDir = targetApiVersionDir + Path.DirectorySeparatorChar;
+                    }
+                    WriteToc(targetApiVersionDir, version);
+                }
+            }
+            else
+            {
+                // Generate with no version info
+                WriteToc(targetApiDir, null);
+            }
         }
 
+        public virtual void WriteRestToc(StreamWriter writer, string subTocPrefix, List<string> tocLines, SortedDictionary<string, List<SwaggerToc>> subTocDict, string targetApiVersionDir)
+        {
+            var subRefTocPrefix = string.Empty;
+            if (tocLines != null && tocLines.Count > 0)
+            {
+                subRefTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
+                writer.WriteLine($"{subTocPrefix}#{subRefTocPrefix} Reference");
+            }
+
+            foreach (var pair in subTocDict)
+            {
+                var subGroupTocPrefix = subRefTocPrefix;
+                if (!string.IsNullOrEmpty(pair.Key))
+                {
+                    subGroupTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
+                    writer.WriteLine($"{subTocPrefix}#{subGroupTocPrefix} {pair.Key}");
+                }
+                var subTocList = pair.Value;
+                subTocList.OrderBy(x => !Equals(x.Title, "components")).ToList().Sort((x, y) => string.CompareOrdinal(x.Title, y.Title));
+                foreach (var subToc in subTocList)
+                {
+                    writer.WriteLine($"{subTocPrefix}##{subGroupTocPrefix} [{subToc.Title}](xref:{subToc.Uid})");
+                    if (subToc.ChildrenToc.Count > 0)
+                    {
+                        foreach (var child in subToc.ChildrenToc)
+                        {
+                            writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix} [{child.Title}](xref:{child.Uid})");
+                        }
+                    }
+                }
+            }
+        }
 
         private void GenerateAutoPage()
         {
-            if (_mappingFile.ApisPageOptions == null || !_mappingFile.ApisPageOptions.EnableAutoGenerate)
+            if (MappingFile.ApisPageOptions == null || !MappingFile.ApisPageOptions.EnableAutoGenerate)
             {
                 return;
             }
 
-            var targetIndexPath = Path.Combine(_targetRootDir, _mappingFile.ApisPageOptions.TargetFile);
+            var targetIndexPath = Path.Combine(TargetRootDir, MappingFile.ApisPageOptions.TargetFile);
             if (File.Exists(targetIndexPath))
             {
                 Console.WriteLine($"Cleaning up previous existing {targetIndexPath}.");
@@ -68,7 +125,7 @@
 
             using (var writer = new StreamWriter(targetIndexPath))
             {
-                var summaryFile = Path.Combine(_targetRootDir, _mappingFile.ApisPageOptions.SummaryFile);
+                var summaryFile = Path.Combine(TargetRootDir, MappingFile.ApisPageOptions.SummaryFile);
                 if (File.Exists(summaryFile))
                 {
                     foreach (var line in File.ReadAllLines(summaryFile))
@@ -80,7 +137,7 @@
 
                 writer.WriteLine("## All Product APIs");
 
-                foreach (var orgInfo in _mappingFile.OrganizationInfos)
+                foreach (var orgInfo in MappingFile.OrganizationInfos)
                 {
                     // Org name as title
                     if (!string.IsNullOrWhiteSpace(orgInfo.OrganizationName))
@@ -100,7 +157,7 @@
                             {
                                 throw new InvalidOperationException($"Index file {service.IndexFile} of service {service.TocTitle} should exists.");
                             }
-                            var summary = Utility.GetYamlHeaderByMeta(Path.Combine(_targetRootDir, service.IndexFile), _mappingFile.ApisPageOptions.ServiceDescriptionMetadata);
+                            var summary = Utility.GetYamlHeaderByMeta(Path.Combine(TargetRootDir, service.IndexFile), MappingFile.ApisPageOptions.ServiceDescriptionMetadata);
                             writer.WriteLine($"| [{service.TocTitle}](~/{service.IndexFile}) | {summary ?? string.Empty} |");
                         }
                         writer.WriteLine();
@@ -109,132 +166,127 @@
             }
         }
 
-        private void WriteToc()
+        private void WriteToc(string targetApiVersionDir, string version)
         {
-            var targetApiDir = SplitHelper.GetApiDirectory(_targetRootDir, _mappingFile.TargetApiRootDir);
-            var targetTocPath = Path.Combine(targetApiDir, TocFileName);
-           
+            var targetTocPath = Path.Combine(targetApiVersionDir, TocFileName);
+
             using (var writer = new StreamWriter(targetTocPath))
             {
                 // Write auto generated apis page
-                if (_mappingFile.ApisPageOptions?.EnableAutoGenerate == true)
+                if (MappingFile.ApisPageOptions?.EnableAutoGenerate == true)
                 {
-                    if (string.IsNullOrEmpty(_mappingFile.ApisPageOptions.TargetFile))
+                    if (string.IsNullOrEmpty(MappingFile.ApisPageOptions.TargetFile))
                     {
                         throw new InvalidOperationException("Target file of apis page options should not be null or empty.");
                     }
-                    var targetIndexPath = Path.Combine(_targetRootDir, _mappingFile.ApisPageOptions.TargetFile);
-                    writer.WriteLine($"# [{_mappingFile.ApisPageOptions.TocTitle}]({FileUtility.GetRelativePath(targetIndexPath, targetApiDir)})");
+                    var targetIndexPath = Path.Combine(TargetRootDir, MappingFile.ApisPageOptions.TargetFile);
+                    writer.WriteLine($"# [{MappingFile.ApisPageOptions.TocTitle}]({FileUtility.GetRelativePath(targetIndexPath, targetApiVersionDir)})");
                 }
 
                 // Write organization info
-                foreach (var orgInfo in _mappingFile.OrganizationInfos)
+                foreach (var orgInfo in MappingFile.OrganizationInfos)
                 {
-                    // Deal with org name and index
-                    var subTocPrefix = string.Empty;
-                    if (!string.IsNullOrEmpty(orgInfo.OrganizationName))
+                    if (version == null || string.Equals(orgInfo.Version, version))
                     {
-                        // Write index
-                        writer.WriteLine(!string.IsNullOrEmpty(orgInfo.OrganizationIndex)
-                            ? $"# [{orgInfo.OrganizationName}]({SplitHelper.GenerateIndexHRef(_targetRootDir, orgInfo.OrganizationIndex, targetApiDir)})"
-                            : $"# {orgInfo.OrganizationName}");
-                        subTocPrefix = "#";
-                    }
-                    else if (_mappingFile.ApisPageOptions?.EnableAutoGenerate != true && !string.IsNullOrEmpty(orgInfo.DefaultTocTitle) && !string.IsNullOrEmpty(orgInfo.OrganizationIndex))
-                    {
-                        writer.WriteLine($"# [{orgInfo.DefaultTocTitle}]({SplitHelper.GenerateIndexHRef(_targetRootDir, orgInfo.OrganizationIndex, targetApiDir)})");
-                    }
-
-                    // Sort by service name
-                    orgInfo.Services.Sort((a, b) => a.TocTitle.CompareTo(b.TocTitle));
-
-                    // Write service info
-                    foreach (var service in orgInfo.Services)
-                    {
-                        // 1. Top toc
-                        Console.WriteLine($"Created conceptual toc item '{service.TocTitle}'");
-                        writer.WriteLine(!string.IsNullOrEmpty(service.IndexFile)
-                            ? $"{subTocPrefix}# [{service.TocTitle}]({SplitHelper.GenerateIndexHRef(_targetRootDir, service.IndexFile, targetApiDir)})"
-                            : $"{subTocPrefix}# {service.TocTitle}");
-
-                        // 2. Parse and split REST swaggers
-                        var subTocDict = new SortedDictionary<string, List<SwaggerToc>>();
-                        if (service.SwaggerInfo != null)
+                        // Deal with org name and index
+                        var subTocPrefix = string.Empty;
+                        if (!string.IsNullOrEmpty(orgInfo.OrganizationName))
                         {
-                            subTocDict = SplitSwaggers(targetApiDir, service);
+                            // Write index
+                            writer.WriteLine(!string.IsNullOrEmpty(orgInfo.OrganizationIndex)
+                                ? $"# [{orgInfo.OrganizationName}]({SplitHelper.GenerateIndexHRef(TargetRootDir, orgInfo.OrganizationIndex, targetApiVersionDir)})"
+                                : $"# {orgInfo.OrganizationName}");
+                            subTocPrefix = "#";
+                        }
+                        else if (MappingFile.ApisPageOptions?.EnableAutoGenerate != true && !string.IsNullOrEmpty(orgInfo.DefaultTocTitle) && !string.IsNullOrEmpty(orgInfo.OrganizationIndex))
+                        {
+                            writer.WriteLine($"# [{orgInfo.DefaultTocTitle}]({SplitHelper.GenerateIndexHRef(TargetRootDir, orgInfo.OrganizationIndex, targetApiVersionDir)})");
                         }
 
-                        // 3. Conceptual toc
-                        List<string> tocLines = null;
-                        if (!string.IsNullOrEmpty(service.TocFile))
-                        {
-                            tocLines = SplitHelper.GenerateDocTocItems(_targetRootDir, service.TocFile, targetApiDir).Where(i => !string.IsNullOrEmpty(i)).ToList();
-                            if (tocLines.Any())
-                            {
-                                foreach (var tocLine in tocLines)
-                                {
-                                    // Insert one heading before to make it sub toc
-                                    writer.WriteLine($"{subTocPrefix}#{tocLine}");
-                                }
-                                Console.WriteLine($"-- Created sub referenced toc items under conceptual toc item '{service.TocTitle}'");
-                            }
-                        }
+                        // Sort by service name
+                        orgInfo.Services.Sort((a, b) => a.TocTitle.CompareTo(b.TocTitle));
 
-                        // 4. Write REST toc
-                        if (service.SwaggerInfo != null)
+                        // Write service info
+                        foreach (var service in orgInfo.Services)
                         {
-                            var subRefTocPrefix = string.Empty;
-                            if (tocLines != null && tocLines.Count > 0)
+                            // 1. Top toc
+                            Console.WriteLine($"Created conceptual toc item '{service.TocTitle}'");
+                            writer.WriteLine(!string.IsNullOrEmpty(service.IndexFile)
+                                ? $"{subTocPrefix}# [{service.TocTitle}]({SplitHelper.GenerateIndexHRef(TargetRootDir, service.IndexFile, targetApiVersionDir)})"
+                                : $"{subTocPrefix}# {service.TocTitle}");
+
+                            // 2. Parse and split REST swaggers
+                            var subTocDict = new SortedDictionary<string, List<SwaggerToc>>();
+                            if (service.SwaggerInfo != null)
                             {
-                                subRefTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
-                                writer.WriteLine($"{subTocPrefix}#{subRefTocPrefix} Reference");
+                                subTocDict = SplitSwaggers(targetApiVersionDir, service);
                             }
 
-                            foreach (var pair in subTocDict)
+                            // 3. Conceptual toc
+                            List<string> tocLines = null;
+                            if (!string.IsNullOrEmpty(service.TocFile))
                             {
-                                var subGroupTocPrefix = subRefTocPrefix;
-                                if (!string.IsNullOrEmpty(pair.Key))
+                                tocLines = SplitHelper.GenerateDocTocItems(TargetRootDir, service.TocFile, targetApiVersionDir).Where(i => !string.IsNullOrEmpty(i)).ToList();
+                                if (tocLines.Any())
                                 {
-                                    subGroupTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
-                                    writer.WriteLine($"{subTocPrefix}#{subGroupTocPrefix} {pair.Key}");
-                                }
-                                var subTocList = pair.Value;
-                                subTocList.OrderBy(x => !Equals(x, "components")).ToList().Sort((x, y) => string.CompareOrdinal(x.Title, y.Title));
-                                foreach (var subToc in subTocList)
-                                {
-                                    writer.WriteLine($"{subTocPrefix}##{subGroupTocPrefix} [{subToc.Title}]({subToc.FilePath})");
-                                    if (subToc.ChildrenToc.Count > 0)
+                                    foreach (var tocLine in tocLines)
                                     {
-                                        foreach (var child in subToc.ChildrenToc)
-                                        {
-                                            writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix} [{child.Title}]({child.FilePath})");
-                                        }
+                                        // Insert one heading before to make it sub toc
+                                        writer.WriteLine($"{subTocPrefix}#{tocLine}");
                                     }
+                                    Console.WriteLine($"-- Created sub referenced toc items under conceptual toc item '{service.TocTitle}'");
                                 }
+                            }
+
+                            // 4. Write REST toc
+                            if (service.SwaggerInfo != null)
+                            {
+                                WriteRestToc(writer, subTocPrefix, tocLines, subTocDict, targetApiVersionDir);
                             }
                         }
                     }
                 }
             }
+
+            TocConverter.Convert(targetTocPath);
+            if (File.Exists(targetTocPath))
+            {
+                File.Delete(targetTocPath);
+            }
+
+            PrintAndClearError();
         }
 
-        private SortedDictionary<string, List<SwaggerToc>> SplitSwaggers(string targetApiDir, ServiceInfo service)
+        private void PrintAndClearError()
+        {
+            if (Errors.Count > 0)
+            {
+                Errors = Errors.Distinct().ToList();
+                foreach (var error in Errors)
+                {
+                    Console.WriteLine(error);
+                }
+            }
+            Errors = new List<string>();
+        }
+
+        private SortedDictionary<string, List<SwaggerToc>> SplitSwaggers(string targetApiVersionDir, ServiceInfo service)
         {
             var subTocDict = new SortedDictionary<string, List<SwaggerToc>>();
 
             foreach (var swagger in service.SwaggerInfo)
             {
-                var targetDir = FileUtility.CreateDirectoryIfNotExist(Path.Combine(targetApiDir, service.UrlGroup));
-                var sourceFile = Path.Combine(_sourceRootDir, swagger.Source.TrimEnd());
+                var targetDir = FileUtility.CreateDirectoryIfNotExist(Path.Combine(targetApiVersionDir, service.UrlGroup));
+                var sourceFile = Path.Combine(SourceRootDir, swagger.Source.TrimEnd());
 
                 if (!File.Exists(sourceFile))
                 {
                     throw new ArgumentException($"{nameof(sourceFile)} '{sourceFile}' should exist.");
                 }
 
-                var restFileInfo = SplitSwaggersByTag(targetDir, sourceFile, service.TocTitle, swagger.OperationGroupMapping, _mappingFile);
-               
-                var tocTitle = Utility.ExtractPascalNameByRegex(restFileInfo.TocTitle);
+                var restFileInfo = SplitSwaggerByTag(targetDir, sourceFile, service.Name, swagger.OperationGroupMapping, MappingFile);
+
+                var tocTitle = restFileInfo.TocTitle;
                 var subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
                 List<SwaggerToc> subTocList;
                 if (!subTocDict.TryGetValue(subGroupName, out subTocList))
@@ -258,11 +310,11 @@
                     {
                         foreach (var nameInfo in fileNameInfo.ChildrenFileNameInfo)
                         {
-                            childrenToc.Add(new SwaggerToc(nameInfo.TocName, FileUtility.NormalizePath(Path.Combine(service.UrlGroup, nameInfo.FileName))));
+                            childrenToc.Add(new SwaggerToc(nameInfo.TocName, nameInfo.FileName, nameInfo.FileId));
                         }
                     }
 
-                    subTocList.Add(new SwaggerToc(subTocTitle, filePath, childrenToc));
+                    subTocList.Add(new SwaggerToc(subTocTitle, filePath, fileNameInfo.FileId, childrenToc, fileNameInfo.IsComponentGroup, fileNameInfo.TocType));
                 }
                 Console.WriteLine($"Done splitting swagger file from '{swagger.Source}' to '{service.UrlGroup}'");
             }
@@ -270,7 +322,7 @@
             return subTocDict;
         }
 
-        private RestFileInfo SplitSwaggersByTag(string targetDir, string filePath, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
+        private RestFileInfo SplitSwaggerByTag(string targetDir, string filePath, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
         {
             var restFileInfo = new RestFileInfo();
             if (!Directory.Exists(targetDir))
@@ -293,36 +345,59 @@
                     }
                     throw new Exception(JsonUtility.ToIndentedJsonString(context.Errors));
                 }
+
                 var fileNameInfos = SplitOperationGroups(targetDir, filePath, openApiDoc, serviceName, operationGroupMapping, mappingFile);
                 if (fileNameInfos.Any())
                 {
-                    restFileInfo.FileNameInfos = fileNameInfos.ToList();
+                    restFileInfo.FileNameInfos = AddTocType(openApiDoc.Tags, fileNameInfos);
+                   
                 }
                 restFileInfo.TocTitle = openApiDoc.Info?.Title;
 
-                var componentsFileNameInfo = GenerateComponentToc(targetDir, openApiDoc, serviceName);
+                var componentsFileNameInfo = GenerateComponents(targetDir, openApiDoc, serviceName);
+                componentsFileNameInfo.IsComponentGroup = true;
                 restFileInfo.FileNameInfos.Add(componentsFileNameInfo);
             }
             return restFileInfo;
         }
 
+        private List<FileNameInfo> AddTocType(IList<OpenApiTag>tags, IEnumerable<FileNameInfo> fileNameInfos)
+        {
+            var results = new List<FileNameInfo>();
+            foreach (var fileNameInfo in fileNameInfos)
+            {
+                var foundTag =tags.FirstOrDefault(t => t.Name == fileNameInfo.TocName);
+                if (foundTag != null && foundTag.Extensions.TryGetValue("x-ms-docs-toc-type", out var tagType))
+                {
+                    if (tagType is OpenApiString stringValue)
+                    {
+                        if (Enum.TryParse<TocType>(stringValue.Value, true, out var tocType))
+                        {
+                            fileNameInfo.TocType = tocType;
+                        }
+                    }
+                }
+                results.Add(fileNameInfo);
+            }
+            return results;
+        }
+
         private OpenApiDocument ExtractOpenApiTagsFromPaths(OpenApiDocument openApiDoc)
         {
             var tags = new List<OpenApiTag>(openApiDoc.Tags);
-            foreach(var path in openApiDoc.Paths)
+            foreach (var path in openApiDoc.Paths)
             {
                 if (path.Value.Operations != null)
                 {
                     foreach (var operation in path.Value.Operations)
                     {
-                        if(operation.Value.Tags != null)
+                        if (operation.Value.Tags != null)
                         {
-                            foreach (var tag in operation.Value.Tags)
+                            // only extract the first tag
+                            var firstTag = operation.Value.Tags?.FirstOrDefault();
+                            if (firstTag != null && !tags.Any(t => t.Name == firstTag.Name))
                             {
-                                if(!tags.Any(t => t.Name == tag.Name))
-                                {
-                                    tags.Add(tag);
-                                }
+                                tags.Add(firstTag);
                             }
                         }
                     }
@@ -342,12 +417,13 @@
 
             foreach (var tag in openApiDoc.Tags)
             {
-                var filteredOperations = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
-                if (filteredOperations.Count > 0)
+                var filteredPathAndOperationsWithExtendTags = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
+                var filteredPathAndOperations = filteredPathAndOperationsWithExtendTags.Item1;
+                if (filteredPathAndOperations.Count > 0)
                 {
                     var fileNameInfo = new FileNameInfo
                     {
-                        TocName = Utility.ExtractPascalNameByRegex(tag.Name)
+                        TocName = tag.Name
                     };
 
                     // Get file name from operation group mapping
@@ -361,78 +437,85 @@
                         newTagName = tag.Name;
                     }
 
-                    // Split operation group to operation
-                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredOperations, openApiDoc, serviceName, fileNameInfo.TocName, targetDir, newTagName));
-                    // Sort
-                    fileNameInfo.ChildrenFileNameInfo.Sort((a, b) => string.CompareOrdinal(a.TocName, b.TocName));
+                    var groupName = string.IsNullOrEmpty(mappingFile.TagSeparator) ? tag.Name : tag.Name.Replace(mappingFile.TagSeparator, ".");
 
-                    fileNameInfo.FileName = $"{newTagName}.yml";
+                    // Split operation group to operation
+                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredPathAndOperations, openApiDoc, serviceName, groupName, targetDir, newTagName));
 
                     var model = new TransformModel
                     {
                         OpenApiDoc = openApiDoc,
                         OpenApiTag = tag,
                         ServiceName = serviceName,
-                        OperationGroupName = fileNameInfo.TocName
+                        OperationGroupName = groupName,
+                        OperationGroupPath = groupName.Replace(".", "/")
                     };
-                    _transformerFactory?.TransformerOperationGroup(model, targetDir, fileNameInfo.FileName);
 
+                    var nameInfo = TransformerFactory?.TransformerOperationGroup(model, targetDir);
+                    fileNameInfo.FileId = nameInfo.FileId;
+                    fileNameInfo.FileName = nameInfo.FileName;
                     yield return fileNameInfo;
+
+                    foreach (var extendTag in filteredPathAndOperationsWithExtendTags.Item2)
+                    {
+                        var extendFileNameInfo = new FileNameInfo
+                        {
+                            TocName = extendTag,
+                            FileId = nameInfo.FileId,
+                            FileName = nameInfo.FileName,
+                            ChildrenFileNameInfo = fileNameInfo.ChildrenFileNameInfo
+                        };
+                        yield return extendFileNameInfo;
+                    }
                 }
             }
         }
 
-        private IEnumerable<FileNameInfo> SplitOperations(List<KeyValuePair<OperationType, OpenApiOperation>> operations, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
+        private IEnumerable<FileNameInfo> SplitOperations(List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>> pathAndOperations, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
         {
-            foreach (var operation in operations)
+            foreach (var pathAndOperation in pathAndOperations)
             {
-                var operationName = operation.Value.OperationId;
+                var operationName = pathAndOperation.Value.Value.OperationId;
+
+                // todo: remove this after the Graph team fix the operation Id.
+                if (operationName.Length > 50)
+                {
+                    operationName = operationName.Split('.').Last().Substring(0, 20);
+                }
                 var fileNameInfo = new FileNameInfo
                 {
-                    TocName = Utility.ExtractPascalNameByRegex(operationName),
+                    TocName = operationName,
                     FileName = Path.Combine(tag, $"{operationName}.yml")
                 };
-                if (!Directory.Exists(Path.Combine(targetDir, tag)))
-                {
-                    Directory.CreateDirectory(Path.Combine(targetDir, tag));
-                }
 
                 var model = new TransformModel
                 {
                     OpenApiDoc = openApiDoc,
-                    Operation = operation,
+                    Operation = pathAndOperation.Value,
+                    Path = pathAndOperation.Key,
                     ServiceName = serviceName,
                     OperationGroupName = groupName,
-                    ComponentGroupName = "components",
-                    OperationName = fileNameInfo.TocName,
+                    OperationGroupPath = groupName.Replace(".", "/"),
+                    ComponentGroupName = ComponentGroupName,
+                    OperationName = Utility.ExtractPascalNameByRegex(fileNameInfo.TocName),
                 };
-                _transformerFactory?.TransformerOperation(model, targetDir, fileNameInfo.FileName);
+                var nameInfo = TransformerFactory?.TransformerOperation(model, targetDir);
+                fileNameInfo.FileId = nameInfo.FileId;
+                fileNameInfo.FileName = nameInfo.FileName;
                 yield return fileNameInfo;
             }
         }
 
-        private FileNameInfo GenerateComponentToc(string targetDir, OpenApiDocument openApiDoc, string serviceName)
+        private FileNameInfo GenerateComponents(string targetDir, OpenApiDocument openApiDoc, string serviceName)
         {
             var model = new TransformModel
             {
                 OpenApiDoc = openApiDoc,
                 ServiceName = serviceName,
-                ComponentGroupName = "components"
+                ComponentGroupName = ComponentGroupName
             };
-            var componentGroupFileName = $"{model.ComponentGroupName}.yml";
-            var componentsDir = Path.Combine(targetDir, model.ComponentGroupName);
-            if (!Directory.Exists(Path.Combine(targetDir, componentsDir)))
-            {
-                Directory.CreateDirectory(Path.Combine(targetDir, componentsDir));
-            }
-            var componentFileNameInfos = _transformerFactory.TransformerComponents(model, targetDir, componentGroupFileName, componentsDir);
-            var componentsFileNameInfo = new FileNameInfo
-            {
-                FileName = componentGroupFileName,
-                TocName = model.ComponentGroupName,
-                ChildrenFileNameInfo = componentFileNameInfos.ToList()
-            };
-            return componentsFileNameInfo;
+
+            return TransformerFactory.TransformerComponents(model, targetDir, model.ComponentGroupName);
         }
     }
 }

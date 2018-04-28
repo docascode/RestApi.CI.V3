@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
 
     using Microsoft.OpenApi.Models;
@@ -59,11 +60,27 @@
             if (!string.IsNullOrEmpty(defaultServerPath))
             {
                 var uri = new Uri(defaultServerPath);
-                var basePath = uri.AbsolutePath?.Replace('/', '.').Trim('.');
-                var hostWithBasePath = $"{uri.Host}.{basePath}".Replace(" ", "").Trim('.');
-                defaultServiceId = $"{hostWithBasePath}.{serviceName}";
+                defaultServiceId = $"{uri.Host}.{serviceName}".Replace(" ", "").Trim('.');
             }
             return defaultServiceId.Replace(" ", "").Trim('.').ToLower();
+        }
+
+        private static string GetHost(IList<OpenApiServer> servers)
+        {
+            var serverPaths = GetServerEnities(servers);
+            var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
+            if (!string.IsNullOrEmpty(defaultServerPath))
+            {
+                var uri = new Uri(defaultServerPath);
+                var host = uri.Host?.Trim()?.ToLower();
+                return string.IsNullOrEmpty(host) ? string.Empty : host;
+            }
+            return string.Empty;
+        }
+
+        private static string NormalizePath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? string.Empty : path.Replace(" ", "").Trim('.').ToLower();
         }
 
         public static string GetOperationId(IList<OpenApiServer> servers, string serviceName, string groupName, string operationName)
@@ -73,6 +90,12 @@
             return operationId.Replace(" ", "").Trim('.').ToLower();
         }
 
+        public static string GetOperationPath(IList<OpenApiServer> servers, string serviceName, string groupName, string operationName)
+        {
+            var host = GetHost(servers);
+            return Path.Combine(host, NormalizePath(serviceName), NormalizePath(groupName), NormalizePath(operationName));
+        }
+
         public static string GetOperationGroupId(IList<OpenApiServer> servers, string serviceName, string groupName)
         {
             var serviceId = GetServiceId(servers, serviceName);
@@ -80,15 +103,35 @@
             return operationId.Replace(" ", "").Trim('.').ToLower();
         }
 
+        public static string GetOperationGroupPath(IList<OpenApiServer> servers, string serviceName, string groupName)
+        {
+            var host = GetHost(servers);
+            return Path.Combine(host, NormalizePath(serviceName), NormalizePath(groupName));
+        }
+
         public static string GetComponentId(IList<OpenApiServer> servers, string serviceName, string componentGroupName, string componentName)
         {
             return GetOperationId(servers, serviceName, componentGroupName, componentName);
         }
 
+        public static string GetComponentPath(IList<OpenApiServer> servers, string serviceName, string componentGroupName, string componentName)
+        {
+            var host = GetHost(servers);
+            return Path.Combine(host, NormalizePath(serviceName), NormalizePath(componentGroupName), NormalizePath(componentName));
+        }
+
+
         public static string GetComponentGroupId(IList<OpenApiServer> servers, string serviceName, string componentGroupName)
         {
             return GetOperationGroupId(servers, serviceName, componentGroupName);
         }
+
+        public static string GetComponentGroupPath(IList<OpenApiServer> servers, string serviceName, string componentGroupName)
+        {
+            var host = GetHost(servers);
+            return Path.Combine(host, NormalizePath(serviceName), NormalizePath(serviceName), NormalizePath(componentGroupName));
+        }
+
 
         public static string GetStatusCodeString(string statusCode)
         {
@@ -235,7 +278,7 @@
                 {
                     type.Kind = "enum";
                     type.Id = openApiSchema.Items.Type;
-                    type.Values = GetValueFromListAny(openApiSchema.Items.Enum);
+                    type.Values = GetValueFromListAny(openApiSchema.Items.Enum).ToList();
                 }
                 else
                 {
@@ -249,7 +292,7 @@
                 if (openApiSchema.Enum?.Count > 0)
                 {
                     type.Kind = "enum";
-                    type.Values = GetValueFromListAny(openApiSchema.Enum);
+                    type.Values = GetValueFromListAny(openApiSchema.Enum).ToList();
                 }
             }
             return type;
@@ -287,13 +330,25 @@
                         Name = property.Key,
                         IsReadOnly = property.Value.ReadOnly,
                         IsDeprecated = property.Value.Deprecated,
-                        AllowEmptyValue = property.Value.Nullable,
+                        Nullable = property.Value.Nullable,
                         Description = property.Value.Description ?? property.Value.Title,
                         Pattern = property.Value.Pattern,
                         Format = property.Value.Format,
                         IsAnyOf = property.Value.AnyOf?.Count() > 0,
                         IsOneOf = property.Value.OneOf?.Count() > 0,
                         Types = types
+                    });
+                }
+            }
+            else if(openApiSchema.Enum?.Count > 0)
+            {
+                var enumValues = GetValueFromListAny(openApiSchema.Enum);
+                foreach(var enumValue in enumValues)
+                {
+                    properties.Add(new PropertyEntity
+                    {
+                        Name = enumValue,
+                        Types = new List<PropertyTypeEntity> { new PropertyTypeEntity { Id = openApiSchema.Type } }
                     });
                 }
             }
