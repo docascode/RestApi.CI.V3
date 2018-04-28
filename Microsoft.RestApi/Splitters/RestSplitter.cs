@@ -476,6 +476,12 @@
             foreach (var pathAndOperation in pathAndOperations)
             {
                 var operationName = pathAndOperation.Value.Value.OperationId;
+                // todo: remove this after the Graph team fix the operation Id.
+                if (operationName.Length > 100)
+                {
+                    operationName = operationName.Split('.').Last().Substring(0, 80);
+                }
+
                 var fileNameInfo = new FileNameInfo
                 {
                     TocName = operationName,
