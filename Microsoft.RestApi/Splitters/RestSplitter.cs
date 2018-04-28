@@ -477,9 +477,14 @@
             {
                 var operationName = pathAndOperation.Value.Value.OperationId;
                 // todo: remove this after the Graph team fix the operation Id.
-                if (operationName.Length > 100)
+                if (operationName.Contains('-'))
                 {
-                    operationName = operationName.Split('.').Last().Substring(0, 80);
+                    var index = operationName.IndexOf('-');
+                    while(index > 0 && operationName[index - 1] >= '0' && operationName[index - 1] <= '9')
+                    {
+                        index--;
+                    }
+                    operationName = operationName.Substring(index == operationName.IndexOf('-') ? index + 1 : index);
                 }
 
                 var fileNameInfo = new FileNameInfo
