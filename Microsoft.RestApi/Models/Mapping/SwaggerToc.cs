@@ -17,7 +17,9 @@
 
         public TocType TocType { get; }
 
-        public SwaggerToc(string title, string filePath, string uid, List<SwaggerToc> childrenToc = null, bool isComponentGroup = false, TocType tocType = TocType.Page)
+        public OperationEntity OperationInfo { get; }
+
+        public SwaggerToc(string title, string filePath, string uid, List<SwaggerToc> childrenToc = null, bool isComponentGroup = false, TocType tocType = TocType.Page, OperationEntity operationInfo = null)
         {
             Title = title;
             FilePath = filePath;
@@ -25,6 +27,7 @@
             ChildrenToc = childrenToc;
             IsComponentGroup = isComponentGroup;
             TocType = tocType;
+            OperationInfo = operationInfo;
         }
     }
 }

@@ -31,7 +31,7 @@
                 // remove this for now
                 // OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
                 RequestParameters = allUriParameters,
-                Responses = TransformResponses(transformModel.Operation.Value, componentGroupId),
+                Responses = TransformResponses(transformModel, transformModel.Operation.Value, componentGroupId),
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value, componentGroupId),
                 Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security : transformModel.OpenApiDoc.SecurityRequirements),
                 SeeAlsos = TransformExternalDocs(transformModel.Operation.Value)
@@ -166,8 +166,37 @@
             return requestBodies;
         }
 
+        public static string ResolveOperationId(TransformModel transformModel, string operationId)
+        {
+            foreach (var path in transformModel.OpenApiDoc.Paths)
+            {
+                foreach (var operation in path.Value.Operations)
+                {
+                    if (string.Equals(operationId, operation.Value.OperationId))
+                    {
+                        return TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
+                    }
+                }
 
-        public static IList<ResponseEntity> TransformResponses(OpenApiOperation openApiOperation, string componentGroupId)
+            }
+            return null;
+        }
+
+        public static IList<ResponseLinkEntity> GetResponseLinks(TransformModel transformModel, IDictionary<string, OpenApiLink> openApiLinks)
+        {
+            var links = new List<ResponseLinkEntity>();
+            foreach (var openApiLink in openApiLinks)
+            {
+                links.Add(new ResponseLinkEntity
+                {
+                    Key = openApiLink.Key,
+                    OperationId = ResolveOperationId(transformModel, openApiLink.Value.OperationId) ?? openApiLink.Value.OperationId
+                });
+            }
+            return links;
+        }
+
+        public static IList<ResponseEntity> TransformResponses(TransformModel transformModel, OpenApiOperation openApiOperation, string componentGroupId)
         {
             var responseEntities = new List<ResponseEntity>();
             if (openApiOperation.Responses?.Count > 0)
@@ -175,13 +204,15 @@
                 foreach (var openApiResponse in openApiOperation.Responses)
                 {
                     var bodies = GetResponseMediaTypeAndBodies(openApiResponse.Value.Reference, openApiResponse.Value.Content, componentGroupId);
+                    var links = GetResponseLinks(transformModel, openApiResponse.Value.Links);
                     var responseEntity = new ResponseEntity
                     {
                         Name = TransformHelper.GetStatusCodeString(openApiResponse.Key),
                         StatusCode = openApiResponse.Key,
                         Description = openApiResponse.Value.Description,
                         ResponseMediaTypeAndBodies = bodies.Count > 0 ? bodies : null,
-                        ResponseHeades = null // todo
+                        ResponseLinks = links.Count > 0 ? links : null,
+                        ResponseHeaders = null // todo
                     };
                     responseEntities.Add(responseEntity);
                 }

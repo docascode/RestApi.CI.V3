@@ -64,7 +64,8 @@
                 return new FileNameInfo
                 {
                     FileId = operationInfo.Id,
-                    FileName = $"{filePath}{YamlExtension}"
+                    FileName = $"{filePath}{YamlExtension}",
+                    OperationInfo = operationInfo
                 };
             }
             throw new Exception("Transform operation failed");

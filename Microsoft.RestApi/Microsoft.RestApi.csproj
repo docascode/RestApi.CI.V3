@@ -126,6 +126,7 @@
     <Compile Include="Models\Schema\RequestBodyEntity.cs" />
     <Compile Include="Models\Schema\ResponseEntity.cs" />
     <Compile Include="Models\Schema\ResponseHeaderEntity.cs" />
+    <Compile Include="Models\Schema\ResponseLinkEntity.cs" />
     <Compile Include="Models\Schema\SecurityEntity.cs" />
     <Compile Include="Models\Schema\SecurityScopeEntity.cs" />
     <Compile Include="Models\Schema\SeeAlsoEntity.cs" />
