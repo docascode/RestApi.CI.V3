@@ -19,9 +19,13 @@
         {
             var openApiDocument = LoadOpenApiDocument("../../samples/GetResponse.yaml");
             var operation = openApiDocument.Paths.Values.First().Operations.Values.First();
+            var transformModel = new TransformModel
+            {
+                OpenApiDoc = openApiDocument
+            };
 
             var expects = LoadExpectedJsonObject<List<ResponseEntity>>("../../expects/Responses.json");
-            var responses = RestOperationTransformer.TransformResponses(operation, string.Empty);
+            var responses = RestOperationTransformer.TransformResponses(transformModel, operation, string.Empty);
 
             Assert.NotNull(responses);
             Assert.Equal(responses.Count, expects.Count);
@@ -39,9 +43,13 @@
         {
             var openApiDocument = LoadOpenApiDocument("../../samples/GetResponse2.yaml");
             var operation = openApiDocument.Paths.Values.First().Operations.Values.First();
+            var transformModel = new TransformModel
+            {
+                OpenApiDoc = openApiDocument
+            };
 
             var expects = LoadExpectedJsonObject<List<ResponseEntity>>("../../expects/Responses2.json");
-            var responses = RestOperationTransformer.TransformResponses(operation, "mockServerId");
+            var responses = RestOperationTransformer.TransformResponses(transformModel, operation, "mockServerId");
 
             Assert.NotNull(responses);
             Assert.Equal(responses.Count, expects.Count);

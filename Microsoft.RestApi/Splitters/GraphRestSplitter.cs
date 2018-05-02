@@ -234,11 +234,33 @@
             {
                 componentEntity = YamlDeserializer.Deserialize<ComponentEntity>(reader);
                 componentEntity.Operations = componentEntity.Operations ?? new List<string>();
+                componentEntity.Links = componentEntity.Links ?? new List<ResponseLinkEntity>();
+
                 foreach (var secondLevelToc in secondLevelTocs)
                 {
                     if (!componentEntity.Operations.Any(o => o == secondLevelToc.Uid))
                     {
                         componentEntity.Operations.Add(secondLevelToc.Uid);
+                    }
+                    if(secondLevelToc.OperationInfo != null && secondLevelToc.OperationInfo.Responses?.Count > 0)
+                    {
+                        foreach (var response in secondLevelToc.OperationInfo.Responses)
+                        {
+                            if (response.ResponseLinks?.Count > 0)
+                            {
+                                foreach (var link in response.ResponseLinks)
+                                {
+                                    if (!componentEntity.Links.Any(l => l.Key == link.Key))
+                                    {
+                                        componentEntity.Links.Add(new ResponseLinkEntity
+                                        {
+                                            Key = link.Key,
+                                            OperationId = link.OperationId
+                                        });
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

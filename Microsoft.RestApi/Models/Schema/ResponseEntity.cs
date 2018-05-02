@@ -18,7 +18,10 @@
         public IList<ResponseMediaTypeAndBodyEntity> ResponseMediaTypeAndBodies { get; set; }
 
         [YamlMember(Alias = "headers")]
-        public IList<ResponseHeaderEntity> ResponseHeades { get; set; }
+        public IList<ResponseHeaderEntity> ResponseHeaders { get; set; }
+
+        [YamlIgnore]
+        public IList<ResponseLinkEntity> ResponseLinks { get; set; }
     }
 
     public class ResponseMediaTypeAndBodyEntity : IdentifiableEntity

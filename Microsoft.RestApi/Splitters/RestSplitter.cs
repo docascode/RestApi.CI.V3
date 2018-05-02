@@ -310,7 +310,7 @@
                     {
                         foreach (var nameInfo in fileNameInfo.ChildrenFileNameInfo)
                         {
-                            childrenToc.Add(new SwaggerToc(nameInfo.TocName, nameInfo.FileName, nameInfo.FileId));
+                            childrenToc.Add(new SwaggerToc(nameInfo.TocName, nameInfo.FileName, nameInfo.FileId, null, false, TocType.None, nameInfo.OperationInfo));
                         }
                     }
 
@@ -507,6 +507,8 @@
                 var nameInfo = TransformerFactory?.TransformerOperation(model, targetDir);
                 fileNameInfo.FileId = nameInfo.FileId;
                 fileNameInfo.FileName = nameInfo.FileName;
+                fileNameInfo.OperationInfo = nameInfo.OperationInfo;
+
                 yield return fileNameInfo;
             }
         }

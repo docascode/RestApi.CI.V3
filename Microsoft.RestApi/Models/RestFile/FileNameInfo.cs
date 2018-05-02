@@ -15,5 +15,7 @@
         public TocType TocType { get; set; }
 
         public bool IsComponentGroup { get; set; }
+
+        public OperationEntity OperationInfo { get; set; }
     }
 }
