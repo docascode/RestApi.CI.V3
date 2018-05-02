@@ -10,7 +10,7 @@
 
         public OpenApiTag OpenApiTag { get; set; }
 
-        public string Path { get; set; }
+        public KeyValuePair<string, OpenApiPathItem> OpenApiPath { get; set; }
 
         public KeyValuePair<OperationType, OpenApiOperation> Operation { get; set; }
 

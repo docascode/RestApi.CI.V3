@@ -25,11 +25,6 @@ paths:
       summary: List all pets
       description: List all pets
       operationId: listPets
-      x-ms-additional-paths: 
-        - "/pets/children?$select={$select}"
-        - "/me/pets/children?$case1={$case1}"
-        - "/sites/pets/children?$select={$select}&$zase1={$zase1}"
-        - "/users/pets/children?what"
       tags:
         - pets
       parameters:
@@ -93,3 +88,8 @@ paths:
              schema:
                type: integer
                format: int32
+    x-ms-additional-paths: 
+      - "/pets/children?$select={$select}"
+      - "/me/pets/children?$case1={$case1}"
+      - "/sites/pets/children?$select={$select}&$zase1={$zase1}"
+      - "/users/pets/children?what"

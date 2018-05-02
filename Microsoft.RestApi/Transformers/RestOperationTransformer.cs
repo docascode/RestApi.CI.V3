@@ -27,7 +27,7 @@
                 IsDeprecated = transformModel.Operation.Value.Deprecated,
                 HttpVerb = transformModel.Operation.Key.ToString().ToUpper(),
                 Servers = TransformHelper.GetServerEnities(transformModel.OpenApiDoc.Servers),
-                Paths = TransformPaths(transformModel.Path, transformModel.Operation.Value, requiredQueryUriParameters),
+                Paths = TransformPaths(transformModel.OpenApiPath, transformModel.Operation.Value, requiredQueryUriParameters),
                 // remove this for now
                 // OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
                 RequestParameters = allUriParameters,
@@ -38,11 +38,11 @@
             };
         }
 
-        public static IList<string> TransformPaths(string defaultPath, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
+        public static IList<string> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
         {
-            var paths = new List<string> { defaultPath };
+            var paths = new List<string> { defaultOpenApiPathItem.Key };
 
-            if (openApiOperation.Extensions.TryGetValue("x-ms-additional-paths", out var openApiArrayAdditionalPaths))
+            if (defaultOpenApiPathItem.Value.Extensions.TryGetValue("x-ms-additional-paths", out var openApiArrayAdditionalPaths))
             {
                 if (openApiArrayAdditionalPaths is OpenApiArray additionalPaths)
                 {

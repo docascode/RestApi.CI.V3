@@ -130,10 +130,9 @@
             return str + "#";
         }
 
-        public static Tuple<List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>, List<string>> FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
+        public static FilteredOpenApiPath FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
         {
-            var pathAndOperations = new List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>();
-            var extendTagNames = new List<string>();
+            var filteredRestPathOperation = new FilteredOpenApiPath();
             foreach (var path in openApiPaths)
             {
                 foreach(var operation in path.Value.Operations)
@@ -143,32 +142,20 @@
                     {
                         if (firstTag.Name == tag.Name)
                         {
-                            pathAndOperations.Add(new KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>(path.Key, operation));
-
+                            filteredRestPathOperation.OpenApiPath = path;
+                            filteredRestPathOperation.Operations.Add(operation);
                             foreach (var etag in operation.Value.Tags)
                             {
-                                if (etag.Name != firstTag.Name && !extendTagNames.Any(t => t == etag.Name))
+                                if (etag.Name != firstTag.Name && !filteredRestPathOperation.ExtendTagNames.Any(t => t == etag.Name))
                                 {
-                                    extendTagNames.Add(etag.Name);
+                                    filteredRestPathOperation.ExtendTagNames.Add(etag.Name);
                                 }
                             }
                         }
                     }
                 }
             }
-            return new Tuple<List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>>, List<string>>(pathAndOperations, extendTagNames);
-        }
-
-        public static IEnumerable<T> OrderBySequence<T, TId>(this IEnumerable<T> source, IEnumerable<TId> order, Func<T, TId> idSelector)
-        {
-            var lookup = source.ToLookup(idSelector, t => t);
-            foreach (var id in order)
-            {
-                foreach (var t in lookup[id])
-                {
-                    yield return t;
-                }
-            }
+            return filteredRestPathOperation;
         }
     }
 }

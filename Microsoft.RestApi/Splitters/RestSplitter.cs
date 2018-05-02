@@ -417,9 +417,8 @@
 
             foreach (var tag in openApiDoc.Tags)
             {
-                var filteredPathAndOperationsWithExtendTags = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
-                var filteredPathAndOperations = filteredPathAndOperationsWithExtendTags.Item1;
-                if (filteredPathAndOperations.Count > 0)
+                var filteredOpenApiPath = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
+                if (filteredOpenApiPath.Operations.Count > 0)
                 {
                     var fileNameInfo = new FileNameInfo
                     {
@@ -440,7 +439,7 @@
                     var groupName = string.IsNullOrEmpty(mappingFile.TagSeparator) ? tag.Name : tag.Name.Replace(mappingFile.TagSeparator, ".");
 
                     // Split operation group to operation
-                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredPathAndOperations, openApiDoc, serviceName, groupName, targetDir, newTagName));
+                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredOpenApiPath, openApiDoc, serviceName, groupName, targetDir, newTagName));
 
                     var model = new TransformModel
                     {
@@ -456,7 +455,7 @@
                     fileNameInfo.FileName = nameInfo.FileName;
                     yield return fileNameInfo;
 
-                    foreach (var extendTag in filteredPathAndOperationsWithExtendTags.Item2)
+                    foreach (var extendTag in filteredOpenApiPath.ExtendTagNames)
                     {
                         var extendFileNameInfo = new FileNameInfo
                         {
@@ -471,11 +470,11 @@
             }
         }
 
-        private IEnumerable<FileNameInfo> SplitOperations(List<KeyValuePair<string, KeyValuePair<OperationType, OpenApiOperation>>> pathAndOperations, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
+        private IEnumerable<FileNameInfo> SplitOperations(FilteredOpenApiPath filteredOpenApiPath, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
         {
-            foreach (var pathAndOperation in pathAndOperations)
+            foreach (var operation in filteredOpenApiPath.Operations)
             {
-                var operationName = pathAndOperation.Value.Value.OperationId;
+                var operationName = operation.Value.OperationId;
                 // todo: remove this after the Graph team fix the operation Id.
                 if (operationName.Contains('-'))
                 {
@@ -496,8 +495,8 @@
                 var model = new TransformModel
                 {
                     OpenApiDoc = openApiDoc,
-                    Operation = pathAndOperation.Value,
-                    Path = pathAndOperation.Key,
+                    Operation = operation,
+                    OpenApiPath = filteredOpenApiPath.OpenApiPath,
                     ServiceName = serviceName,
                     OperationGroupName = groupName,
                     OperationGroupPath = groupName.Replace(".", "/"),
