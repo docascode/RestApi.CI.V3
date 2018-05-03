@@ -1,0 +1,295 @@
+﻿openapi: 3.0.1
+info:
+  title: OData Service for namespace microsoft.graph
+  description: This OData service is located at https://graph.microsoft.com/beta
+  version: 1.0.1
+servers:
+- url: https://graph.microsoft.com/beta
+paths:
+  "/directoryObjects/{id}/microsoft.graph.restore":
+    post:
+      tags:
+      - directoryObjects
+      summary: Invoke action restore
+      operationId: Invokerestore
+      parameters:
+      - name: id
+        in: path
+        description: 'key: id'
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Action parameters
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groupIds:
+                  type: array
+                  items:
+                    type: string
+                securityEnabledOnly:
+                  type: boolean
+                  default: false
+                  nullable: true
+          application/json2:
+            schema:
+              $ref: '#/components/schemas/microsoft.graph.directoryObject'
+        required: true
+      responses:
+        '200':
+          description: Retrieved entities
+          content:
+            application/json:
+              schema:
+                title: Collection of directoryObject
+                type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/microsoft.graph.directoryObject'
+          links:
+            extensionProperties:
+              operationId: Invoketest
+              parameters:
+                id: "$request.path.id"
+            createdOnBehalfOf:
+              operationId: Invoketest
+              parameters:
+                id: "$request.path.id"
+            owners:
+              operationId: Invoketest
+              parameters:
+                id: "$request.path.id"
+            policies:
+              operationId: Invoketest
+              parameters:
+                id: "$request.path.id"
+            synchronization:
+              operationId: Invoketest
+              parameters:
+                id: "$request.path.id"
+        default:
+          "$ref": "#/components/responses/error"
+  "/directoryObjects":
+    post:
+      tags:
+      - test
+      summary: Invoke action test
+      operationId: Invoketest
+      parameters:
+      - name: id
+        in: path
+        description: 'key: id'
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Action parameters
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groupIds:
+                  type: array
+                  items:
+                    type: string
+                securityEnabledOnly:
+                  type: boolean
+                  default: false
+                  nullable: true
+          application/json2:
+            schema:
+              $ref: '#/components/schemas/microsoft.graph.directoryObject'
+        required: true
+      responses:
+        '200':
+          description: Retrieved entities
+          content:
+            application/json:
+              schema:
+                title: Collection of directoryObject
+                type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/microsoft.graph.directoryObject'
+        default:
+          "$ref": "#/components/responses/error"
+components:
+  schemas:
+    microsoft.graph.entity:
+      title: entity
+      type: object
+      properties:
+        id:
+          type: string
+    microsoft.graph.extension:
+      allOf:
+      - "$ref": "#/components/schemas/microsoft.graph.entity"
+      - title: extension
+        type: object
+    microsoft.graph.geoCoordinates:
+      title: geoCoordinates
+      type: object
+      properties:
+        altitude:
+          oneOf:
+            - type: number
+            - type: string
+            - enum:
+                - '-INF'
+                - INF
+                - NaN
+          format: double
+          nullable: true
+        latitude:
+          oneOf:
+            - type: number
+            - type: string
+            - enum:
+                - '-INF'
+                - INF
+                - NaN
+          format: double
+          nullable: true
+        longitude:
+          oneOf:
+            - type: number
+            - type: string
+            - enum:
+                - '-INF'
+                - INF
+                - NaN
+          format: double
+          nullable: true
+    microsoft.graph.directoryObject:
+      allOf:
+      - "$ref": "#/components/schemas/microsoft.graph.entity"
+      - "$ref": "#/components/schemas/microsoft.graph.geoCoordinates"
+      - title: directoryObject
+        type: object
+        properties:
+          deletedDateTime:
+            pattern: "^[0-9]{4,}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]([.][0-9]{1,12})?(Z|[+-][0-9][0-9]:[0-9][0-9])$"
+            type: string
+            format: date-time
+            nullable: true
+    microsoft.graph.schemaExtension:
+      allOf:
+      - "$ref": "#/components/schemas/microsoft.graph.entity"
+      - title: schemaExtension
+        type: object
+        properties:
+          description:
+            type: string
+            nullable: true
+          targetTypes:
+            type: array
+            items:
+              type: string
+          properties:
+            type: array
+            items:
+              "$ref": "#/components/schemas/microsoft.graph.extensionSchemaProperty"
+          status:
+            type: string
+          owner:
+            type: string
+    microsoft.graph.extensionSchemaProperty:
+      title: extensionSchemaProperty
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+    odata.error:
+      required:
+      - error
+      type: object
+      properties:
+        error:
+          "$ref": "#/components/schemas/odata.error.main"
+    odata.error.main:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        target:
+          type: string
+        details:
+          type: array
+          items:
+            "$ref": "#/components/schemas/odata.error.detail"
+        innererror:
+          type: object
+          description: The structure of this object is service-specific
+    odata.error.detail:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        target:
+          type: string
+  responses:
+    error:
+      description: error
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/odata.error"
+  parameters:
+    top:
+      name: "$top"
+      in: query
+      description: Show only the first n items
+      schema:
+        minimum: 0
+        type: integer
+      example: 50
+    skip:
+      name: "$skip"
+      in: query
+      description: Skip the first n items
+      schema:
+        minimum: 0
+        type: integer
+    count:
+      name: "$count"
+      in: query
+      description: Include count of items
+      schema:
+        type: boolean
+    filter:
+      name: "$filter"
+      in: query
+      description: Filter items by property values
+      schema:
+        type: string
+    search:
+      name: "$search"
+      in: query
+      description: Search items by search phrases
+      schema:
+        type: string
+tags:
+- name: schemaExtensions
+- name: directoryObjects

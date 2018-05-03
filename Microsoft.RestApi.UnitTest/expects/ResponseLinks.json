@@ -1,0 +1,22 @@
+﻿[
+  {
+    "Key": "extensionProperties",
+    "OperationId": "graph.microsoft.com.test.invoketest"
+  },
+  {
+    "Key": "createdOnBehalfOf",
+    "OperationId": "graph.microsoft.com.test.invoketest"
+  },
+  {
+    "Key": "owners",
+    "OperationId": "graph.microsoft.com.test.invoketest"
+  },
+  {
+    "Key": "policies",
+    "OperationId": "graph.microsoft.com.test.invoketest"
+  },
+  {
+    "Key": "synchronization",
+    "OperationId": "graph.microsoft.com.test.invoketest"
+  }
+]

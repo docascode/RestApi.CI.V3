@@ -71,6 +71,7 @@
     <Compile Include="BaseUnitTest.cs" />
     <Compile Include="ComponentEntity.UnitTest.cs" />
     <Compile Include="RequestBody.UnitTest.cs" />
+    <Compile Include="ResponseLink.UnitTest.cs" />
     <Compile Include="Response.UnitTest.cs" />
     <Compile Include="Security.UnitTest.cs" />
     <Compile Include="SeeAlso.UnitTest.cs" />
@@ -84,6 +85,7 @@
     <None Include="app.config" />
     <None Include="expects\Requestbodies2.json" />
     <None Include="expects\Components.json" />
+    <None Include="expects\ResponseLinks.json" />
     <None Include="expects\Responses2.json" />
     <None Include="expects\Responses.json" />
     <None Include="expects\Requestbodies.json" />
@@ -93,6 +95,7 @@
     <None Include="samples\GetPaths2.yaml" />
     <None Include="samples\GetPaths.yaml" />
     <None Include="samples\GetRequestBody2.yaml" />
+    <None Include="samples\GetResponseLinks.yaml" />
     <None Include="samples\GetResponse2.yaml" />
     <None Include="samples\GetResponse.yaml" />
     <None Include="samples\GetRequestBody.yaml" />
