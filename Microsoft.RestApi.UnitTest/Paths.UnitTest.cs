@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using Microsoft.RestApi.Common;
     using Microsoft.RestApi.Models;
     using Microsoft.RestApi.Transformers;
 
@@ -20,7 +19,7 @@
             var openApiDocument = LoadOpenApiDocument("../../samples/GetPaths.yaml");
             var operation = openApiDocument.Paths.Values.First().Operations.Values.First();
 
-            var paths = RestOperationTransformer.TransformPaths("/pets", operation, null);
+            var paths = RestOperationTransformer.TransformPaths(openApiDocument.Paths.First(), operation, null);
             Assert.NotNull(paths);
             Assert.Equal(5, paths.Count);
             Assert.Equal("/pets", paths[0]);
@@ -44,7 +43,7 @@
                 new ParameterEntity{ In = "Header", IsRequired = true, Name = "token" }
             };
             var requiredQueryParameters = uriParameterEntities.Where(p => p.IsRequired && p.In == "Query").ToList();
-            var paths = RestOperationTransformer.TransformPaths("/pets", operation, requiredQueryParameters);
+            var paths = RestOperationTransformer.TransformPaths(openApiDocument.Paths.First(), operation, requiredQueryParameters);
             Assert.NotNull(paths);
             Assert.Equal(5, paths.Count);
             Assert.Equal("/pets?$select={$select}", paths[0]);

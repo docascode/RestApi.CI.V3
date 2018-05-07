@@ -25,11 +25,6 @@ paths:
       summary: List all pets
       description: List all pets
       operationId: listPets
-      x-ms-additional-paths: 
-        - "/pets/children"
-        - "/me/pets/children"
-        - "/sites/pets/children"
-        - "/users/pets/children"
       tags:
         - pets
       parameters:
@@ -93,3 +88,8 @@ paths:
              schema:
                type: integer
                format: int32
+    x-ms-additional-paths: 
+      - "/pets/children"
+      - "/me/pets/children"
+      - "/sites/pets/children"
+      - "/users/pets/children"
