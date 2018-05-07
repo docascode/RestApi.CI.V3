@@ -25,6 +25,6 @@
         public List<string> Operations { get; set; }
 
         [YamlMember(Alias = "links")]
-        public IList<ResponseLinkEntity> Links { get; set; }
+        public List<ResponseLinkEntity> Links { get; set; }
     }
 }
