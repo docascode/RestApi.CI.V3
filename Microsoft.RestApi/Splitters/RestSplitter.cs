@@ -474,7 +474,7 @@
         {
             foreach (var operation in filteredOpenApiPath.Operations)
             {
-                var operationName = operation.Value.OperationId;
+                var operationName = operation.Operation.Value.OperationId;
                 // todo: remove this after the Graph team fix the operation Id.
                 if (operationName.Contains('-'))
                 {
@@ -495,8 +495,8 @@
                 var model = new TransformModel
                 {
                     OpenApiDoc = openApiDoc,
-                    Operation = operation,
-                    OpenApiPath = filteredOpenApiPath.OpenApiPath,
+                    Operation = operation.Operation,
+                    OpenApiPath = operation.OpenApiPath,
                     ServiceName = serviceName,
                     OperationGroupName = groupName,
                     OperationGroupPath = groupName.Replace(".", "/"),

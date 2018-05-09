@@ -13,7 +13,7 @@
             var operations = new List<string>();
             foreach (var openApiOperation in filteredRestPathOperation.Operations)
             {
-                var operationName = openApiOperation.Value.OperationId;
+                var operationName = openApiOperation.Operation.Value.OperationId;
                 var operation = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, operationName);
 
                 operations.Add(operation);

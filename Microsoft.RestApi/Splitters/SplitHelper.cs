@@ -142,8 +142,11 @@
                     {
                         if (firstTag.Name == tag.Name)
                         {
-                            filteredRestPathOperation.OpenApiPath = path;
-                            filteredRestPathOperation.Operations.Add(operation);
+                            filteredRestPathOperation.Operations.Add(new OpenApiPathOperation
+                            {
+                                OpenApiPath = path,
+                                Operation = operation
+                            });
                             foreach (var etag in operation.Value.Tags)
                             {
                                 if (etag.Name != firstTag.Name && !filteredRestPathOperation.ExtendTagNames.Any(t => t == etag.Name))
