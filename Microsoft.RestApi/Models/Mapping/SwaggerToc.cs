@@ -1,33 +1,55 @@
 ﻿namespace Microsoft.RestApi.Models
 {
-    using System;
     using System.Collections.Generic;
 
-    public class SwaggerToc
+    public class RestTocLeaf
     {
-        public string Title { get; }
+        public string Id { get; set; }
 
-        public string FilePath { get; }
+        public string Name { get; set; }
 
-        public string Uid { get; }
+        public string FileName { get; set; }
 
-        public List<SwaggerToc> ChildrenToc { get; }
+        public bool IsComponent { get; set; }
 
-        public bool IsComponentGroup { get; }
+        public OperationEntity OperationInfo { get; set; }
+    }
 
-        public TocType TocType { get; }
-
-        public OperationEntity OperationInfo { get; }
-
-        public SwaggerToc(string title, string filePath, string uid, List<SwaggerToc> childrenToc = null, bool isComponentGroup = false, TocType tocType = TocType.Page, OperationEntity operationInfo = null)
+    public class RestTocGroup
+    {
+        public RestTocGroup()
         {
-            Title = title;
-            FilePath = filePath;
-            Uid = uid;
-            ChildrenToc = childrenToc;
-            IsComponentGroup = isComponentGroup;
-            TocType = tocType;
-            OperationInfo = operationInfo;
+            Groups = new Dictionary<string, RestTocGroup>();
         }
+
+        public string Id { get; set; }
+
+        public string Name { get; set; }
+
+        public string FileName { get; set; }
+
+        public bool IsComponentGroup { get; set; }
+
+        public TocType TocType { get; set; } = TocType.Page;
+
+        public Dictionary<string, RestTocGroup> Groups { get; }
+
+        public RestTocGroup this[string name]
+        {
+            get
+            {
+                if(Groups.TryGetValue(name, out var restTocGroup))
+                {
+                    return restTocGroup;
+                }
+                return null;
+            }
+            set
+            {
+                Groups[name] = value;
+            }
+        }
+
+        public List<RestTocLeaf> OperationOrComponents { get; set; }
     }
 }

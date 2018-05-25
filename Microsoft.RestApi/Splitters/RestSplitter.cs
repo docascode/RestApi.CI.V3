@@ -76,7 +76,148 @@
             }
         }
 
-        public virtual void WriteRestToc(StreamWriter writer, string subTocPrefix, List<string> tocLines, SortedDictionary<string, List<SwaggerToc>> subTocDict, string targetApiVersionDir)
+        public Dictionary<string, RestTocGroup> SortGroups(Dictionary<string, RestTocGroup> tocGroups, int depth, string parentGroupName)
+        {
+            var sortedGroups = new SortedDictionary<string, RestTocGroup>(tocGroups);
+            var finalGroups = new Dictionary<string, RestTocGroup>();
+
+            var orderNameList = new List<string>();
+            if (depth == 1 && MappingFile.FirstLevelTocOrders?.Count() > 0)
+            {
+                orderNameList = MappingFile.FirstLevelTocOrders.ToList();
+            }
+            else if (depth == 2 && MappingFile.SecondLevelTocOrders?.Count() > 0 && MappingFile.SecondLevelTocOrders.TryGetValue(parentGroupName, out var secondLevelSortOrders))
+            {
+                orderNameList = secondLevelSortOrders;
+            }
+
+            foreach (var orderName in orderNameList)
+            {
+                if (sortedGroups.TryGetValue(orderName, out var findTocs))
+                {
+                    finalGroups.Add(orderName, findTocs);
+                }
+            }
+
+            foreach (var sortedGroup in sortedGroups)
+            {
+                if (!finalGroups.TryGetValue(sortedGroup.Key, out var findTocs))
+                {
+                    finalGroups.Add(sortedGroup.Key, sortedGroup.Value);
+                }
+            }
+
+            return finalGroups;
+        }
+
+        private string GetConceptual(string conceptualFile, string targetApiVersionDir)
+        {
+            var conceptualHref = SplitHelper.GenerateHref(Path.Combine(TargetRootDir, MappingFile.ConceptualFolder), conceptualFile, targetApiVersionDir);
+            if (string.IsNullOrEmpty(conceptualHref))
+            {
+                Errors.Add($"Can not find the conceptual file: {conceptualFile}");
+            }
+            return conceptualHref;
+        }
+
+        private string GetComponentId(List<RestTocLeaf> components, string componentFile)
+        {
+            foreach (var component in components)
+            {
+                var fileName = component.FileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                var componentName = fileName.ToLower().Split(Path.DirectorySeparatorChar)?.Last();
+
+                if (!string.IsNullOrEmpty(componentName) && componentName.Equals(componentFile))
+                {
+                    return component.Id;
+                }
+            }
+            return null;
+        }
+
+        private string GetComponentFullPath(List<RestTocLeaf> components, string componentFile, string targetApiVersionDir)
+        {
+            foreach (var component in components)
+            {
+                var fileName = component.FileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                var componentName = fileName.ToLower().Split(Path.DirectorySeparatorChar)?.Last();
+
+                if (!string.IsNullOrEmpty(componentName) && componentName.Equals(componentFile))
+                {
+                    return Path.Combine(targetApiVersionDir, fileName);
+                }
+            }
+            return null;
+        }
+
+        public virtual void ResolveComponent(string componentYamlFile, RestTocGroup restTocGroup)
+        {
+        }
+
+        public void WriteRestTocTree(StreamWriter writer, List<RestTocLeaf> components, string targetApiVersionDir, string subTocPrefix, string subGroupTocPrefix, RestTocGroup tocGroup, string numberSign, int depth, string parentGroupName = null)
+        {
+            if (tocGroup != null)
+            {
+                var sortedGroups = SortGroups(tocGroup.Groups, depth, parentGroupName);
+                foreach (var group in sortedGroups)
+                {
+                    if (!group.Value.IsComponentGroup)
+                    {
+                        if (depth == 1)
+                        {
+                            var href = GetConceptual(group.Key + ".md", targetApiVersionDir);
+                            writer.WriteLine(!string.IsNullOrEmpty(href)
+                               ? $"{subTocPrefix}{numberSign}{subGroupTocPrefix} [{Utility.ExtractPascalNameByRegex(group.Key)}]({href})"
+                               : $"{subTocPrefix}{numberSign}{subGroupTocPrefix} {Utility.ExtractPascalNameByRegex(group.Key)}");
+                        }
+                        else
+                        {
+                            var componentFilePath = GetComponentFullPath(components, MappingFile.ComponentPrefix + group.Key.ToLower() + ".yml", targetApiVersionDir);
+                            if (!string.IsNullOrEmpty(componentFilePath) && File.Exists(componentFilePath))
+                            {
+                                ResolveComponent(componentFilePath, group.Value);
+                            }
+                            var componentId = GetComponentId(components, MappingFile.ComponentPrefix + group.Key.ToLower() + ".yml");
+                            writer.WriteLine(!string.IsNullOrEmpty(componentId)
+                            ? $"{subTocPrefix}{numberSign}{subGroupTocPrefix} [{Utility.ExtractPascalNameByRegex(group.Key)}](xref:{componentId})"
+                            : $"{subTocPrefix}{numberSign}{subGroupTocPrefix} {Utility.ExtractPascalNameByRegex(group.Key)}");
+                            writer.WriteLine();
+                        }
+
+                        WriteRestTocTree(writer, components, targetApiVersionDir, subTocPrefix, subGroupTocPrefix, group.Value, numberSign + "#", depth + 1, group.Key);
+                    }
+                }
+                   
+                if(tocGroup.OperationOrComponents?.Count > 0)
+                {
+                    var operations = tocGroup.OperationOrComponents.OrderBy(p => p.Name);
+                    foreach (var operation in operations)
+                    {
+                        writer.WriteLine($"{subTocPrefix}{numberSign}{subGroupTocPrefix} [{Utility.ExtractPascalNameByRegex(operation.Name)}](xref:{operation.Id})");
+                    }
+                }
+            }
+        }
+
+        private List<RestTocLeaf> GetAllComponents(RestTocGroup restTocGroup)
+        {
+            var components = new List<RestTocLeaf>();
+            foreach(var group in restTocGroup.Groups)
+            {
+                if (group.Value.IsComponentGroup)
+                {
+                    if (group.Value.OperationOrComponents != null)
+                    {
+                        foreach (var component in group.Value.OperationOrComponents)
+                        {
+                            components.Add(component);
+                        }
+                    }
+                }
+            }
+            return components;
+        }
+        public void WriteRestToc(StreamWriter writer, string subTocPrefix, List<string> tocLines, RestTocGroup rootGroup, string targetApiVersionDir)
         {
             var subRefTocPrefix = string.Empty;
             if (tocLines != null && tocLines.Count > 0)
@@ -85,7 +226,7 @@
                 writer.WriteLine($"{subTocPrefix}#{subRefTocPrefix} Reference");
             }
 
-            foreach (var pair in subTocDict)
+            foreach (var pair in rootGroup.Groups)
             {
                 var subGroupTocPrefix = subRefTocPrefix;
                 if (!string.IsNullOrEmpty(pair.Key))
@@ -93,19 +234,10 @@
                     subGroupTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
                     writer.WriteLine($"{subTocPrefix}#{subGroupTocPrefix} {pair.Key}");
                 }
-                var subTocList = pair.Value;
-                subTocList.OrderBy(x => !Equals(x.Title, "components")).ToList().Sort((x, y) => string.CompareOrdinal(x.Title, y.Title));
-                foreach (var subToc in subTocList)
-                {
-                    writer.WriteLine($"{subTocPrefix}##{subGroupTocPrefix} [{subToc.Title}](xref:{subToc.Uid})");
-                    if (subToc.ChildrenToc.Count > 0)
-                    {
-                        foreach (var child in subToc.ChildrenToc)
-                        {
-                            writer.WriteLine($"{subTocPrefix}###{subGroupTocPrefix} [{child.Title}](xref:{child.Uid})");
-                        }
-                    }
-                }
+                var tocGroup = pair.Value;
+                var components = GetAllComponents(tocGroup);
+
+                WriteRestTocTree(writer, components, targetApiVersionDir, subTocPrefix, subGroupTocPrefix, tocGroup, "##", 1);
             }
         }
 
@@ -216,10 +348,10 @@
                                 : $"{subTocPrefix}# {service.TocTitle}");
 
                             // 2. Parse and split REST swaggers
-                            var subTocDict = new SortedDictionary<string, List<SwaggerToc>>();
+                            var rootToc = new RestTocGroup();
                             if (service.SwaggerInfo != null)
                             {
-                                subTocDict = SplitSwaggers(targetApiVersionDir, service);
+                                rootToc = SplitSwaggers(targetApiVersionDir, service);
                             }
 
                             // 3. Conceptual toc
@@ -241,7 +373,7 @@
                             // 4. Write REST toc
                             if (service.SwaggerInfo != null)
                             {
-                                WriteRestToc(writer, subTocPrefix, tocLines, subTocDict, targetApiVersionDir);
+                                WriteRestToc(writer, subTocPrefix, tocLines, rootToc, targetApiVersionDir);
                             }
                         }
                     }
@@ -270,10 +402,32 @@
             Errors = new List<string>();
         }
 
-        private SortedDictionary<string, List<SwaggerToc>> SplitSwaggers(string targetApiVersionDir, ServiceInfo service)
+        public RestTocGroup GenerateGroupTree(FileNameInfo fileNameInfo, List<string> groupNames, int index, RestTocGroup parentGroup)
         {
-            var subTocDict = new SortedDictionary<string, List<SwaggerToc>>();
+            if (index < groupNames.Count)
+            {
+                var childGroup = parentGroup[groupNames[index]];
+                if(childGroup == null)
+                {
+                    childGroup = new RestTocGroup
+                    {
+                        Name = groupNames[index],
+                        IsComponentGroup = fileNameInfo.IsComponentGroup
+                    };
 
+                    parentGroup[groupNames[index]] = childGroup;
+                }
+                return GenerateGroupTree(fileNameInfo, groupNames, index + 1, childGroup);
+            }
+            else
+            {
+                return parentGroup;
+            }
+        }
+
+        private RestTocGroup SplitSwaggers(string targetApiVersionDir, ServiceInfo service)
+        {
+            var rootGroup = new RestTocGroup();
             foreach (var swagger in service.SwaggerInfo)
             {
                 var targetDir = FileUtility.CreateDirectoryIfNotExist(Path.Combine(targetApiVersionDir, service.UrlGroup));
@@ -288,38 +442,63 @@
 
                 var tocTitle = restFileInfo.TocTitle;
                 var subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
-                List<SwaggerToc> subTocList;
-                if (!subTocDict.TryGetValue(subGroupName, out subTocList))
+
+                var restTocGroup = rootGroup[subGroupName];
+                if (restTocGroup == null)
                 {
-                    subTocList = new List<SwaggerToc>();
-                    subTocDict.Add(subGroupName, subTocList);
+                    rootGroup.Name = subGroupName;
+                    rootGroup[subGroupName] = new RestTocGroup();
                 }
+                restTocGroup = rootGroup[subGroupName];
 
                 foreach (var fileNameInfo in restFileInfo.FileNameInfos)
                 {
-                    var subTocTitle = fileNameInfo.TocName;
-                    var filePath = FileUtility.NormalizePath(Path.Combine(service.UrlGroup, fileNameInfo.FileName));
-
-                    if (subTocList.Any(toc => toc.Title == subTocTitle))
+                    var groupNames = new List<string>();
+                    if (!fileNameInfo.IsComponentGroup)
                     {
-                        throw new InvalidOperationException($"Sub toc '{subTocTitle}' under '{tocTitle}' has been added into toc.md, please add operation group name mapping for file '{swagger.Source}' to avoid conflicting");
+                        var groupName = fileNameInfo.TocName;
+                        
+                        if (groupName.Contains('.'))
+                        {
+                            groupNames = groupName.Split('.').ToList();
+                        }
+                        else
+                        {
+                            groupNames.Add(groupName);
+                        }
+                    }
+                    else
+                    {
+                        groupNames.Add(fileNameInfo.TocName);
                     }
 
-                    var childrenToc = new List<SwaggerToc>();
+                    var operationOrComponents = new List<RestTocLeaf>();
                     if (fileNameInfo.ChildrenFileNameInfo != null && fileNameInfo.ChildrenFileNameInfo.Count > 0)
                     {
                         foreach (var nameInfo in fileNameInfo.ChildrenFileNameInfo)
                         {
-                            childrenToc.Add(new SwaggerToc(nameInfo.TocName, nameInfo.FileName, nameInfo.FileId, null, false, TocType.None, nameInfo.OperationInfo));
+                            operationOrComponents.Add(new RestTocLeaf
+                            {
+                                Id = nameInfo.FileId,
+                                Name = nameInfo.TocName,
+                                FileName = nameInfo.FileName,
+                                IsComponent = fileNameInfo.IsComponentGroup,
+                                OperationInfo = nameInfo.OperationInfo
+                            });
                         }
                     }
 
-                    subTocList.Add(new SwaggerToc(subTocTitle, filePath, fileNameInfo.FileId, childrenToc, fileNameInfo.IsComponentGroup, fileNameInfo.TocType));
+                    var leafGroup = GenerateGroupTree(fileNameInfo, groupNames, 0, restTocGroup);
+                    if (leafGroup.OperationOrComponents == null)
+                    {
+                        leafGroup.OperationOrComponents = new List<RestTocLeaf>();
+                    }
+                    leafGroup.OperationOrComponents.AddRange(operationOrComponents);
                 }
                 Console.WriteLine($"Done splitting swagger file from '{swagger.Source}' to '{service.UrlGroup}'");
             }
 
-            return subTocDict;
+            return rootGroup;
         }
 
         private RestFileInfo SplitSwaggerByTag(string targetDir, string filePath, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
@@ -350,7 +529,6 @@
                 if (fileNameInfos.Any())
                 {
                     restFileInfo.FileNameInfos = AddTocType(openApiDoc.Tags, fileNameInfos);
-                   
                 }
                 restFileInfo.TocTitle = openApiDoc.Info?.Title;
 
@@ -420,26 +598,20 @@
                 var filteredOpenApiPath = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
                 if (filteredOpenApiPath.Operations.Count > 0)
                 {
-                    var fileNameInfo = new FileNameInfo
-                    {
-                        TocName = tag.Name
-                    };
+
+                    var fileNameInfo = new FileNameInfo();
 
                     // Get file name from operation group mapping
-                    string newTagName;
-                    if (operationGroupMapping != null && operationGroupMapping.TryGetValue(tag.Name, out newTagName))
+                    string newTagName = tag.Name;
+                    if (operationGroupMapping != null && operationGroupMapping.TryGetValue(tag.Name, out var foundTagName))
                     {
-                        fileNameInfo.TocName = newTagName;
-                    }
-                    else
-                    {
-                        newTagName = tag.Name;
+                        newTagName = foundTagName;
                     }
 
-                    var groupName = string.IsNullOrEmpty(mappingFile.TagSeparator) ? tag.Name : tag.Name.Replace(mappingFile.TagSeparator, ".");
+                    var groupName = string.IsNullOrEmpty(mappingFile.TagSeparator) ? newTagName : newTagName.Replace(mappingFile.TagSeparator, ".");
 
                     // Split operation group to operation
-                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredOpenApiPath, openApiDoc, serviceName, groupName, targetDir, newTagName));
+                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredOpenApiPath, openApiDoc, serviceName, groupName, targetDir));
 
                     var model = new TransformModel
                     {
@@ -451,6 +623,7 @@
                     };
 
                     var nameInfo = TransformerFactory?.TransformerOperationGroup(model, targetDir);
+                    fileNameInfo.TocName = groupName;
                     fileNameInfo.FileId = nameInfo.FileId;
                     fileNameInfo.FileName = nameInfo.FileName;
                     yield return fileNameInfo;
@@ -470,7 +643,7 @@
             }
         }
 
-        private IEnumerable<FileNameInfo> SplitOperations(FilteredOpenApiPath filteredOpenApiPath, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir, string tag)
+        private IEnumerable<FileNameInfo> SplitOperations(FilteredOpenApiPath filteredOpenApiPath, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir)
         {
             foreach (var operation in filteredOpenApiPath.Operations)
             {
@@ -478,18 +651,18 @@
                 // todo: remove this after the Graph team fix the operation Id.
                 if (operationName.Contains('-'))
                 {
-                    var index = operationName.IndexOf('-');
-                    while(index > 0 && operationName[index - 1] >= '0' && operationName[index - 1] <= '9')
-                    {
-                        index--;
-                    }
-                    operationName = operationName.Substring(index == operationName.IndexOf('-') ? index + 1 : index);
+                    operationName = operationName.Split('-').Last();
                 }
+                if (operationName.Contains('.'))
+                {
+                    operationName = operationName.Split('.').Last();
+                }
+                operationName = operationName.FirstLetterToLower();
 
                 var fileNameInfo = new FileNameInfo
                 {
                     TocName = operationName,
-                    FileName = Path.Combine(tag, $"{operationName}.yml")
+                    FileName = Path.Combine(groupName.Replace(".", "/"), $"{operationName}.yml")
                 };
 
                 var model = new TransformModel
