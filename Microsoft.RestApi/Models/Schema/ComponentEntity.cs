@@ -26,5 +26,8 @@
 
         [YamlMember(Alias = "links")]
         public List<ResponseLinkEntity> Links { get; set; }
+
+        [YamlMember(Alias = "kind")]
+        public string Example { get; set; }
     }
 }

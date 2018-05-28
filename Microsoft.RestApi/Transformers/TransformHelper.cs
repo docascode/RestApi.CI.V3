@@ -167,7 +167,7 @@
             throw new KeyNotFoundException($"Can not find the {openApiOperation.OperationId}");
         }
 
-        private static string GetValueFromPrimitiveType(IOpenApiAny anyPrimitive)
+        public static string GetValueFromPrimitiveType(IOpenApiAny anyPrimitive)
         {
             if (anyPrimitive is OpenApiInteger integerValue)
             {
