@@ -56,7 +56,8 @@
             {
                 return null;
             }
-            return JsonUtility.ToJsonString(GetComponentExampleCore(schema.Example));
+            
+            return GetComponentExampleCore(schema.Example).ToJsonString();
         }
 
         private static JToken GetComponentExampleCore(IOpenApiAny example)
