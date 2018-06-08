@@ -174,6 +174,12 @@
                 {
                     if (string.Equals(operationId, operation.Value.OperationId))
                     {
+                        var firstTagName = operation.Value.Tags?.First()?.Name;
+                        if (!string.IsNullOrEmpty(firstTagName) && operationId.StartsWith(firstTagName))
+                        {
+                            operationId = operationId.Substring(firstTagName.Length + 1);
+                            return TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
+                        }
                         return TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
                     }
                 }

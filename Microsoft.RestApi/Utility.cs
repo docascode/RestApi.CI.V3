@@ -1,10 +1,10 @@
-﻿namespace Microsoft.RestApi.Splitters
+﻿namespace Microsoft.RestApi
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Text.RegularExpressions;
-
+    using Microsoft.RestApi.Common;
     using Newtonsoft.Json;
 
     public static class Utility
@@ -128,6 +128,22 @@
                 name = name.Substring(m.Length);
             }
             return string.Join(" ", result).FirstLetterToUpper();
+        }
+
+        public static string FormatJsonString(object jsonValue)
+        {
+            if (jsonValue == null)
+            {
+                return null;
+            }
+            try
+            {
+                return JsonUtility.ToIndentedJsonString(jsonValue).Replace("\r\n", "\n");
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

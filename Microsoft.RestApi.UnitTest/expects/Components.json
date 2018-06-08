@@ -1,173 +1,183 @@
 ﻿{
     "Service": "mockServerName",
-    "Components": [
+  "Components": [
     {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "Description": "entity",
-        "PropertyItems": [
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "Description": "entity",
+      "PropertyItems": [
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "id"
-        }],
-        "Name": "microsoft.graph.entity",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.entity"
+              "Id": "string"
+            }
+          ],
+          "Name": "id"
+        }
+      ],
+      "Name": "microsoft.graph.entity",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.entity"
     },
     {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "PropertyItems": [
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "PropertyItems": [
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "id"
-        }],
-        "Name": "microsoft.graph.extension",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extension"
+              "Id": "string"
+            }
+          ],
+          "Name": "id"
+        }
+      ],
+      "Name": "microsoft.graph.extension",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extension"
     },
-      {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "Description": "geoCoordinates",
-        "PropertyItems": [
-          {
-            "Nullable": true,
-            "Types": [
-              {
-                "Id": "number"
-              },
-              {
-                "Id": "string"
-              },
-              {
-                "Kind": "enum",
-                "Values": [ "-INF", "INF", "NaN" ]
-              }
-            ],
-            "Format": "double",
-            "IsOneOf": true,
-            "Name": "altitude"
-          },
-          {
-            "Nullable": true,
-            "Types": [
-              {
-                "Id": "number"
-              },
-              {
-                "Id": "string"
-              },
-              {
-                "Kind": "enum",
-                "Values": [ "-INF", "INF", "NaN" ]
-              }
-            ],
-            "Format": "double",
-            "IsOneOf": true,
-            "Name": "latitude"
-          },
-          {
-            "Nullable": true,
-            "Types": [
-              {
-                "Id": "number"
-              },
-              {
-                "Id": "string"
-              },
-              {
-                "Kind": "enum",
-                "Values": [ "-INF", "INF", "NaN" ]
-              }
-            ],
-            "Format": "double",
-            "IsOneOf": true,
-            "Name": "longitude"
-          }
-        ],
-        "Name": "microsoft.graph.geoCoordinates",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.geocoordinates"
-      },
     {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "PropertyItems": [
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "Description": "geoCoordinates",
+      "PropertyItems": [
         {
-            "Types": [
+          "Nullable": true,
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "id"
+              "Id": "number"
+            },
+            {
+              "Id": "string"
+            },
+            {
+              "Kind": "enum",
+              "Values": [ "-INF", "INF", "NaN" ]
+            }
+          ],
+          "Format": "double",
+          "IsOneOf": true,
+          "Name": "altitude"
         },
         {
-            "Nullable": true,
-            "Types": [
+          "Nullable": true,
+          "Types": [
             {
-                "Id": "number"
+              "Id": "number"
             },
             {
-                "Id": "string"
+              "Id": "string"
             },
             {
-                "Kind": "enum",
-                "Values": ["-INF", "INF", "NaN"]
-            }],
-            "Format": "double",
-            "IsOneOf": true,
-            "Name": "altitude"
+              "Kind": "enum",
+              "Values": [ "-INF", "INF", "NaN" ]
+            }
+          ],
+          "Format": "double",
+          "IsOneOf": true,
+          "Name": "latitude"
         },
         {
-            "Nullable": true,
-            "Types": [
+          "Nullable": true,
+          "Types": [
             {
-                "Id": "number"
+              "Id": "number"
             },
             {
-                "Id": "string"
+              "Id": "string"
             },
             {
-                "Kind": "enum",
-                "Values": ["-INF", "INF", "NaN"]
-            }],
-            "Format": "double",
-            "IsOneOf": true,
-            "Name": "latitude"
+              "Kind": "enum",
+              "Values": [ "-INF", "INF", "NaN" ]
+            }
+          ],
+          "Format": "double",
+          "IsOneOf": true,
+          "Name": "longitude"
+        }
+      ],
+      "Name": "microsoft.graph.geoCoordinates",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.geocoordinates"
+    },
+    {
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "PropertyItems": [
+        {
+          "Types": [
+            {
+              "Id": "string"
+            }
+          ],
+          "Name": "id"
         },
         {
-            "Nullable": true,
-            "Types": [
+          "Nullable": true,
+          "Types": [
             {
-                "Id": "number"
+              "Id": "number"
             },
             {
-                "Id": "string"
+              "Id": "string"
             },
             {
-                "Kind": "enum",
-                "Values": ["-INF", "INF", "NaN"],
-                "IsDictionary": false
-            }],
-            "Format": "double",
-            "IsOneOf": true,
-            "Name": "longitude"
+              "Kind": "enum",
+              "Values": [ "-INF", "INF", "NaN" ]
+            }
+          ],
+          "Format": "double",
+          "IsOneOf": true,
+          "Name": "altitude"
         },
         {
-            "Nullable": true,
-            "Types": [
+          "Nullable": true,
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Pattern": "^[0-9]{4,}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]([.][0-9]{1,12})?(Z|[+-][0-9][0-9]:[0-9][0-9])$",
-            "Format": "date-time",
-            "Name": "deletedDateTime"
-        }],
-        "Name": "microsoft.graph.directoryObject",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.directoryobject"
+              "Id": "number"
+            },
+            {
+              "Id": "string"
+            },
+            {
+              "Kind": "enum",
+              "Values": [ "-INF", "INF", "NaN" ]
+            }
+          ],
+          "Format": "double",
+          "IsOneOf": true,
+          "Name": "latitude"
+        },
+        {
+          "Nullable": true,
+          "Types": [
+            {
+              "Id": "number"
+            },
+            {
+              "Id": "string"
+            },
+            {
+              "Kind": "enum",
+              "Values": [ "-INF", "INF", "NaN" ],
+              "IsDictionary": false
+            }
+          ],
+          "Format": "double",
+          "IsOneOf": true,
+          "Name": "longitude"
+        },
+        {
+          "Nullable": true,
+          "Types": [
+            {
+              "Id": "string"
+            }
+          ],
+          "Pattern": "^[0-9]{4,}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]([.][0-9]{1,12})?(Z|[+-][0-9][0-9]:[0-9][0-9])$",
+          "Format": "date-time",
+          "Name": "deletedDateTime"
+        }
+      ],
+      "Name": "microsoft.graph.directoryObject",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.directoryobject"
     },
     {
       "ApiVersion": "1.0.1",
@@ -328,119 +338,135 @@
       ],
       "Operations": null,
       "Links": null,
-      "Example": "{\"id\":\"String (identifier)\",\"deletedDateTime\":\"DateTimeOffset (timestamp)\",\"accountEnabled\":\"True\",\"assignedLicenses\":[{\"@odata.type\":\"microsoft.graph.assignedLicense\"}],\"assignedPlans\":[{\"@odata.type\":\"microsoft.graph.assignedPlan\"}],\"businessPhones\":[\"String\"],\"city\":\"String\",\"companyName\":\"String\",\"country\":\"String\",\"department\":\"String\",\"deviceKeys\":[{\"@odata.type\":\"microsoft.graph.deviceKey\"}],\"displayName\":\"String\",\"employeeId\":\"String\",\"givenName\":\"String\",\"imAddresses\":[\"String\"],\"jobTitle\":\"String\",\"mail\":\"String\",\"mailNickname\":\"String\",\"mobilePhone\":\"String\",\"onPremisesImmutableId\":\"String\",\"onPremisesLastSyncDateTime\":\"DateTimeOffset (timestamp)\",\"onPremisesProvisioningErrors\":[{\"@odata.type\":\"microsoft.graph.onPremisesProvisioningError\"}],\"onPremisesSecurityIdentifier\":\"String\",\"onPremisesSyncEnabled\":\"True\",\"onPremisesDomainName\":\"String\",\"onPremisesSamAccountName\":\"String\",\"onPremisesUserPrincipalName\":\"String\",\"passwordPolicies\":\"String\",\"passwordProfile\":{\"@odata.type\":\"microsoft.graph.passwordProfile\"},\"officeLocation\":\"String\",\"postalCode\":\"String\",\"preferredDataLocation\":\"String\",\"preferredLanguage\":\"String\",\"provisionedPlans\":[{\"@odata.type\":\"microsoft.graph.provisionedPlan\"}],\"proxyAddresses\":[\"String\"],\"refreshTokensValidFromDateTime\":\"DateTimeOffset (timestamp)\",\"showInAddressList\":\"True\",\"state\":\"String\",\"streetAddress\":\"String\",\"surname\":\"String\",\"usageLocation\":\"String\",\"userPrincipalName\":\"String\",\"userType\":\"String\",\"mailboxSettings\":{\"@odata.type\":\"microsoft.graph.mailboxSettings\"},\"aboutMe\":\"String\",\"birthday\":\"DateTimeOffset (timestamp)\",\"hireDate\":\"DateTimeOffset (timestamp)\",\"interests\":[\"String\"],\"mySite\":\"String\",\"pastProjects\":[\"String\"],\"preferredName\":\"String\",\"responsibilities\":[\"String\"],\"schools\":[\"String\"],\"skills\":[\"String\"],\"identityUserRisk\":{\"@odata.type\":\"microsoft.graph.identityUserRisk\"},\"deviceEnrollmentLimit\":\"Int32\",\"extensions\":[{\"@odata.type\":\"microsoft.graph.extension\"}],\"ownedDevices\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"registeredDevices\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"manager\":{\"@odata.type\":\"microsoft.graph.directoryObject\"},\"directReports\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"memberOf\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"createdObjects\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"ownedObjects\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"scopedRoleMemberOf\":[{\"@odata.type\":\"microsoft.graph.scopedRoleMembership\"}],\"licenseDetails\":[{\"@odata.type\":\"microsoft.graph.licenseDetails\"}],\"activities\":[{\"@odata.type\":\"microsoft.graph.activity\"}],\"outlook\":{\"@odata.type\":\"microsoft.graph.outlookUser\"},\"messages\":[{\"@odata.type\":\"microsoft.graph.message\"}],\"joinedGroups\":[{\"@odata.type\":\"microsoft.graph.group\"}],\"mailFolders\":[{\"@odata.type\":\"microsoft.graph.mailFolder\"}],\"calendar\":{\"@odata.type\":\"microsoft.graph.calendar\"},\"calendars\":[{\"@odata.type\":\"microsoft.graph.calendar\"}],\"calendarGroups\":[{\"@odata.type\":\"microsoft.graph.calendarGroup\"}],\"calendarView\":[{\"@odata.type\":\"microsoft.graph.event\"}],\"events\":[{\"@odata.type\":\"microsoft.graph.event\"}],\"people\":[{\"@odata.type\":\"microsoft.graph.person\"}],\"contacts\":[{\"@odata.type\":\"microsoft.graph.contact\"}],\"contactFolders\":[{\"@odata.type\":\"microsoft.graph.contactFolder\"}],\"inferenceClassification\":{\"@odata.type\":\"microsoft.graph.inferenceClassification\"},\"photo\":{\"@odata.type\":\"microsoft.graph.profilePhoto\"},\"photos\":[{\"@odata.type\":\"microsoft.graph.profilePhoto\"}],\"drive\":{\"@odata.type\":\"microsoft.graph.drive\"},\"drives\":[{\"@odata.type\":\"microsoft.graph.drive\"}],\"insights\":{\"@odata.type\":\"microsoft.graph.officeGraphInsights\"},\"planner\":{\"@odata.type\":\"microsoft.graph.plannerUser\"},\"onenote\":{\"@odata.type\":\"microsoft.graph.onenote\"},\"managedDevices\":[{\"@odata.type\":\"microsoft.graph.managedDevice\"}],\"managedAppRegistrations\":[{\"@odata.type\":\"microsoft.graph.managedAppRegistration\"}],\"devices\":[{\"@odata.type\":\"microsoft.graph.device\"}],\"joinedTeams\":[{\"@odata.type\":\"microsoft.graph.group\"}],\"deviceManagementTroubleshootingEvents\":[{\"@odata.type\":\"microsoft.graph.deviceManagementTroubleshootingEvent\"}]}",
+      "Example": "{\n  \"id\": \"String (identifier)\",\n  \"deletedDateTime\": \"DateTimeOffset (timestamp)\",\n  \"accountEnabled\": \"True\",\n  \"assignedLicenses\": [\n    {\n      \"@odata.type\": \"microsoft.graph.assignedLicense\"\n    }\n  ],\n  \"assignedPlans\": [\n    {\n      \"@odata.type\": \"microsoft.graph.assignedPlan\"\n    }\n  ],\n  \"businessPhones\": [\n    \"String\"\n  ],\n  \"city\": \"String\",\n  \"companyName\": \"String\",\n  \"country\": \"String\",\n  \"department\": \"String\",\n  \"deviceKeys\": [\n    {\n      \"@odata.type\": \"microsoft.graph.deviceKey\"\n    }\n  ],\n  \"displayName\": \"String\",\n  \"employeeId\": \"String\",\n  \"givenName\": \"String\",\n  \"imAddresses\": [\n    \"String\"\n  ],\n  \"jobTitle\": \"String\",\n  \"mail\": \"String\",\n  \"mailNickname\": \"String\",\n  \"mobilePhone\": \"String\",\n  \"onPremisesImmutableId\": \"String\",\n  \"onPremisesLastSyncDateTime\": \"DateTimeOffset (timestamp)\",\n  \"onPremisesProvisioningErrors\": [\n    {\n      \"@odata.type\": \"microsoft.graph.onPremisesProvisioningError\"\n    }\n  ],\n  \"onPremisesSecurityIdentifier\": \"String\",\n  \"onPremisesSyncEnabled\": \"True\",\n  \"onPremisesDomainName\": \"String\",\n  \"onPremisesSamAccountName\": \"String\",\n  \"onPremisesUserPrincipalName\": \"String\",\n  \"passwordPolicies\": \"String\",\n  \"passwordProfile\": {\n    \"@odata.type\": \"microsoft.graph.passwordProfile\"\n  },\n  \"officeLocation\": \"String\",\n  \"postalCode\": \"String\",\n  \"preferredDataLocation\": \"String\",\n  \"preferredLanguage\": \"String\",\n  \"provisionedPlans\": [\n    {\n      \"@odata.type\": \"microsoft.graph.provisionedPlan\"\n    }\n  ],\n  \"proxyAddresses\": [\n    \"String\"\n  ],\n  \"refreshTokensValidFromDateTime\": \"DateTimeOffset (timestamp)\",\n  \"showInAddressList\": \"True\",\n  \"state\": \"String\",\n  \"streetAddress\": \"String\",\n  \"surname\": \"String\",\n  \"usageLocation\": \"String\",\n  \"userPrincipalName\": \"String\",\n  \"userType\": \"String\",\n  \"mailboxSettings\": {\n    \"@odata.type\": \"microsoft.graph.mailboxSettings\"\n  },\n  \"aboutMe\": \"String\",\n  \"birthday\": \"DateTimeOffset (timestamp)\",\n  \"hireDate\": \"DateTimeOffset (timestamp)\",\n  \"interests\": [\n    \"String\"\n  ],\n  \"mySite\": \"String\",\n  \"pastProjects\": [\n    \"String\"\n  ],\n  \"preferredName\": \"String\",\n  \"responsibilities\": [\n    \"String\"\n  ],\n  \"schools\": [\n    \"String\"\n  ],\n  \"skills\": [\n    \"String\"\n  ],\n  \"identityUserRisk\": {\n    \"@odata.type\": \"microsoft.graph.identityUserRisk\"\n  },\n  \"deviceEnrollmentLimit\": \"Int32\",\n  \"extensions\": [\n    {\n      \"@odata.type\": \"microsoft.graph.extension\"\n    }\n  ],\n  \"ownedDevices\": [\n    {\n      \"@odata.type\": \"microsoft.graph.directoryObject\"\n    }\n  ],\n  \"registeredDevices\": [\n    {\n      \"@odata.type\": \"microsoft.graph.directoryObject\"\n    }\n  ],\n  \"manager\": {\n    \"@odata.type\": \"microsoft.graph.directoryObject\"\n  },\n  \"directReports\": [\n    {\n      \"@odata.type\": \"microsoft.graph.directoryObject\"\n    }\n  ],\n  \"memberOf\": [\n    {\n      \"@odata.type\": \"microsoft.graph.directoryObject\"\n    }\n  ],\n  \"createdObjects\": [\n    {\n      \"@odata.type\": \"microsoft.graph.directoryObject\"\n    }\n  ],\n  \"ownedObjects\": [\n    {\n      \"@odata.type\": \"microsoft.graph.directoryObject\"\n    }\n  ],\n  \"scopedRoleMemberOf\": [\n    {\n      \"@odata.type\": \"microsoft.graph.scopedRoleMembership\"\n    }\n  ],\n  \"licenseDetails\": [\n    {\n      \"@odata.type\": \"microsoft.graph.licenseDetails\"\n    }\n  ],\n  \"activities\": [\n    {\n      \"@odata.type\": \"microsoft.graph.activity\"\n    }\n  ],\n  \"outlook\": {\n    \"@odata.type\": \"microsoft.graph.outlookUser\"\n  },\n  \"messages\": [\n    {\n      \"@odata.type\": \"microsoft.graph.message\"\n    }\n  ],\n  \"joinedGroups\": [\n    {\n      \"@odata.type\": \"microsoft.graph.group\"\n    }\n  ],\n  \"mailFolders\": [\n    {\n      \"@odata.type\": \"microsoft.graph.mailFolder\"\n    }\n  ],\n  \"calendar\": {\n    \"@odata.type\": \"microsoft.graph.calendar\"\n  },\n  \"calendars\": [\n    {\n      \"@odata.type\": \"microsoft.graph.calendar\"\n    }\n  ],\n  \"calendarGroups\": [\n    {\n      \"@odata.type\": \"microsoft.graph.calendarGroup\"\n    }\n  ],\n  \"calendarView\": [\n    {\n      \"@odata.type\": \"microsoft.graph.event\"\n    }\n  ],\n  \"events\": [\n    {\n      \"@odata.type\": \"microsoft.graph.event\"\n    }\n  ],\n  \"people\": [\n    {\n      \"@odata.type\": \"microsoft.graph.person\"\n    }\n  ],\n  \"contacts\": [\n    {\n      \"@odata.type\": \"microsoft.graph.contact\"\n    }\n  ],\n  \"contactFolders\": [\n    {\n      \"@odata.type\": \"microsoft.graph.contactFolder\"\n    }\n  ],\n  \"inferenceClassification\": {\n    \"@odata.type\": \"microsoft.graph.inferenceClassification\"\n  },\n  \"photo\": {\n    \"@odata.type\": \"microsoft.graph.profilePhoto\"\n  },\n  \"photos\": [\n    {\n      \"@odata.type\": \"microsoft.graph.profilePhoto\"\n    }\n  ],\n  \"drive\": {\n    \"@odata.type\": \"microsoft.graph.drive\"\n  },\n  \"drives\": [\n    {\n      \"@odata.type\": \"microsoft.graph.drive\"\n    }\n  ],\n  \"insights\": {\n    \"@odata.type\": \"microsoft.graph.officeGraphInsights\"\n  },\n  \"planner\": {\n    \"@odata.type\": \"microsoft.graph.plannerUser\"\n  },\n  \"onenote\": {\n    \"@odata.type\": \"microsoft.graph.onenote\"\n  },\n  \"managedDevices\": [\n    {\n      \"@odata.type\": \"microsoft.graph.managedDevice\"\n    }\n  ],\n  \"managedAppRegistrations\": [\n    {\n      \"@odata.type\": \"microsoft.graph.managedAppRegistration\"\n    }\n  ],\n  \"devices\": [\n    {\n      \"@odata.type\": \"microsoft.graph.device\"\n    }\n  ],\n  \"joinedTeams\": [\n    {\n      \"@odata.type\": \"microsoft.graph.group\"\n    }\n  ],\n  \"deviceManagementTroubleshootingEvents\": [\n    {\n      \"@odata.type\": \"microsoft.graph.deviceManagementTroubleshootingEvent\"\n    }\n  ]\n}",
       "Name": "microsoft.graph.schemaExtension",
       "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.schemaextension"
     },
     {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "Description": "extensionSchemaProperty",
-        "PropertyItems": [
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "Description": "extensionSchemaProperty",
+      "PropertyItems": [
         {
-            "Nullable": true,
-            "Types": [
+          "Nullable": true,
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "name"
+              "Id": "string"
+            }
+          ],
+          "Name": "name"
         },
         {
-            "Nullable": true,
-            "Types": [
+          "Nullable": true,
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "type"
-        }],
-        "Name": "microsoft.graph.extensionSchemaProperty",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
+              "Id": "string"
+            }
+          ],
+          "Name": "type"
+        }
+      ],
+      "Name": "microsoft.graph.extensionSchemaProperty",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
     },
     {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "PropertyItems": [
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "PropertyItems": [
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.main"
-            }],
-            "Name": "error"
-        }],
-        "Name": "odata.error",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error"
+              "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.main"
+            }
+          ],
+          "Name": "error"
+        }
+      ],
+      "Name": "odata.error",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error"
     },
     {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "PropertyItems": [
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "PropertyItems": [
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "code"
+              "Id": "string"
+            }
+          ],
+          "Name": "code"
         },
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "message"
+              "Id": "string"
+            }
+          ],
+          "Name": "message"
         },
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "target"
+              "Id": "string"
+            }
+          ],
+          "Name": "target"
         },
         {
-            "Types": [
+          "Types": [
             {
-                "IsArray": true,
-                "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.detail"
-            }],
-            "Name": "details"
+              "IsArray": true,
+              "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.detail"
+            }
+          ],
+          "Name": "details"
         },
         {
-            "Description": "The structure of this object is service-specific",
-            "Types": [
+          "Description": "The structure of this object is service-specific",
+          "Types": [
             {
-                "Id": "object"
-            }],
-            "Name": "innererror"
-        }],
-        "Name": "odata.error.main",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.main"
+              "Id": "object"
+            }
+          ],
+          "Name": "innererror"
+        }
+      ],
+      "Name": "odata.error.main",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.main"
     },
     {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "PropertyItems": [
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "PropertyItems": [
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "code"
+              "Id": "string"
+            }
+          ],
+          "Name": "code"
         },
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "message"
+              "Id": "string"
+            }
+          ],
+          "Name": "message"
         },
         {
-            "Types": [
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "target"
-        }],
-        "Name": "odata.error.detail",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.detail"
-    }],
+              "Id": "string"
+            }
+          ],
+          "Name": "target"
+        }
+      ],
+      "Name": "odata.error.detail",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.odata.error.detail"
+    }
+  ],
     "Id": "graph.microsoft.com.mockservername.mockcomponentgroup"
 }

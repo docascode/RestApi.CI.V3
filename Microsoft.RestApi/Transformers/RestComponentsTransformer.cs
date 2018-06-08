@@ -7,7 +7,6 @@
     using Microsoft.OpenApi.Any;
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Models;
-
     using Newtonsoft.Json.Linq;
 
     public class RestComponentsTransformer
@@ -57,7 +56,7 @@
                 return null;
             }
             
-            return GetComponentExampleCore(schema.Example).ToJsonString();
+            return Utility.FormatJsonString(GetComponentExampleCore(schema.Example));
         }
 
         private static JToken GetComponentExampleCore(IOpenApiAny example)
