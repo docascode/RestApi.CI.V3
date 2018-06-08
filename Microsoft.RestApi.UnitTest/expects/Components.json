@@ -170,56 +170,167 @@
         "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.directoryobject"
     },
     {
-        "ApiVersion": "1.0.1",
-        "Service": "mockServerName",
-        "PropertyItems": [
+      "ApiVersion": "1.0.1",
+      "Service": "mockServerName",
+      "Description": null,
+      "Kind": null,
+      "PropertyItems": [
         {
-            "Types": [
+          "IsReadOnly": false,
+          "IsRequired": false,
+          "Description": null,
+          "Nullable": false,
+          "IsDeprecated": false,
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "id"
+              "IsArray": false,
+              "Kind": null,
+              "Values": null,
+              "IsDictionary": false,
+              "AdditionalTypes": null,
+              "AnonymousChildren": null,
+              "Id": "string"
+            }
+          ],
+          "TypesTitle": null,
+          "Pattern": null,
+          "Format": null,
+          "IsAnyOf": false,
+          "IsOneOf": false,
+          "Name": "id",
+          "Id": null
         },
         {
-            "Nullable": true,
-            "Types": [
+          "IsReadOnly": false,
+          "IsRequired": false,
+          "Description": null,
+          "Nullable": true,
+          "IsDeprecated": false,
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "description"
+              "IsArray": false,
+              "Kind": null,
+              "Values": null,
+              "IsDictionary": false,
+              "AdditionalTypes": null,
+              "AnonymousChildren": null,
+              "Id": "string"
+            }
+          ],
+          "TypesTitle": null,
+          "Pattern": null,
+          "Format": null,
+          "IsAnyOf": false,
+          "IsOneOf": false,
+          "Name": "description",
+          "Id": null
         },
         {
-            "Types": [
+          "IsReadOnly": false,
+          "IsRequired": false,
+          "Description": null,
+          "Nullable": false,
+          "IsDeprecated": false,
+          "Types": [
             {
-                "IsArray": true,
-                "Id": "string"
-            }],
-            "Name": "targetTypes"
+              "IsArray": true,
+              "Kind": null,
+              "Values": null,
+              "IsDictionary": false,
+              "AdditionalTypes": null,
+              "AnonymousChildren": null,
+              "Id": "string"
+            }
+          ],
+          "TypesTitle": null,
+          "Pattern": null,
+          "Format": null,
+          "IsAnyOf": false,
+          "IsOneOf": false,
+          "Name": "targetTypes",
+          "Id": null
         },
         {
-            "Types": [
+          "IsReadOnly": false,
+          "IsRequired": false,
+          "Description": null,
+          "Nullable": false,
+          "IsDeprecated": false,
+          "Types": [
             {
-                "IsArray": true,
-                "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
-            }],
-            "Name": "properties"
+              "IsArray": true,
+              "Kind": null,
+              "Values": null,
+              "IsDictionary": false,
+              "AdditionalTypes": null,
+              "AnonymousChildren": null,
+              "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.extensionschemaproperty"
+            }
+          ],
+          "TypesTitle": null,
+          "Pattern": null,
+          "Format": null,
+          "IsAnyOf": false,
+          "IsOneOf": false,
+          "Name": "properties",
+          "Id": null
         },
         {
-            "Types": [
+          "IsReadOnly": false,
+          "IsRequired": false,
+          "Description": null,
+          "Nullable": false,
+          "IsDeprecated": false,
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "status"
+              "IsArray": false,
+              "Kind": null,
+              "Values": null,
+              "IsDictionary": false,
+              "AdditionalTypes": null,
+              "AnonymousChildren": null,
+              "Id": "string"
+            }
+          ],
+          "TypesTitle": null,
+          "Pattern": null,
+          "Format": null,
+          "IsAnyOf": false,
+          "IsOneOf": false,
+          "Name": "status",
+          "Id": null
         },
         {
-            "Types": [
+          "IsReadOnly": false,
+          "IsRequired": false,
+          "Description": null,
+          "Nullable": false,
+          "IsDeprecated": false,
+          "Types": [
             {
-                "Id": "string"
-            }],
-            "Name": "owner"
-        }],
-        "Name": "microsoft.graph.schemaExtension",
-        "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.schemaextension"
+              "IsArray": false,
+              "Kind": null,
+              "Values": null,
+              "IsDictionary": false,
+              "AdditionalTypes": null,
+              "AnonymousChildren": null,
+              "Id": "string"
+            }
+          ],
+          "TypesTitle": null,
+          "Pattern": null,
+          "Format": null,
+          "IsAnyOf": false,
+          "IsOneOf": false,
+          "Name": "owner",
+          "Id": null
+        }
+      ],
+      "Operations": null,
+      "Links": null,
+      "Example": "{\"id\":\"String (identifier)\",\"deletedDateTime\":\"DateTimeOffset (timestamp)\",\"accountEnabled\":\"True\",\"assignedLicenses\":[{\"@odata.type\":\"microsoft.graph.assignedLicense\"}],\"assignedPlans\":[{\"@odata.type\":\"microsoft.graph.assignedPlan\"}],\"businessPhones\":[\"String\"],\"city\":\"String\",\"companyName\":\"String\",\"country\":\"String\",\"department\":\"String\",\"deviceKeys\":[{\"@odata.type\":\"microsoft.graph.deviceKey\"}],\"displayName\":\"String\",\"employeeId\":\"String\",\"givenName\":\"String\",\"imAddresses\":[\"String\"],\"jobTitle\":\"String\",\"mail\":\"String\",\"mailNickname\":\"String\",\"mobilePhone\":\"String\",\"onPremisesImmutableId\":\"String\",\"onPremisesLastSyncDateTime\":\"DateTimeOffset (timestamp)\",\"onPremisesProvisioningErrors\":[{\"@odata.type\":\"microsoft.graph.onPremisesProvisioningError\"}],\"onPremisesSecurityIdentifier\":\"String\",\"onPremisesSyncEnabled\":\"True\",\"onPremisesDomainName\":\"String\",\"onPremisesSamAccountName\":\"String\",\"onPremisesUserPrincipalName\":\"String\",\"passwordPolicies\":\"String\",\"passwordProfile\":{\"@odata.type\":\"microsoft.graph.passwordProfile\"},\"officeLocation\":\"String\",\"postalCode\":\"String\",\"preferredDataLocation\":\"String\",\"preferredLanguage\":\"String\",\"provisionedPlans\":[{\"@odata.type\":\"microsoft.graph.provisionedPlan\"}],\"proxyAddresses\":[\"String\"],\"refreshTokensValidFromDateTime\":\"DateTimeOffset (timestamp)\",\"showInAddressList\":\"True\",\"state\":\"String\",\"streetAddress\":\"String\",\"surname\":\"String\",\"usageLocation\":\"String\",\"userPrincipalName\":\"String\",\"userType\":\"String\",\"mailboxSettings\":{\"@odata.type\":\"microsoft.graph.mailboxSettings\"},\"aboutMe\":\"String\",\"birthday\":\"DateTimeOffset (timestamp)\",\"hireDate\":\"DateTimeOffset (timestamp)\",\"interests\":[\"String\"],\"mySite\":\"String\",\"pastProjects\":[\"String\"],\"preferredName\":\"String\",\"responsibilities\":[\"String\"],\"schools\":[\"String\"],\"skills\":[\"String\"],\"identityUserRisk\":{\"@odata.type\":\"microsoft.graph.identityUserRisk\"},\"deviceEnrollmentLimit\":\"Int32\",\"extensions\":[{\"@odata.type\":\"microsoft.graph.extension\"}],\"ownedDevices\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"registeredDevices\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"manager\":{\"@odata.type\":\"microsoft.graph.directoryObject\"},\"directReports\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"memberOf\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"createdObjects\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"ownedObjects\":[{\"@odata.type\":\"microsoft.graph.directoryObject\"}],\"scopedRoleMemberOf\":[{\"@odata.type\":\"microsoft.graph.scopedRoleMembership\"}],\"licenseDetails\":[{\"@odata.type\":\"microsoft.graph.licenseDetails\"}],\"activities\":[{\"@odata.type\":\"microsoft.graph.activity\"}],\"outlook\":{\"@odata.type\":\"microsoft.graph.outlookUser\"},\"messages\":[{\"@odata.type\":\"microsoft.graph.message\"}],\"joinedGroups\":[{\"@odata.type\":\"microsoft.graph.group\"}],\"mailFolders\":[{\"@odata.type\":\"microsoft.graph.mailFolder\"}],\"calendar\":{\"@odata.type\":\"microsoft.graph.calendar\"},\"calendars\":[{\"@odata.type\":\"microsoft.graph.calendar\"}],\"calendarGroups\":[{\"@odata.type\":\"microsoft.graph.calendarGroup\"}],\"calendarView\":[{\"@odata.type\":\"microsoft.graph.event\"}],\"events\":[{\"@odata.type\":\"microsoft.graph.event\"}],\"people\":[{\"@odata.type\":\"microsoft.graph.person\"}],\"contacts\":[{\"@odata.type\":\"microsoft.graph.contact\"}],\"contactFolders\":[{\"@odata.type\":\"microsoft.graph.contactFolder\"}],\"inferenceClassification\":{\"@odata.type\":\"microsoft.graph.inferenceClassification\"},\"photo\":{\"@odata.type\":\"microsoft.graph.profilePhoto\"},\"photos\":[{\"@odata.type\":\"microsoft.graph.profilePhoto\"}],\"drive\":{\"@odata.type\":\"microsoft.graph.drive\"},\"drives\":[{\"@odata.type\":\"microsoft.graph.drive\"}],\"insights\":{\"@odata.type\":\"microsoft.graph.officeGraphInsights\"},\"planner\":{\"@odata.type\":\"microsoft.graph.plannerUser\"},\"onenote\":{\"@odata.type\":\"microsoft.graph.onenote\"},\"managedDevices\":[{\"@odata.type\":\"microsoft.graph.managedDevice\"}],\"managedAppRegistrations\":[{\"@odata.type\":\"microsoft.graph.managedAppRegistration\"}],\"devices\":[{\"@odata.type\":\"microsoft.graph.device\"}],\"joinedTeams\":[{\"@odata.type\":\"microsoft.graph.group\"}],\"deviceManagementTroubleshootingEvents\":[{\"@odata.type\":\"microsoft.graph.deviceManagementTroubleshootingEvent\"}]}",
+      "Name": "microsoft.graph.schemaExtension",
+      "Id": "graph.microsoft.com.mockservername.mockcomponentgroup.microsoft.graph.schemaextension"
     },
     {
         "ApiVersion": "1.0.1",
