@@ -24,7 +24,7 @@
         [YamlMember(Alias = "operations")]
         public List<string> Operations { get; set; }
 
-        [YamlMember(Alias = "links")]
+        [YamlMember(Alias = "relationships")]
         public List<ResponseLinkEntity> Links { get; set; }
 
         [YamlMember(Alias = "example")]
