@@ -11,13 +11,13 @@
     {
         public static OperationEntity Transform(TransformModel transformModel)
         {
-            var componentGroupId = TransformHelper.GetComponentGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.ComponentGroupName);
+            var componentGroupId = TransformHelper.GetId(transformModel.ServiceName, transformModel.ComponentGroupName, null);
             var allUriParameters = TransformUriParameters(transformModel.Operation.Value, componentGroupId);
             var requiredQueryUriParameters = allUriParameters.Where(p => p.IsRequired && p.In == "query").ToList();
             var optionalQueryUriParameters = allUriParameters.Where(p => !p.IsRequired && p.In == "query").ToList();
             return new OperationEntity
             {
-                Id = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, transformModel.OperationName),
+                Id = TransformHelper.GetId(transformModel.ServiceName, transformModel.OperationGroupName, transformModel.OperationName),
                 Name = transformModel.OperationName,
                 Service = transformModel.ServiceName,
                 GroupName = transformModel.OperationGroupName,
@@ -178,9 +178,9 @@
                         if (!string.IsNullOrEmpty(firstTagName) && operationId.StartsWith(firstTagName))
                         {
                             operationId = operationId.Substring(firstTagName.Length + 1);
-                            return TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
+                            return TransformHelper.GetId(transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
                         }
-                        return TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
+                        return TransformHelper.GetId(transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
                     }
                 }
 

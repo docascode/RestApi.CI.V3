@@ -124,7 +124,7 @@
                 {
                     return name;
                 }
-                result.Add(m.Value);
+                result.Add(m.Value.ToLower());
                 name = name.Substring(m.Length);
             }
             return string.Join(" ", result).FirstLetterToUpper();

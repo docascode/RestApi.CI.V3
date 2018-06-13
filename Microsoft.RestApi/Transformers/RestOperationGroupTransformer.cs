@@ -14,13 +14,13 @@
             foreach (var openApiOperation in filteredRestPathOperation.Operations)
             {
                 var operationName = openApiOperation.Operation.Value.OperationId;
-                var operation = TransformHelper.GetOperationId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName, operationName);
+                var operation = TransformHelper.GetId(transformModel.ServiceName, transformModel.OperationGroupName, operationName);
 
                 operations.Add(operation);
             }
             return new OperationGroupEntity
             {
-                Id = TransformHelper.GetOperationGroupId(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupName),
+                Id = TransformHelper.GetId(transformModel.ServiceName, transformModel.OperationGroupName, null),
                 ApiVersion = transformModel.OpenApiDoc.Info?.Version,
                 Name = transformModel.OperationGroupName,
                 Service = transformModel.ServiceName,

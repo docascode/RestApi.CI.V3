@@ -8,9 +8,6 @@
     [Serializable]
     public class ServiceInfo
     {
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
         [JsonProperty("toc_title")]
         public string TocTitle { get; set; }
 

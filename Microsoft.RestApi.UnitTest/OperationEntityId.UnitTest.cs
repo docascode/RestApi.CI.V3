@@ -10,12 +10,12 @@
     public class OperationEntityIdUnitTest : BaseUnitTest
     {
         [Theory]
-        [InlineData("../../samples/GetOperationId.yaml", "serviceName", "groupName", "operationId", "developer.uspto.gov.servicename.groupname.operationid")]
-        [InlineData("../../samples/GetOperationId2.yaml", "service Name", "group Name", "operation Id", "developer.uspto.gov.servicename.groupname.operationid")]
+        [InlineData("../../samples/GetOperationId.yaml", "serviceName", "groupName", "operationId", "servicename.groupname.operationid")]
+        [InlineData("../../samples/GetOperationId2.yaml", "service Name", "group Name", "operation Id", "servicename.groupname.operationid")]
         public void OperationEntity_GetOperationId(string filePath, string serviceName, string groupName, string operationId, string expeted)
         {
             var openApiDocument = LoadOpenApiDocument(filePath);
-            var result = TransformHelper.GetOperationId(openApiDocument.Servers, serviceName, groupName, operationId);
+            var result = TransformHelper.GetId(serviceName, groupName, operationId);
             Assert.Equal(expeted, result);
         }
     }

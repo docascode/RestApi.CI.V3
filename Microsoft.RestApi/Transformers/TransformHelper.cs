@@ -78,60 +78,21 @@
             return string.Empty;
         }
 
-        private static string NormalizePath(string path)
+        private static string Normalize(string path)
         {
             return string.IsNullOrEmpty(path) ? string.Empty : path.Replace(" ", "").Trim('.').ToLower();
         }
 
-        public static string GetOperationId(IList<OpenApiServer> servers, string serviceName, string groupName, string operationName)
+        public static string GetId(string serviceName, string groupName, string operationName)
         {
-            var serviceId = GetServiceId(servers, serviceName);
-            var operationId = $"{serviceId}.{groupName}.{operationName}";
-            return operationId.Replace(" ", "").Trim('.').ToLower();
+            var id = $"{Normalize(serviceName)}.{Normalize(groupName)}.{Normalize(operationName)}";
+            return Normalize(id);
         }
 
-        public static string GetOperationPath(IList<OpenApiServer> servers, string serviceName, string groupName, string operationName)
+        public static string GetPath(string serviceName, string groupName, string operationName)
         {
-            var host = GetHost(servers);
-            return Path.Combine(host, NormalizePath(serviceName), NormalizePath(groupName), NormalizePath(operationName));
+            return Path.Combine(Normalize(serviceName), Normalize(groupName), Normalize(operationName));
         }
-
-        public static string GetOperationGroupId(IList<OpenApiServer> servers, string serviceName, string groupName)
-        {
-            var serviceId = GetServiceId(servers, serviceName);
-            var operationId = $"{serviceId}.{groupName}";
-            return operationId.Replace(" ", "").Trim('.').ToLower();
-        }
-
-        public static string GetOperationGroupPath(IList<OpenApiServer> servers, string serviceName, string groupName)
-        {
-            var host = GetHost(servers);
-            return Path.Combine(host, NormalizePath(serviceName), NormalizePath(groupName));
-        }
-
-        public static string GetComponentId(IList<OpenApiServer> servers, string serviceName, string componentGroupName, string componentName)
-        {
-            return GetOperationId(servers, serviceName, componentGroupName, componentName);
-        }
-
-        public static string GetComponentPath(IList<OpenApiServer> servers, string serviceName, string componentGroupName, string componentName)
-        {
-            var host = GetHost(servers);
-            return Path.Combine(host, NormalizePath(serviceName), NormalizePath(componentGroupName), NormalizePath(componentName));
-        }
-
-
-        public static string GetComponentGroupId(IList<OpenApiServer> servers, string serviceName, string componentGroupName)
-        {
-            return GetOperationGroupId(servers, serviceName, componentGroupName);
-        }
-
-        public static string GetComponentGroupPath(IList<OpenApiServer> servers, string serviceName, string componentGroupName)
-        {
-            var host = GetHost(servers);
-            return Path.Combine(host, NormalizePath(serviceName), NormalizePath(serviceName), NormalizePath(componentGroupName));
-        }
-
 
         public static string GetStatusCodeString(string statusCode)
         {

@@ -130,6 +130,15 @@
             return str + "#";
         }
 
+        public static string TrimSubGroupName(this string groupName)
+        {
+            if (string.IsNullOrEmpty(groupName))
+            {
+                return string.Empty;
+            }
+            return groupName.Replace(" ", "").Trim().ToLower();
+        }
+
         public static FilteredOpenApiPath FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
         {
             var filteredRestPathOperation = new FilteredOpenApiPath();

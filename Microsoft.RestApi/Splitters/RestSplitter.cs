@@ -15,7 +15,7 @@
 
     public class RestSplitter
     {
-        protected static readonly string ComponentGroupName = "components";
+        protected static readonly string ComponentGroupName = "resources";
         protected const string TocFileName = "toc.md";
         protected static readonly Regex TocRegex = new Regex(@"^(?<headerLevel>#+)(( |\t)*)\[(?<tocTitle>.+)\]\((?<tocLink>(?!http[s]?://).*?)\)( |\t)*#*( |\t)*(\n|$)", RegexOptions.Compiled);
 
@@ -430,7 +430,7 @@
             var rootGroup = new RestTocGroup();
             foreach (var swagger in service.SwaggerInfo)
             {
-                var targetDir = FileUtility.CreateDirectoryIfNotExist(Path.Combine(targetApiVersionDir, service.UrlGroup));
+                var targetDir = FileUtility.CreateDirectoryIfNotExist(targetApiVersionDir);
                 var sourceFile = Path.Combine(SourceRootDir, swagger.Source.TrimEnd());
 
                 if (!File.Exists(sourceFile))
@@ -438,7 +438,7 @@
                     throw new ArgumentException($"{nameof(sourceFile)} '{sourceFile}' should exist.");
                 }
 
-                var restFileInfo = SplitSwaggerByTag(targetDir, sourceFile, service.Name, swagger.OperationGroupMapping, MappingFile);
+                var restFileInfo = SplitSwaggerByTag(targetDir, sourceFile, service.UrlGroup, swagger.OperationGroupMapping, MappingFile);
 
                 var tocTitle = restFileInfo.TocTitle;
                 var subGroupName = swagger.SubGroupTocTitle ?? string.Empty;

@@ -22,7 +22,7 @@
                     throw new ArgumentException($"{nameof(targetDir)} '{targetDir}' should exist.");
                 }
 
-                var filePath = TransformHelper.GetOperationGroupPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupPath);
+                var filePath = TransformHelper.GetPath(transformModel.ServiceName, transformModel.OperationGroupPath, null);
 
                 var absolutePath = Path.Combine(targetDir, $"{filePath}{YamlExtension}");
                 if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
@@ -48,7 +48,7 @@
             var operationInfo = RestOperationTransformer.Transform(transformModel);
             if (operationInfo != null)
             {
-                var filePath = TransformHelper.GetOperationPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.OperationGroupPath, transformModel.OperationName);
+                var filePath = TransformHelper.GetPath(transformModel.ServiceName, transformModel.OperationGroupPath, transformModel.OperationName);
 
                 var absolutePath = Path.Combine(targetDir, $"{filePath}{YamlExtension}");
                 if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
@@ -77,7 +77,7 @@
             var componentGroup = RestComponentsTransformer.Transform(transformModel);
             if (componentGroup != null)
             {
-                var filePath = TransformHelper.GetComponentGroupPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.ComponentGroupName);
+                var filePath = TransformHelper.GetPath(transformModel.ServiceName, transformModel.ComponentGroupName, null);
                 var absolutePath = Path.Combine(targetDir, $"{filePath}{YamlExtension}");
                 if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
                 {
@@ -97,7 +97,7 @@
                         throw new Exception($"The component should not have name as same as {transformModel.ComponentGroupName}");
                     }
 
-                    var componentFilePath = TransformHelper.GetComponentPath(transformModel.OpenApiDoc.Servers, transformModel.ServiceName, transformModel.ComponentGroupName, component.Name);
+                    var componentFilePath = TransformHelper.GetPath(transformModel.ServiceName, transformModel.ComponentGroupName, component.Name);
                     var componentAbsolutePath = Path.Combine(targetDir, $"{componentFilePath}{YamlExtension}");
                     if (!Directory.Exists(Path.GetDirectoryName(componentAbsolutePath)))
                     {
