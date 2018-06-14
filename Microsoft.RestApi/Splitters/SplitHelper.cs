@@ -4,17 +4,19 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Text.RegularExpressions;
+    using System.Linq;
 
+    using Microsoft.DocAsCode.YamlSerialization;
+    using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Common;
     using Microsoft.RestApi.Models;
-    using Microsoft.OpenApi.Models;
-    using System.Linq;
 
     public static class SplitHelper
     {
-        private static string tocFileName = "toc.md";
+        public static readonly string YamlExtension = ".yml";
         private static readonly Regex tocRegex = new Regex(@"^(?<headerLevel>#+)(( |\t)*)\[(?<tocTitle>.+)\]\((?<tocLink>(?!http[s]?://).*?)\)( |\t)*#*( |\t)*(\n|$)", RegexOptions.Compiled);
-
+        public static readonly YamlSerializer YamlSerializer = new YamlSerializer();
+       
         // Sort by org and service name
         public static MappingFile SortMappingFile(this MappingFile mappingFile)
         {
@@ -47,96 +49,29 @@
             return outputRootDir;
         }
 
-        public static string GenerateIndexHRef(string targetRootDir, string indexRelativePath, string targetApiVersionDir)
+        public static OpenApiDocument AggregateOpenApiTagsFromPaths(OpenApiDocument openApiDoc)
         {
-            Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
-            Guard.ArgumentNotNullOrEmpty(indexRelativePath, nameof(indexRelativePath));
-            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
-
-            var indexPath = Path.Combine(targetRootDir, indexRelativePath);
-            if (!File.Exists(indexPath))
+            var tags = new List<OpenApiTag>(openApiDoc.Tags);
+            foreach (var path in openApiDoc.Paths)
             {
-                throw new FileNotFoundException($"Index file '{indexPath}' not exists.");
-            }
-            return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
-        }
-
-        public static string GenerateHref(string targetRootDir, string relativePath, string targetApiVersionDir)
-        {
-            Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
-            Guard.ArgumentNotNullOrEmpty(relativePath, nameof(relativePath));
-            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
-
-            var indexPath = Path.Combine(targetRootDir, relativePath);
-            if (!File.Exists(indexPath))
-            {
-                return null;
-            }
-            return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
-        }
-
-        public static IEnumerable<string> GenerateDocTocItems(string targetRootDir, string tocRelativePath, string targetApiVersionDir)
-        {
-            Guard.ArgumentNotNullOrEmpty(targetRootDir, nameof(targetRootDir));
-            Guard.ArgumentNotNullOrEmpty(tocRelativePath, nameof(tocRelativePath));
-            Guard.ArgumentNotNullOrEmpty(targetApiVersionDir, nameof(targetApiVersionDir));
-
-            var tocPath = Path.Combine(targetRootDir, tocRelativePath);
-            if (!File.Exists(tocPath))
-            {
-                throw new FileNotFoundException($"Toc file '{tocRelativePath}' not exists.");
-            }
-            var fileName = Path.GetFileName(tocPath);
-            if (!fileName.Equals(tocFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException($"Currently only '{tocFileName}' is supported as conceptual toc, please update the toc path '{tocRelativePath}'.");
-            }
-            var tocRelativeDirectoryToApi = FileUtility.GetRelativePath(Path.GetDirectoryName(tocPath), targetApiVersionDir);
-
-            foreach (var tocLine in File.ReadLines(tocPath))
-            {
-                var match = tocRegex.Match(tocLine);
-                if (match.Success)
+                if (path.Value.Operations != null)
                 {
-                    var tocLink = match.Groups["tocLink"].Value;
-                    if (string.IsNullOrEmpty(tocLink))
+                    foreach (var operation in path.Value.Operations)
                     {
-                        // Handle case like [Text]()
-                        yield return tocLine;
-                    }
-                    else
-                    {
-                        var tocTitle = match.Groups["tocTitle"].Value;
-                        var headerLevel = match.Groups["headerLevel"].Value.Length;
-                        var tocLinkRelativePath = tocRelativeDirectoryToApi + "/" + tocLink;
-                        var linkPath = Path.Combine(targetApiVersionDir, tocLinkRelativePath);
-                        if (!File.Exists(linkPath))
+                        if (operation.Value.Tags != null)
                         {
-                            throw new FileNotFoundException($"Link '{tocLinkRelativePath}' not exist in '{tocRelativePath}', when merging into '{tocFileName}' of '{targetApiVersionDir}'");
+                            // only extract the first tag
+                            var firstTag = operation.Value.Tags?.FirstOrDefault();
+                            if (firstTag != null && !tags.Any(t => t.Name == firstTag.Name))
+                            {
+                                tags.Add(firstTag);
+                            }
                         }
-                        yield return $"{new string('#', headerLevel)} [{tocTitle}]({tocLinkRelativePath})";
                     }
                 }
-                else
-                {
-                    yield return tocLine;
-                }
             }
-        }
-
-        public static string IncreaseSharpCharacter(string str)
-        {
-            Guard.ArgumentNotNull(str, nameof(str));
-            return str + "#";
-        }
-
-        public static string TrimSubGroupName(this string groupName)
-        {
-            if (string.IsNullOrEmpty(groupName))
-            {
-                return string.Empty;
-            }
-            return groupName.Replace(" ", "").Trim().ToLower();
+            openApiDoc.Tags = tags;
+            return openApiDoc;
         }
 
         public static FilteredOpenApiPath FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
@@ -168,6 +103,58 @@
                 }
             }
             return filteredRestPathOperation;
+        }
+
+        public static void WriteOperations(string targetDir, GraphAggregateEntity aggregateOperation)
+        {
+            var mainOperation = aggregateOperation.MainOperation;
+            var operationFilePath = Utility.GetPath(mainOperation.Service, mainOperation.GroupName, mainOperation.Name);
+            var absolutePath = Path.Combine(targetDir, $"{operationFilePath}{YamlExtension}");
+            if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
+            }
+            using (var writer = new StreamWriter(absolutePath))
+            {
+                writer.WriteLine("### YamlMime:RESTOperationV3");
+                YamlSerializer.Serialize(writer, mainOperation);
+            }
+        }
+
+        public static void WriteFunctions(string targetDir, OperationGroupEntity operationGroup)
+        {
+            foreach (var operation in operationGroup.Operations)
+            {
+                var operationFilePath = Utility.GetPath(operationGroup.Service, operationGroup.Name, operation.Name);
+                var absolutePath = Path.Combine(targetDir, $"{operationFilePath}{YamlExtension}");
+                if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
+                }
+                using (var writer = new StreamWriter(absolutePath))
+                {
+                    writer.WriteLine("### YamlMime:RESTFunctionOrActionV3");
+                    YamlSerializer.Serialize(writer, operation);
+                }
+            }
+        }
+
+        public static void WriteComponents(string targetDir, IList<ComponentEntity> components)
+        {
+            foreach (var component in components)
+            {
+                var componentFilePath = Path.Combine(Utility.GetPath(component.Service, component.GroupName, null), component.Name);
+                var componentAbsolutePath = Path.Combine(targetDir, $"{componentFilePath}{YamlExtension}");
+                if (!Directory.Exists(Path.GetDirectoryName(componentAbsolutePath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(componentAbsolutePath));
+                }
+                using (var writer = new StreamWriter(componentAbsolutePath))
+                {
+                    writer.WriteLine("### YamlMime:RESTComponentV3");
+                    YamlSerializer.Serialize(writer, component);
+                }
+            }
         }
     }
 }

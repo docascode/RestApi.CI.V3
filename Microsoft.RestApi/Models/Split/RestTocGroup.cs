@@ -2,19 +2,6 @@
 {
     using System.Collections.Generic;
 
-    public class RestTocLeaf
-    {
-        public string Id { get; set; }
-
-        public string Name { get; set; }
-
-        public string FileName { get; set; }
-
-        public bool IsComponent { get; set; }
-
-        public OperationEntity OperationInfo { get; set; }
-    }
-
     public class RestTocGroup
     {
         public RestTocGroup()
@@ -25,12 +12,6 @@
         public string Id { get; set; }
 
         public string Name { get; set; }
-
-        public string FileName { get; set; }
-
-        public bool IsComponentGroup { get; set; }
-
-        public TocType TocType { get; set; } = TocType.Page;
 
         public Dictionary<string, RestTocGroup> Groups { get; }
 
@@ -50,6 +31,6 @@
             }
         }
 
-        public List<RestTocLeaf> OperationOrComponents { get; set; }
+        public List<GraphAggregateEntity> RestTocLeaves { get; set; }
     }
 }

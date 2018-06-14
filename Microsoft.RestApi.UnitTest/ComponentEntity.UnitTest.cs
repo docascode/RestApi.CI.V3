@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.RestApi.UnitTest
 {
+    using System.Collections.Generic;
     using System.Linq;
 
     using Microsoft.RestApi.Common;
@@ -24,17 +25,27 @@
                 ServiceName = "mockServerName",
                 ComponentGroupName = "mockComponentGroup"
             };
-            var componentGroup = RestComponentsTransformer.Transform(model);
+
+            var components = new List<ComponentEntity>();
+            if (openApiDocument.Components?.Schemas != null)
+            {
+                foreach (var schema in openApiDocument.Components?.Schemas)
+                {
+                    model.ComponentId = Utility.GetId(model.ServiceName, model.ComponentGroupName, schema.Key);
+                    model.ComponentName = schema.Key;
+                    model.OpenApiSchema = schema.Value;
+                    components.Add(RestComponentTransformer.Transform(model));
+                }
+            }
 
             var expects = LoadExpectedJsonObject<ComponentGroupEntity>("../../expects/Components.json");
 
-            Assert.NotNull(componentGroup);
-            Assert.NotNull(componentGroup.Components);
-            Assert.Equal(componentGroup.Components.Count(), expects.Components.Count);
+           
+            Assert.Equal(components.Count(), expects.Components.Count);
 
             foreach (var expect in expects.Components)
             {
-                var foundComponent = componentGroup.Components.SingleOrDefault(p => p.Id == expect.Id);
+                var foundComponent = components.SingleOrDefault(p => p.Id == expect.Id);
                 Assert.NotNull(foundComponent);
                 Assert.Equal(JsonUtility.ToJsonString(expect), JsonUtility.ToJsonString(foundComponent));
             }

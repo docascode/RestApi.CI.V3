@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
 
+    using Newtonsoft.Json;
     using YamlDotNet.Serialization;
 
     public class ComponentEntity : NamedEntity
@@ -29,5 +30,9 @@
 
         [YamlMember(Alias = "example")]
         public string Example { get; set; }
+
+        [YamlIgnore]
+        [JsonIgnore]
+        public string GroupName { get; set; }
     }
 }

@@ -6,12 +6,12 @@
     using System.Linq;
     using System.Text.RegularExpressions;
 
+    using Microsoft.OpenApi.Models;
+    using Microsoft.OpenApi.Readers;
+
     using Microsoft.RestApi.Common;
     using Microsoft.RestApi.Models;
-    using Microsoft.OpenApi.Readers;
-    using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Transformers;
-    using Microsoft.OpenApi.Any;
 
     public class RestSplitter
     {
@@ -23,11 +23,10 @@
         public string TargetRootDir { get; }
         public string OutputDir { get; }
         public MappingFile MappingFile { get; }
-        public RestTransformerFactory TransformerFactory { get; }
 
         public IList<string> Errors { get; set; }
 
-        public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir, RestTransformerFactory transformerFactory)
+        public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir)
         {
             Guard.ArgumentNotNullOrEmpty(sourceRootDir, nameof(sourceRootDir));
             if (!Directory.Exists(sourceRootDir))
@@ -45,339 +44,56 @@
             TargetRootDir = targetRootDir;
             OutputDir = outputDir;
             MappingFile = JsonUtility.ReadFromFile<MappingFile>(mappingFilePath).SortMappingFile();
-            TransformerFactory = transformerFactory;
         }
 
-        public void Process()
+        public virtual void Process()
         {
-            // Generate auto summary page
-            GenerateAutoPage();
-
             var targetApiDir = SplitHelper.GetOutputDirectory(OutputDir);
-            // Write toc structure from MappingFile
-            if (MappingFile.VersionList != null)
+            if (MappingFile.VersionList?.Count > 0)
             {
+                Console.WriteLine($"Found version list : {string.Join(",", MappingFile.VersionList)}");
                 // Generate with version infos
                 foreach (var version in MappingFile.VersionList)
                 {
+                    Console.WriteLine($"Starting to handle version : {version}");
                     var targetApiVersionDir = Path.Combine(targetApiDir, version);
                     Directory.CreateDirectory(targetApiVersionDir);
                     if (!targetApiVersionDir.EndsWith(Path.DirectorySeparatorChar.ToString()))
                     {
                         targetApiVersionDir = targetApiVersionDir + Path.DirectorySeparatorChar;
                     }
-                    WriteToc(targetApiVersionDir, version);
+
+                    var rootGroup = VersionSplit(targetApiVersionDir, version);
+                    Console.WriteLine($"Finished to handle version : {version}");
+
+                    WriteToc(targetApiVersionDir, rootGroup);
                 }
             }
             else
             {
+                Console.WriteLine("No found version list");
                 // Generate with no version info
-                WriteToc(targetApiDir, null);
+                var rootGroup = VersionSplit(targetApiDir, null);
+
+                WriteToc(targetApiDir, rootGroup);
             }
+            
+            PrintAndClearError();
+            Console.WriteLine("Done!");
         }
 
-        public Dictionary<string, RestTocGroup> SortGroups(Dictionary<string, RestTocGroup> tocGroups, int depth, string parentGroupName)
-        {
-            var sortedGroups = new SortedDictionary<string, RestTocGroup>(tocGroups);
-            var finalGroups = new Dictionary<string, RestTocGroup>();
-
-            var orderNameList = new List<string>();
-            if (depth == 1 && MappingFile.FirstLevelTocOrders?.Count() > 0)
-            {
-                orderNameList = MappingFile.FirstLevelTocOrders.ToList();
-            }
-            else if (depth == 2 && MappingFile.SecondLevelTocOrders?.Count() > 0 && MappingFile.SecondLevelTocOrders.TryGetValue(parentGroupName, out var secondLevelSortOrders))
-            {
-                orderNameList = secondLevelSortOrders;
-            }
-
-            foreach (var orderName in orderNameList)
-            {
-                if (sortedGroups.TryGetValue(orderName, out var findTocs))
-                {
-                    finalGroups.Add(orderName, findTocs);
-                }
-            }
-
-            foreach (var sortedGroup in sortedGroups)
-            {
-                if (!finalGroups.TryGetValue(sortedGroup.Key, out var findTocs))
-                {
-                    finalGroups.Add(sortedGroup.Key, sortedGroup.Value);
-                }
-            }
-
-            return finalGroups;
-        }
-
-        private string GetConceptual(string conceptualFile, string targetApiVersionDir)
-        {
-            var conceptualHref = SplitHelper.GenerateHref(Path.Combine(TargetRootDir, MappingFile.ConceptualFolder), conceptualFile, targetApiVersionDir);
-            if (string.IsNullOrEmpty(conceptualHref))
-            {
-                Errors.Add($"Can not find the conceptual file: {conceptualFile}");
-            }
-            return conceptualHref;
-        }
-
-        private string GetComponentId(List<RestTocLeaf> components, string componentFile)
-        {
-            foreach (var component in components)
-            {
-                var fileName = component.FileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-                var componentName = fileName.ToLower().Split(Path.DirectorySeparatorChar)?.Last();
-
-                if (!string.IsNullOrEmpty(componentName) && componentName.Equals(componentFile))
-                {
-                    return component.Id;
-                }
-            }
-            return null;
-        }
-
-        private string GetComponentFullPath(List<RestTocLeaf> components, string componentFile, string targetApiVersionDir)
-        {
-            foreach (var component in components)
-            {
-                var fileName = component.FileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-                var componentName = fileName.ToLower().Split(Path.DirectorySeparatorChar)?.Last();
-
-                if (!string.IsNullOrEmpty(componentName) && componentName.Equals(componentFile))
-                {
-                    return Path.Combine(targetApiVersionDir, fileName);
-                }
-            }
-            return null;
-        }
-
-        public virtual void ResolveComponent(string componentYamlFile, RestTocGroup restTocGroup)
+        public virtual void GenerateTocAndYamls(string targetApiVersionDir, SplitSwaggerResult splitSwaggerResult, RestTocGroup restTocGroup)
         {
         }
 
-        public void WriteRestTocTree(StreamWriter writer, List<RestTocLeaf> components, string targetApiVersionDir, string subTocPrefix, string subGroupTocPrefix, RestTocGroup tocGroup, string numberSign, int depth, string parentGroupName = null)
+        public virtual void WriteToc(string targetApiDir, RestTocGroup restTocGroup)
         {
-            if (tocGroup != null)
-            {
-                var sortedGroups = SortGroups(tocGroup.Groups, depth, parentGroupName);
-                foreach (var group in sortedGroups)
-                {
-                    if (!group.Value.IsComponentGroup)
-                    {
-                        if (depth == 1)
-                        {
-                            var href = GetConceptual(group.Key + ".md", targetApiVersionDir);
-                            writer.WriteLine(!string.IsNullOrEmpty(href)
-                               ? $"{subTocPrefix}{numberSign}{subGroupTocPrefix} [{Utility.ExtractPascalNameByRegex(group.Key)}]({href})"
-                               : $"{subTocPrefix}{numberSign}{subGroupTocPrefix} {Utility.ExtractPascalNameByRegex(group.Key)}");
-                        }
-                        else
-                        {
-                            var componentFilePath = GetComponentFullPath(components, MappingFile.ComponentPrefix + group.Key.ToLower() + ".yml", targetApiVersionDir);
-                            if (!string.IsNullOrEmpty(componentFilePath) && File.Exists(componentFilePath))
-                            {
-                                ResolveComponent(componentFilePath, group.Value);
-                            }
-                            var componentId = GetComponentId(components, MappingFile.ComponentPrefix + group.Key.ToLower() + ".yml");
-                            writer.WriteLine(!string.IsNullOrEmpty(componentId)
-                            ? $"{subTocPrefix}{numberSign}{subGroupTocPrefix} [{Utility.ExtractPascalNameByRegex(group.Key)}](xref:{componentId})"
-                            : $"{subTocPrefix}{numberSign}{subGroupTocPrefix} {Utility.ExtractPascalNameByRegex(group.Key)}");
-                            writer.WriteLine();
-                        }
-
-                        WriteRestTocTree(writer, components, targetApiVersionDir, subTocPrefix, subGroupTocPrefix, group.Value, numberSign + "#", depth + 1, group.Key);
-                    }
-                }
-                   
-                if(tocGroup.OperationOrComponents?.Count > 0)
-                {
-                    var operations = tocGroup.OperationOrComponents.OrderBy(p => p.Name);
-                    foreach (var operation in operations)
-                    {
-                        writer.WriteLine($"{subTocPrefix}{numberSign}{subGroupTocPrefix} [{Utility.ExtractPascalNameByRegex(operation.Name)}](xref:{operation.Id})");
-                    }
-                }
-            }
-        }
-
-        private List<RestTocLeaf> GetAllComponents(RestTocGroup restTocGroup)
-        {
-            var components = new List<RestTocLeaf>();
-            foreach(var group in restTocGroup.Groups)
-            {
-                if (group.Value.IsComponentGroup)
-                {
-                    if (group.Value.OperationOrComponents != null)
-                    {
-                        foreach (var component in group.Value.OperationOrComponents)
-                        {
-                            components.Add(component);
-                        }
-                    }
-                }
-            }
-            return components;
-        }
-        public void WriteRestToc(StreamWriter writer, string subTocPrefix, List<string> tocLines, RestTocGroup rootGroup, string targetApiVersionDir)
-        {
-            var subRefTocPrefix = string.Empty;
-            if (tocLines != null && tocLines.Count > 0)
-            {
-                subRefTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
-                writer.WriteLine($"{subTocPrefix}#{subRefTocPrefix} Reference");
-            }
-
-            foreach (var pair in rootGroup.Groups)
-            {
-                var subGroupTocPrefix = subRefTocPrefix;
-                if (!string.IsNullOrEmpty(pair.Key))
-                {
-                    subGroupTocPrefix = SplitHelper.IncreaseSharpCharacter(subRefTocPrefix);
-                    writer.WriteLine($"{subTocPrefix}#{subGroupTocPrefix} {pair.Key}");
-                }
-                var tocGroup = pair.Value;
-                var components = GetAllComponents(tocGroup);
-
-                WriteRestTocTree(writer, components, targetApiVersionDir, subTocPrefix, subGroupTocPrefix, tocGroup, "##", 1);
-            }
-        }
-
-        private void GenerateAutoPage()
-        {
-            if (MappingFile.ApisPageOptions == null || !MappingFile.ApisPageOptions.EnableAutoGenerate)
-            {
-                return;
-            }
-
-            var targetIndexPath = Path.Combine(TargetRootDir, MappingFile.ApisPageOptions.TargetFile);
-            if (File.Exists(targetIndexPath))
-            {
-                Console.WriteLine($"Cleaning up previous existing {targetIndexPath}.");
-                File.Delete(targetIndexPath);
-            }
-
-            using (var writer = new StreamWriter(targetIndexPath))
-            {
-                var summaryFile = Path.Combine(TargetRootDir, MappingFile.ApisPageOptions.SummaryFile);
-                if (File.Exists(summaryFile))
-                {
-                    foreach (var line in File.ReadAllLines(summaryFile))
-                    {
-                        writer.WriteLine(line);
-                    }
-                    writer.WriteLine();
-                }
-
-                writer.WriteLine("## All Product APIs");
-
-                foreach (var orgInfo in MappingFile.OrganizationInfos)
-                {
-                    // Org name as title
-                    if (!string.IsNullOrWhiteSpace(orgInfo.OrganizationName))
-                    {
-                        writer.WriteLine($"### {orgInfo.OrganizationName}");
-                        writer.WriteLine();
-                    }
-
-                    // Service table
-                    if (orgInfo.Services.Count > 0)
-                    {
-                        writer.WriteLine("| Service | Description |");
-                        writer.WriteLine("|---------|-------------|");
-                        foreach (var service in orgInfo.Services)
-                        {
-                            if (string.IsNullOrWhiteSpace(service.IndexFile) && !File.Exists(service.IndexFile))
-                            {
-                                throw new InvalidOperationException($"Index file {service.IndexFile} of service {service.TocTitle} should exists.");
-                            }
-                            var summary = Utility.GetYamlHeaderByMeta(Path.Combine(TargetRootDir, service.IndexFile), MappingFile.ApisPageOptions.ServiceDescriptionMetadata);
-                            writer.WriteLine($"| [{service.TocTitle}](~/{service.IndexFile}) | {summary ?? string.Empty} |");
-                        }
-                        writer.WriteLine();
-                    }
-                }
-            }
-        }
-
-        private void WriteToc(string targetApiVersionDir, string version)
-        {
-            var targetTocPath = Path.Combine(targetApiVersionDir, TocFileName);
+            Console.WriteLine("Generating toc...");
+            var targetTocPath = Path.Combine(targetApiDir, TocFileName);
 
             using (var writer = new StreamWriter(targetTocPath))
             {
-                // Write auto generated apis page
-                if (MappingFile.ApisPageOptions?.EnableAutoGenerate == true)
-                {
-                    if (string.IsNullOrEmpty(MappingFile.ApisPageOptions.TargetFile))
-                    {
-                        throw new InvalidOperationException("Target file of apis page options should not be null or empty.");
-                    }
-                    var targetIndexPath = Path.Combine(TargetRootDir, MappingFile.ApisPageOptions.TargetFile);
-                    writer.WriteLine($"# [{MappingFile.ApisPageOptions.TocTitle}]({FileUtility.GetRelativePath(targetIndexPath, targetApiVersionDir)})");
-                }
-
-                // Write organization info
-                foreach (var orgInfo in MappingFile.OrganizationInfos)
-                {
-                    if (version == null || string.Equals(orgInfo.Version, version))
-                    {
-                        // Deal with org name and index
-                        var subTocPrefix = string.Empty;
-                        if (!string.IsNullOrEmpty(orgInfo.OrganizationName))
-                        {
-                            // Write index
-                            writer.WriteLine(!string.IsNullOrEmpty(orgInfo.OrganizationIndex)
-                                ? $"# [{orgInfo.OrganizationName}]({SplitHelper.GenerateIndexHRef(TargetRootDir, orgInfo.OrganizationIndex, targetApiVersionDir)})"
-                                : $"# {orgInfo.OrganizationName}");
-                            subTocPrefix = "#";
-                        }
-                        else if (MappingFile.ApisPageOptions?.EnableAutoGenerate != true && !string.IsNullOrEmpty(orgInfo.DefaultTocTitle) && !string.IsNullOrEmpty(orgInfo.OrganizationIndex))
-                        {
-                            writer.WriteLine($"# [{orgInfo.DefaultTocTitle}]({SplitHelper.GenerateIndexHRef(TargetRootDir, orgInfo.OrganizationIndex, targetApiVersionDir)})");
-                        }
-
-                        // Sort by service name
-                        orgInfo.Services.Sort((a, b) => a.TocTitle.CompareTo(b.TocTitle));
-
-                        // Write service info
-                        foreach (var service in orgInfo.Services)
-                        {
-                            // 1. Top toc
-                            Console.WriteLine($"Created conceptual toc item '{service.TocTitle}'");
-                            writer.WriteLine(!string.IsNullOrEmpty(service.IndexFile)
-                                ? $"{subTocPrefix}# [{service.TocTitle}]({SplitHelper.GenerateIndexHRef(TargetRootDir, service.IndexFile, targetApiVersionDir)})"
-                                : $"{subTocPrefix}# {service.TocTitle}");
-
-                            // 2. Parse and split REST swaggers
-                            var rootToc = new RestTocGroup();
-                            if (service.SwaggerInfo != null)
-                            {
-                                rootToc = SplitSwaggers(targetApiVersionDir, service);
-                            }
-
-                            // 3. Conceptual toc
-                            List<string> tocLines = null;
-                            if (!string.IsNullOrEmpty(service.TocFile))
-                            {
-                                tocLines = SplitHelper.GenerateDocTocItems(TargetRootDir, service.TocFile, targetApiVersionDir).Where(i => !string.IsNullOrEmpty(i)).ToList();
-                                if (tocLines.Any())
-                                {
-                                    foreach (var tocLine in tocLines)
-                                    {
-                                        // Insert one heading before to make it sub toc
-                                        writer.WriteLine($"{subTocPrefix}#{tocLine}");
-                                    }
-                                    Console.WriteLine($"-- Created sub referenced toc items under conceptual toc item '{service.TocTitle}'");
-                                }
-                            }
-
-                            // 4. Write REST toc
-                            if (service.SwaggerInfo != null)
-                            {
-                                WriteRestToc(writer, subTocPrefix, tocLines, rootToc, targetApiVersionDir);
-                            }
-                        }
-                    }
-                }
+                WriteTocCore(writer, restTocGroup, "#", 1);
             }
 
             TocConverter.Convert(targetTocPath);
@@ -386,7 +102,45 @@
                 File.Delete(targetTocPath);
             }
 
-            PrintAndClearError();
+            Console.WriteLine("Toc has been generated.");
+        }
+
+        public virtual void WriteTocCore(StreamWriter writer, RestTocGroup tocGroup, string signs, int depth)
+        {
+            if (tocGroup != null)
+            {
+                var sortedGroups = new SortedDictionary<string, RestTocGroup>(tocGroup.Groups);
+                foreach (var group in sortedGroups)
+                {
+                    if (!string.IsNullOrEmpty(group.Key))
+                    {
+                        if (depth < 3)
+                        {
+                            writer.WriteLine($"{signs} {Utility.ExtractPascalNameByRegex(group.Key)}");
+                        }
+                        else
+                        {
+                            writer.WriteLine(!string.IsNullOrEmpty(group.Value.Id)
+                                  ? $"{signs} [{Utility.ExtractPascalNameByRegex(group.Key)}](xref:{group.Value.Id})"
+                                  : $"{signs} {Utility.ExtractPascalNameByRegex(group.Key)}");
+                        }
+                        WriteTocCore(writer, group.Value, signs + "#", depth + 1);
+                    }
+                    else
+                    {
+                        WriteTocCore(writer, group.Value, signs, depth + 1);
+                    }
+                }
+
+                if (tocGroup.RestTocLeaves?.Count > 0)
+                {
+                    var aggregateOperations = tocGroup.RestTocLeaves.OrderBy(p => p.MainOperation.Name);
+                    foreach (var aggregateOperation in aggregateOperations)
+                    {
+                        writer.WriteLine($"{signs} [{Utility.ExtractPascalNameByRegex(aggregateOperation.MainOperation.Name)}](xref:{aggregateOperation.MainOperation.Id})");
+                    }
+                }
+            }
         }
 
         private void PrintAndClearError()
@@ -402,47 +156,92 @@
             Errors = new List<string>();
         }
 
-        public RestTocGroup GenerateGroupTree(FileNameInfo fileNameInfo, List<string> groupNames, int index, RestTocGroup parentGroup)
+        private RestTocGroup VersionSplit(string targetApiDir, string version)
         {
-            if (index < groupNames.Count)
-            {
-                var childGroup = parentGroup[groupNames[index]];
-                if(childGroup == null)
-                {
-                    childGroup = new RestTocGroup
-                    {
-                        Name = groupNames[index],
-                        IsComponentGroup = fileNameInfo.IsComponentGroup
-                    };
+            var rootGroup = new RestTocGroup();
 
-                    parentGroup[groupNames[index]] = childGroup;
-                }
-                return GenerateGroupTree(fileNameInfo, groupNames, index + 1, childGroup);
-            }
-            else
+            Console.WriteLine($"Starting to split services");
+            foreach (var orgInfo in MappingFile.OrganizationInfos)
             {
-                return parentGroup;
+                if (version == null || string.Equals(orgInfo.Version, version))
+                {
+                    foreach (var service in orgInfo.Services)
+                    {
+                        if (service.SwaggerInfo?.Count > 0)
+                        {
+                            Console.WriteLine($"Starting to split service: {service.UrlGroup}");
+                            var serviceGroup = SplitSwaggers(targetApiDir, service);
+                            rootGroup[service.UrlGroup] = serviceGroup;
+                            Console.WriteLine($"finished to split service: {service.UrlGroup}");
+                        }
+                    }
+                }
             }
+            Console.WriteLine("finished to split all services");
+            return rootGroup;
         }
 
-        private RestTocGroup SplitSwaggers(string targetApiVersionDir, ServiceInfo service)
+        private void ResolveRelationships(SplitSwaggerResult splitResult)
+        {
+            Console.WriteLine("starting to resolve relationships");
+            foreach (var operationGroup in splitResult.OperationGroups)
+            {
+                foreach(var operation in operationGroup.Operations)
+                {
+                    if (operation.Responses?.Count > 0)
+                    {
+                        foreach(var response in operation.Responses)
+                        {
+                            if (response.ResponseLinks?.Count > 0)
+                            {
+                                foreach (var link in response.ResponseLinks)
+                                {
+                                    var foundOperation = FindOperation(splitResult, link.OperationId);
+                                    if (foundOperation != null)
+                                    {
+                                        link.OperationId = foundOperation.Id;
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"can not resolve relationship of operation id: {link.OperationId}");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Console.WriteLine("finished to resolve relationships");
+        }
+
+        private OperationEntity FindOperation(SplitSwaggerResult splitResult, string internalOpeartionId)
+        {
+            foreach (var operationGroup in splitResult.OperationGroups)
+            {
+                foreach (var operation in operationGroup.Operations)
+                {
+                    if (string.Equals(operation.InternalOpeartionId, internalOpeartionId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return operation;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private RestTocGroup SplitSwaggers(string targetApiDir, ServiceInfo service)
         {
             var rootGroup = new RestTocGroup();
             foreach (var swagger in service.SwaggerInfo)
             {
-                var targetDir = FileUtility.CreateDirectoryIfNotExist(targetApiVersionDir);
                 var sourceFile = Path.Combine(SourceRootDir, swagger.Source.TrimEnd());
-
+                Console.WriteLine($"Starting to split swagger: {sourceFile}");
                 if (!File.Exists(sourceFile))
                 {
                     throw new ArgumentException($"{nameof(sourceFile)} '{sourceFile}' should exist.");
                 }
 
-                var restFileInfo = SplitSwaggerByTag(targetDir, sourceFile, service.UrlGroup, swagger.OperationGroupMapping, MappingFile);
-
-                var tocTitle = restFileInfo.TocTitle;
-                var subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
-
+                string subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
                 var restTocGroup = rootGroup[subGroupName];
                 if (restTocGroup == null)
                 {
@@ -450,70 +249,24 @@
                     rootGroup[subGroupName] = new RestTocGroup();
                 }
                 restTocGroup = rootGroup[subGroupName];
+                var splitResult = SplitSwagger(sourceFile, service.UrlGroup, swagger.OperationGroupMapping, MappingFile);
+                Console.WriteLine($"finished to split swagger: {sourceFile}");
 
-                foreach (var fileNameInfo in restFileInfo.FileNameInfos)
-                {
-                    var groupNames = new List<string>();
-                    if (!fileNameInfo.IsComponentGroup)
-                    {
-                        var groupName = fileNameInfo.TocName;
-                        
-                        if (groupName.Contains('.'))
-                        {
-                            groupNames = groupName.Split('.').ToList();
-                        }
-                        else
-                        {
-                            groupNames.Add(groupName);
-                        }
-                    }
-                    else
-                    {
-                        groupNames.Add(fileNameInfo.TocName);
-                    }
-
-                    var operationOrComponents = new List<RestTocLeaf>();
-                    if (fileNameInfo.ChildrenFileNameInfo != null && fileNameInfo.ChildrenFileNameInfo.Count > 0)
-                    {
-                        foreach (var nameInfo in fileNameInfo.ChildrenFileNameInfo)
-                        {
-                            operationOrComponents.Add(new RestTocLeaf
-                            {
-                                Id = nameInfo.FileId,
-                                Name = nameInfo.TocName,
-                                FileName = nameInfo.FileName,
-                                IsComponent = fileNameInfo.IsComponentGroup,
-                                OperationInfo = nameInfo.OperationInfo
-                            });
-                        }
-                    }
-
-                    var leafGroup = GenerateGroupTree(fileNameInfo, groupNames, 0, restTocGroup);
-                    if (leafGroup.OperationOrComponents == null)
-                    {
-                        leafGroup.OperationOrComponents = new List<RestTocLeaf>();
-                    }
-                    leafGroup.OperationOrComponents.AddRange(operationOrComponents);
-                }
-                Console.WriteLine($"Done splitting swagger file from '{swagger.Source}' to '{service.UrlGroup}'");
+                ResolveRelationships(splitResult);
+                GenerateTocAndYamls(targetApiDir, splitResult, restTocGroup);
             }
-
             return rootGroup;
         }
 
-        private RestFileInfo SplitSwaggerByTag(string targetDir, string filePath, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
+        private SplitSwaggerResult SplitSwagger(string sourceFilePath, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
         {
-            var restFileInfo = new RestFileInfo();
-            if (!Directory.Exists(targetDir))
+            if (!File.Exists(sourceFilePath))
             {
-                throw new ArgumentException($"{nameof(targetDir)} '{targetDir}' should exist.");
-            }
-            if (!File.Exists(filePath))
-            {
-                throw new ArgumentException($"{nameof(filePath)} '{filePath}' should exist.");
+                throw new ArgumentException($"{nameof(sourceFilePath)} '{sourceFilePath}' should exist.");
             }
 
-            using (var streamReader = File.OpenText(filePath))
+            var splitSwaggerResult = new SplitSwaggerResult();
+            using (var streamReader = File.OpenText(sourceFilePath))
             {
                 var openApiDoc = new OpenApiStreamReader().Read(streamReader.BaseStream, out var context);
                 if (context.Errors?.Count() > 0)
@@ -524,94 +277,38 @@
                     }
                     throw new Exception(JsonUtility.ToIndentedJsonString(context.Errors));
                 }
-
-                var fileNameInfos = SplitOperationGroups(targetDir, filePath, openApiDoc, serviceName, operationGroupMapping, mappingFile);
-                if (fileNameInfos.Any())
-                {
-                    restFileInfo.FileNameInfos = AddTocType(openApiDoc.Tags, fileNameInfos);
-                }
-                restFileInfo.TocTitle = openApiDoc.Info?.Title;
-
-                var componentsFileNameInfo = GenerateComponents(targetDir, openApiDoc, serviceName);
-                componentsFileNameInfo.IsComponentGroup = true;
-                restFileInfo.FileNameInfos.Add(componentsFileNameInfo);
+                splitSwaggerResult.OperationGroups = SplitSwaggerByTag(openApiDoc, serviceName, operationGroupMapping, mappingFile);
+                splitSwaggerResult.ComponentGroup = GetTransformerdComponentGroup(openApiDoc, serviceName);
             }
-            return restFileInfo;
+            return splitSwaggerResult;
         }
 
-        private List<FileNameInfo> AddTocType(IList<OpenApiTag>tags, IEnumerable<FileNameInfo> fileNameInfos)
+        public virtual string GetOperationName(string operationName)
         {
-            var results = new List<FileNameInfo>();
-            foreach (var fileNameInfo in fileNameInfos)
-            {
-                var foundTag =tags.FirstOrDefault(t => t.Name == fileNameInfo.TocName);
-                if (foundTag != null && foundTag.Extensions.TryGetValue("x-ms-docs-toc-type", out var tagType))
-                {
-                    if (tagType is OpenApiString stringValue)
-                    {
-                        if (Enum.TryParse<TocType>(stringValue.Value, true, out var tocType))
-                        {
-                            fileNameInfo.TocType = tocType;
-                        }
-                    }
-                }
-                results.Add(fileNameInfo);
-            }
-            return results;
+            return operationName.FirstLetterToLower();
         }
 
-        private OpenApiDocument ExtractOpenApiTagsFromPaths(OpenApiDocument openApiDoc)
+        public virtual string GetOperationGroupName(string operationGroupName, string operationId)
         {
-            var tags = new List<OpenApiTag>(openApiDoc.Tags);
-            foreach (var path in openApiDoc.Paths)
-            {
-                if (path.Value.Operations != null)
-                {
-                    foreach (var operation in path.Value.Operations)
-                    {
-                        if (operation.Value.Tags != null)
-                        {
-                            // only extract the first tag
-                            var firstTag = operation.Value.Tags?.FirstOrDefault();
-                            if (firstTag != null && !tags.Any(t => t.Name == firstTag.Name))
-                            {
-                                tags.Add(firstTag);
-                            }
-                        }
-                    }
-                }
-            }
-            openApiDoc.Tags = tags;
-            return openApiDoc;
+            return operationGroupName;
         }
 
-        private IEnumerable<FileNameInfo> SplitOperationGroups(string targetDir, string filePath, OpenApiDocument openApiDoc, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
+        private IList<OperationGroupEntity> SplitSwaggerByTag(OpenApiDocument openApiDoc, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
         {
-            openApiDoc = ExtractOpenApiTagsFromPaths(openApiDoc);
-            if (openApiDoc.Tags == null || openApiDoc.Tags.Count == 0)
-            {
-                Console.WriteLine($"tags is null or empty for file {filePath}.");
-            }
+            openApiDoc = SplitHelper.AggregateOpenApiTagsFromPaths(openApiDoc);
 
+            var operationGroups = new List<OperationGroupEntity>();
             foreach (var tag in openApiDoc.Tags)
             {
                 var filteredOpenApiPath = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
                 if (filteredOpenApiPath.Operations.Count > 0)
                 {
-
-                    var fileNameInfo = new FileNameInfo();
-
-                    // Get file name from operation group mapping
                     string newTagName = tag.Name;
                     if (operationGroupMapping != null && operationGroupMapping.TryGetValue(tag.Name, out var foundTagName))
                     {
                         newTagName = foundTagName;
                     }
-
                     var groupName = string.IsNullOrEmpty(mappingFile.TagSeparator) ? newTagName : newTagName.Replace(mappingFile.TagSeparator, ".");
-
-                    // Split operation group to operation
-                    fileNameInfo.ChildrenFileNameInfo = new List<FileNameInfo>(SplitOperations(filteredOpenApiPath, openApiDoc, serviceName, groupName, targetDir));
 
                     var model = new TransformModel
                     {
@@ -619,82 +316,58 @@
                         OpenApiTag = tag,
                         ServiceName = serviceName,
                         OperationGroupName = groupName,
-                        OperationGroupPath = groupName.Replace(".", "/")
+                        OperationGroupId = Utility.GetId(serviceName, groupName, null),
+                        ComponentGroupName = ComponentGroupName,
+                        ComponentGroupId = Utility.GetId(serviceName, ComponentGroupName, null),
                     };
-
-                    var nameInfo = TransformerFactory?.TransformerOperationGroup(model, targetDir);
-                    fileNameInfo.TocName = groupName;
-                    fileNameInfo.FileId = nameInfo.FileId;
-                    fileNameInfo.FileName = nameInfo.FileName;
-                    yield return fileNameInfo;
-
-                    foreach (var extendTag in filteredOpenApiPath.ExtendTagNames)
-                    {
-                        var extendFileNameInfo = new FileNameInfo
-                        {
-                            TocName = extendTag,
-                            FileId = nameInfo.FileId,
-                            FileName = nameInfo.FileName,
-                            ChildrenFileNameInfo = fileNameInfo.ChildrenFileNameInfo
-                        };
-                        yield return extendFileNameInfo;
-                    }
+                    var componentGroup = RestOperationGroupTransformer.Transform(model);
+                    componentGroup.Operations = GetTransformerdOperationGroups(filteredOpenApiPath, model);
+                    operationGroups.Add(componentGroup);
                 }
             }
+            return operationGroups;
         }
 
-        private IEnumerable<FileNameInfo> SplitOperations(FilteredOpenApiPath filteredOpenApiPath, OpenApiDocument openApiDoc, string serviceName, string groupName, string targetDir)
+        private IList<OperationEntity> GetTransformerdOperationGroups(FilteredOpenApiPath filteredOpenApiPath, TransformModel model)
         {
+            var operations = new List<OperationEntity>();
             foreach (var operation in filteredOpenApiPath.Operations)
             {
-                var operationName = operation.Operation.Value.OperationId;
-                // todo: remove this after the Graph team fix the operation Id.
-                if (operationName.Contains('-'))
-                {
-                    operationName = operationName.Split('-').Last();
-                }
-                if (operationName.Contains('.'))
-                {
-                    operationName = operationName.Split('.').Last();
-                }
-                operationName = operationName.FirstLetterToLower();
-
-                var fileNameInfo = new FileNameInfo
-                {
-                    TocName = operationName,
-                    FileName = Path.Combine(groupName.Replace(".", "/"), $"{operationName}.yml")
-                };
-
-                var model = new TransformModel
-                {
-                    OpenApiDoc = openApiDoc,
-                    Operation = operation.Operation,
-                    OpenApiPath = operation.OpenApiPath,
-                    ServiceName = serviceName,
-                    OperationGroupName = groupName,
-                    OperationGroupPath = groupName.Replace(".", "/"),
-                    ComponentGroupName = ComponentGroupName,
-                    OperationName = Utility.ExtractPascalNameByRegex(fileNameInfo.TocName),
-                };
-                var nameInfo = TransformerFactory?.TransformerOperation(model, targetDir);
-                fileNameInfo.FileId = nameInfo.FileId;
-                fileNameInfo.FileName = nameInfo.FileName;
-                fileNameInfo.OperationInfo = nameInfo.OperationInfo;
-
-                yield return fileNameInfo;
+                var operationName = GetOperationName(operation.Operation.Value.OperationId);
+                model.OperationGroupName = GetOperationGroupName(model.OperationGroupName, operation.Operation.Value.OperationId);
+                model.OperationGroupId = Utility.GetId(model.ServiceName, model.OperationGroupName, null);
+                model.OperationId = Utility.GetId(model.ServiceName, model.OperationGroupName, operationName);
+                model.OperationName = Utility.ExtractPascalNameByRegex(operationName);
+                model.Operation = operation.Operation;
+                model.OpenApiPath = operation.OpenApiPath;
+                operations.Add(RestOperationTransformer.Transform(model));
             }
+            return operations;
         }
 
-        private FileNameInfo GenerateComponents(string targetDir, OpenApiDocument openApiDoc, string serviceName)
+        private ComponentGroupEntity GetTransformerdComponentGroup(OpenApiDocument openApiDoc, string serviceName)
         {
             var model = new TransformModel
             {
                 OpenApiDoc = openApiDoc,
                 ServiceName = serviceName,
-                ComponentGroupName = ComponentGroupName
+                ComponentGroupName = ComponentGroupName,
+                ComponentGroupId = Utility.GetId(serviceName, ComponentGroupName, null),
             };
-
-            return TransformerFactory.TransformerComponents(model, targetDir, model.ComponentGroupName);
+            var componentGroup = RestComponentGroupTransformer.Transform(model);
+            var components = new List<ComponentEntity>();
+            if (openApiDoc.Components?.Schemas != null)
+            {
+                foreach (var schema in openApiDoc.Components?.Schemas)
+                {
+                    model.ComponentId = Utility.GetId(serviceName, ComponentGroupName, schema.Key);
+                    model.ComponentName = schema.Key;
+                    model.OpenApiSchema = schema.Value;
+                    components.Add(RestComponentTransformer.Transform(model));
+                }
+            }
+            componentGroup.Components = components;
+            return componentGroup;
         }
     }
 }

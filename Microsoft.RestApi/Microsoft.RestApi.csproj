@@ -108,10 +108,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\RestFile\FileNameInfo.cs" />
-    <Compile Include="Models\RestFile\RestFileInfo.cs" />
-    <Compile Include="Models\RestFile\FilteredOpenApiPath.cs" />
-    <Compile Include="Models\RestFile\TocType.cs" />
+    <Compile Include="Models\Split\FilteredOpenApiPath.cs" />
     <Compile Include="Models\Schema\ComponentGroupEntity.cs" />
     <Compile Include="Models\Schema\ComponentEntity.cs" />
     <Compile Include="Models\Schema\FlowEntity.cs" />
@@ -133,15 +130,17 @@
     <Compile Include="Models\Schema\SeeAlsoEntity.cs" />
     <Compile Include="Models\Schema\ServerEntity.cs" />
     <Compile Include="Models\Schema\ServerVariableEntity.cs" />
+    <Compile Include="Models\Split\SplitSwaggerResult.cs" />
+    <Compile Include="Models\Split\GraphAggregateResult.cs" />
     <Compile Include="Models\TransformModel.cs" />
     <Compile Include="Splitters\GraphRestSplitter.cs" />
     <Compile Include="Splitters\RestSplitterFactory.cs" />
     <Compile Include="TocConverter.cs" />
-    <Compile Include="Transformers\RestComponentsTransformer.cs" />
+    <Compile Include="Transformers\RestComponentTransformer.cs" />
+    <Compile Include="Transformers\RestComponentGroupTransformer.cs" />
     <Compile Include="Transformers\TransformHelper.cs" />
     <Compile Include="Transformers\RestOperationGroupTransformer.cs" />
     <Compile Include="Transformers\RestOperationTransformer.cs" />
-    <Compile Include="Transformers\RestTransformerFactory.cs" />
     <Compile Include="Splitters\SplitHelper.cs" />
     <Compile Include="Models\Mapping\ApisPageOptions.cs" />
     <Compile Include="Models\Mapping\MappingFile.cs" />
@@ -149,7 +148,7 @@
     <Compile Include="Models\Mapping\OrganizationInfo.cs" />
     <Compile Include="Models\Mapping\ServiceInfo.cs" />
     <Compile Include="Models\Mapping\SwaggerInfo.cs" />
-    <Compile Include="Models\Mapping\SwaggerToc.cs" />
+    <Compile Include="Models\Split\RestTocGroup.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Splitters\RestSplitter.cs" />
     <Compile Include="Utility.cs" />

@@ -3,7 +3,6 @@
     using System;
 
     using Microsoft.RestApi.Splitters;
-    using Microsoft.RestApi.Transformers;
 
     public class Program
     {
@@ -16,8 +15,7 @@
                     Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [source_root_directory] [target_root_directory] [mappingfile.json] [output_directory]");
                     return 1;
                 }
-                var transformerFactory = new RestTransformerFactory();
-                var restSplitter = RestSplitterFactory.GetRestSplitter(args[0], args[1], args[2], args[3], transformerFactory);
+                var restSplitter = RestSplitterFactory.GetRestSplitter(args[0], args[1], args[2], args[3]);
                 restSplitter.Process();
 
                 return 0;

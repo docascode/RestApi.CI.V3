@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    using Newtonsoft.Json;
     using YamlDotNet.Serialization;
 
     public class OperationEntity : NamedEntity
@@ -41,6 +42,7 @@
         public IList<string> Paths { get; set; }
 
         [YamlIgnore]
+        [JsonIgnore]
         public IList<OptionalParameter> OptionalParameters { get; set; }
 
         [YamlMember(Alias = "optionalParameters")]
@@ -72,6 +74,19 @@
         public IList<SeeAlsoEntity> SeeAlsos { get; set; }
 
         [YamlIgnore]
-        public string FilePath { get; set; }
+        [JsonIgnore]
+        public bool IsFunctionOrAction { get; set; }
+
+        [YamlIgnore]
+        [JsonIgnore]
+        public IList<string> GroupedPaths { get; set; }
+
+        [YamlIgnore]
+        [JsonIgnore]
+        public bool? IsMainOperation { get; set; }
+
+        [YamlIgnore]
+        [JsonIgnore]
+        public string InternalOpeartionId { get; set; }
     }
 }

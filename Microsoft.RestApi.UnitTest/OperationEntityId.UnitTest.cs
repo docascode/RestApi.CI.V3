@@ -15,7 +15,7 @@
         public void OperationEntity_GetOperationId(string filePath, string serviceName, string groupName, string operationId, string expeted)
         {
             var openApiDocument = LoadOpenApiDocument(filePath);
-            var result = TransformHelper.GetId(serviceName, groupName, operationId);
+            var result = Utility.GetId(serviceName, groupName, operationId);
             Assert.Equal(expeted, result);
         }
     }

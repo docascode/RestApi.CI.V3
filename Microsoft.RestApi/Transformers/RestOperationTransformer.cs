@@ -6,18 +6,19 @@
     using Microsoft.RestApi.Models;
     using Microsoft.OpenApi.Any;
     using System.Linq;
+    using System;
 
     public class RestOperationTransformer
     {
         public static OperationEntity Transform(TransformModel transformModel)
         {
-            var componentGroupId = TransformHelper.GetId(transformModel.ServiceName, transformModel.ComponentGroupName, null);
+            var componentGroupId = transformModel.ComponentGroupId;
             var allUriParameters = TransformUriParameters(transformModel.Operation.Value, componentGroupId);
             var requiredQueryUriParameters = allUriParameters.Where(p => p.IsRequired && p.In == "query").ToList();
             var optionalQueryUriParameters = allUriParameters.Where(p => !p.IsRequired && p.In == "query").ToList();
             return new OperationEntity
             {
-                Id = TransformHelper.GetId(transformModel.ServiceName, transformModel.OperationGroupName, transformModel.OperationName),
+                Id = transformModel.OperationId,
                 Name = transformModel.OperationName,
                 Service = transformModel.ServiceName,
                 GroupName = transformModel.OperationGroupName,
@@ -34,27 +35,33 @@
                 Responses = TransformResponses(transformModel, transformModel.Operation.Value, componentGroupId),
                 RequestBodies = TransformRequestBody(transformModel.Operation.Value, componentGroupId),
                 Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security : transformModel.OpenApiDoc.SecurityRequirements),
-                SeeAlsos = TransformExternalDocs(transformModel.Operation.Value)
+                SeeAlsos = TransformExternalDocs(transformModel.Operation.Value),
+                // for internal
+                IsFunctionOrAction = IsFunctionOrAction(transformModel.Operation.Value),
+                GroupedPaths = GetGroupedPaths(transformModel.OpenApiPath, transformModel.Operation.Value),
+                InternalOpeartionId = transformModel.Operation.Value.OperationId.ToLower()
             };
+        }
+
+        public static bool IsFunctionOrAction(OpenApiOperation openApiOperation)
+        {
+            if (openApiOperation.Extensions.TryGetValue("x-ms-docs-operation-type", out var openApiString))
+            {
+                if (openApiString is OpenApiString stringValue)
+                {
+                    if (!string.Equals(stringValue.Value, "operation", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public static IList<string> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
         {
             var paths = new List<string> { defaultOpenApiPathItem.Key };
 
-            if (defaultOpenApiPathItem.Value.Extensions.TryGetValue("x-ms-additional-paths", out var openApiArrayAdditionalPaths))
-            {
-                if (openApiArrayAdditionalPaths is OpenApiArray additionalPaths)
-                {
-                    foreach (var additionalPath in additionalPaths)
-                    {
-                        if (additionalPath is OpenApiString pathStringValue)
-                        {
-                            paths.Add(pathStringValue.Value);
-                        }
-                    }
-                }
-            }
             if (requiredQueryUriParameters?.Count > 0)
             {
                 var finalPaths = new List<string>();
@@ -94,6 +101,27 @@
                     }
                 }
                 return finalPaths;
+            }
+
+            return paths;
+        }
+
+        public static IList<string> GetGroupedPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, OpenApiOperation openApiOperation)
+        {
+            var paths = new List<string>();
+
+            if (defaultOpenApiPathItem.Value.Extensions.TryGetValue("x-ms-docs-grouped-path", out var openApiArrayAdditionalPaths))
+            {
+                if (openApiArrayAdditionalPaths is OpenApiArray additionalPaths)
+                {
+                    foreach (var additionalPath in additionalPaths)
+                    {
+                        if (additionalPath is OpenApiString pathStringValue)
+                        {
+                            paths.Add(pathStringValue.Value);
+                        }
+                    }
+                }
             }
             return paths;
         }
@@ -166,28 +194,6 @@
             return requestBodies;
         }
 
-        public static string ResolveOperationId(TransformModel transformModel, string operationId)
-        {
-            foreach (var path in transformModel.OpenApiDoc.Paths)
-            {
-                foreach (var operation in path.Value.Operations)
-                {
-                    if (string.Equals(operationId, operation.Value.OperationId))
-                    {
-                        var firstTagName = operation.Value.Tags?.First()?.Name;
-                        if (!string.IsNullOrEmpty(firstTagName) && operationId.StartsWith(firstTagName))
-                        {
-                            operationId = operationId.Substring(firstTagName.Length + 1);
-                            return TransformHelper.GetId(transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
-                        }
-                        return TransformHelper.GetId(transformModel.ServiceName, operation.Value.Tags?.First()?.Name, operationId);
-                    }
-                }
-
-            }
-            return null;
-        }
-
         public static IList<ResponseLinkEntity> GetResponseLinks(TransformModel transformModel, IDictionary<string, OpenApiLink> openApiLinks)
         {
             var links = new List<ResponseLinkEntity>();
@@ -196,7 +202,7 @@
                 links.Add(new ResponseLinkEntity
                 {
                     Key = openApiLink.Key,
-                    OperationId = ResolveOperationId(transformModel, openApiLink.Value.OperationId) ?? openApiLink.Value.OperationId
+                    OperationId = openApiLink.Value.OperationId
                 });
             }
             return links;

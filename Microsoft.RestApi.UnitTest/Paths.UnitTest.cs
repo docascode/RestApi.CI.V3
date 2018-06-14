@@ -21,12 +21,8 @@
 
             var paths = RestOperationTransformer.TransformPaths(openApiDocument.Paths.First(), operation, null);
             Assert.NotNull(paths);
-            Assert.Equal(5, paths.Count);
+            Assert.Equal(1, paths.Count);
             Assert.Equal("/pets", paths[0]);
-            Assert.Equal("/pets/children", paths[1]);
-            Assert.Equal("/me/pets/children", paths[2]);
-            Assert.Equal("/sites/pets/children", paths[3]);
-            Assert.Equal("/users/pets/children", paths[4]);
         }
 
         [Fact]
@@ -45,12 +41,8 @@
             var requiredQueryParameters = uriParameterEntities.Where(p => p.IsRequired && p.In == "Query").ToList();
             var paths = RestOperationTransformer.TransformPaths(openApiDocument.Paths.First(), operation, requiredQueryParameters);
             Assert.NotNull(paths);
-            Assert.Equal(5, paths.Count);
+            Assert.Equal(1, paths.Count);
             Assert.Equal("/pets?$select={$select}", paths[0]);
-            Assert.Equal("/pets/children?$select={$select}", paths[1]);
-            Assert.Equal("/me/pets/children?$case1={$case1}&$select={$select}", paths[2]);
-            Assert.Equal("/sites/pets/children?$select={$select}&$zase1={$zase1}", paths[3]);
-            Assert.Equal("/users/pets/children?$select={$select}&what", paths[4]);
         }
     }
 }

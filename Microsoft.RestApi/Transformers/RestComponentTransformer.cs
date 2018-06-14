@@ -1,52 +1,30 @@
 ﻿namespace Microsoft.RestApi.Transformers
 {
-    using System.Collections.Generic;
     using System.Linq;
 
-    using Microsoft.DocAsCode.Common;
     using Microsoft.OpenApi.Any;
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Models;
     using Newtonsoft.Json.Linq;
 
-    public class RestComponentsTransformer
+    public class RestComponentTransformer
     {
-        public static ComponentGroupEntity Transform(TransformModel transformModel)
+        public static ComponentEntity Transform(TransformModel transformModel)
         {
-            var openApiDocument = transformModel.OpenApiDoc;
-
-            var components = new List<ComponentEntity>();
-
-            var componentGroupId = TransformHelper.GetId(transformModel.ServiceName, transformModel.ComponentGroupName, null);
-            if (openApiDocument.Components?.Schemas != null)
+            var properties = TransformHelper.GetPropertiesFromSchema(transformModel.OpenApiSchema, transformModel.ComponentGroupId);
+            var component = new ComponentEntity
             {
-                foreach (var schema in openApiDocument.Components?.Schemas)
-                {
-                    var properties = TransformHelper.GetPropertiesFromSchema(schema.Value, componentGroupId);
-
-                    var component = new ComponentEntity
-                    {
-                        Id = TransformHelper.GetId(transformModel.ServiceName, transformModel.ComponentGroupName, schema.Key),
-                        Service = transformModel.ServiceName,
-                        ApiVersion = transformModel.OpenApiDoc.Info.Version,
-                        Name = schema.Key,
-                        Description = schema.Value.Description ?? schema.Value.Title,
-                        PropertyItems = properties.ToList(),
-                        Example = GetComponentExample(schema.Value)
-                    };
-
-                    components.Add(component);
-                }
-            }
-
-            var componentGroup = new ComponentGroupEntity
-            {
-                Id = componentGroupId,
+                Id = transformModel.ComponentId,
+                Name = transformModel.ComponentName,
                 Service = transformModel.ServiceName,
+                GroupName = transformModel.ComponentGroupName,
                 ApiVersion = transformModel.OpenApiDoc.Info.Version,
-                Components = components
+                Description = transformModel.OpenApiSchema.Description ?? transformModel.OpenApiSchema.Title,
+                PropertyItems = properties.ToList(),
+                Example = GetComponentExample(transformModel.OpenApiSchema)
             };
-            return componentGroup;
+
+            return component;
         }
 
         private static string GetComponentExample(OpenApiSchema schema)

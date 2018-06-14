@@ -52,48 +52,6 @@
             return servers;
         }
 
-        private static string GetServiceId(IList<OpenApiServer> servers, string serviceName)
-        {
-            var serverPaths = GetServerEnities(servers);
-            var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
-            var defaultServiceId = $"{serviceName}";
-            if (!string.IsNullOrEmpty(defaultServerPath))
-            {
-                var uri = new Uri(defaultServerPath);
-                defaultServiceId = $"{uri.Host}.{serviceName}".Replace(" ", "").Trim('.');
-            }
-            return defaultServiceId.Replace(" ", "").Trim('.').ToLower();
-        }
-
-        private static string GetHost(IList<OpenApiServer> servers)
-        {
-            var serverPaths = GetServerEnities(servers);
-            var defaultServerPath = serverPaths.FirstOrDefault()?.Name;
-            if (!string.IsNullOrEmpty(defaultServerPath))
-            {
-                var uri = new Uri(defaultServerPath);
-                var host = uri.Host?.Trim()?.ToLower();
-                return string.IsNullOrEmpty(host) ? string.Empty : host;
-            }
-            return string.Empty;
-        }
-
-        private static string Normalize(string path)
-        {
-            return string.IsNullOrEmpty(path) ? string.Empty : path.Replace(" ", "").Trim('.').ToLower();
-        }
-
-        public static string GetId(string serviceName, string groupName, string operationName)
-        {
-            var id = $"{Normalize(serviceName)}.{Normalize(groupName)}.{Normalize(operationName)}";
-            return Normalize(id);
-        }
-
-        public static string GetPath(string serviceName, string groupName, string operationName)
-        {
-            return Path.Combine(Normalize(serviceName), Normalize(groupName), Normalize(operationName));
-        }
-
         public static string GetStatusCodeString(string statusCode)
         {
             switch (statusCode)
@@ -187,7 +145,7 @@
                     results.Add(GetValueFromPrimitiveType(anyValue));
                 }
             }
-            return results;
+            return results.OrderBy(r => r).ToList();
         }
 
         public static string GetReferenceId(OpenApiReference openApiReference, string componentGroupId)

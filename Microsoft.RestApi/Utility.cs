@@ -145,5 +145,22 @@
                 return null;
             }
         }
+
+        private static string Normalize(string path)
+        {
+            return string.IsNullOrEmpty(path) ? string.Empty : path.Replace(" ", "").Replace("..", ".").Trim('.').ToLower();
+        }
+
+        public static string GetId(string serviceName, string groupName, string operationName)
+        {
+            var id = $"{Normalize(serviceName)}.{Normalize(groupName)}.{Normalize(operationName)}";
+            return Normalize(id);
+        }
+
+        public static string GetPath(string serviceName, string groupName, string operationName)
+        {
+            var id = GetId(serviceName, groupName, operationName);
+            return Path.Combine(id.Split('.'));
+        }
     }
 }

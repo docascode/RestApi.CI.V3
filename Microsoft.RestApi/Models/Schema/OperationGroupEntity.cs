@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
 
+    using Newtonsoft.Json;
     using YamlDotNet.Serialization;
 
     public class OperationGroupEntity : NamedEntity
@@ -16,9 +17,21 @@
         public string Service { get; set; }
 
         [YamlMember(Alias = "operations")]
-        public IList<string> Operations { get; set; }
+        public IList<string> OperationIds
+        {
+            get
+            {
+                var ids = new List<string>();
+                foreach (var operations in Operations)
+                {
+                    ids.Add(operations.Id);
+                }
+                return ids;
+            }
+        }
 
         [YamlIgnore]
-        public string FilePath { get; set; }
+        [JsonIgnore]
+        public IList<OperationEntity> Operations { get; set; }
     }
 }

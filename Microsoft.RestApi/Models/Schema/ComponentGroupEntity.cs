@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
 
+    using Newtonsoft.Json;
     using YamlDotNet.Serialization;
 
     public class ComponentGroupEntity : NamedEntity
