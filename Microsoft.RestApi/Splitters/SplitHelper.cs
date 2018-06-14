@@ -116,8 +116,34 @@
             }
             using (var writer = new StreamWriter(absolutePath))
             {
-                writer.WriteLine("### YamlMime:RESTOperationV3");
-                YamlSerializer.Serialize(writer, mainOperation);
+                if (aggregateOperation.IsFunctionOrAction)
+                {
+                    //todo: YamlMime:RESTFunctionV3
+                    writer.WriteLine("### YamlMime:RESTOperationV3");
+                    YamlSerializer.Serialize(writer, mainOperation);
+
+                    if (aggregateOperation.GroupedOperations?.Count > 0)
+                    {
+                        foreach (var groupedOperation in aggregateOperation.GroupedOperations)
+                        {
+                            mainOperation.Paths.Add(groupedOperation.Paths[0]);
+                        }
+                    }
+                    writer.WriteLine("### YamlMime:RESTOperationV3");
+                    YamlSerializer.Serialize(writer, mainOperation);
+                }
+                else
+                {
+                    if (aggregateOperation.GroupedOperations?.Count > 0)
+                    {
+                        foreach(var groupedOperation in aggregateOperation.GroupedOperations)
+                        {
+                            mainOperation.Paths.Add(groupedOperation.Paths[0]);
+                        }
+                    }
+                    writer.WriteLine("### YamlMime:RESTOperationV3");
+                    YamlSerializer.Serialize(writer, mainOperation);
+                }
             }
         }
 
