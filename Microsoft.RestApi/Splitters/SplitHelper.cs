@@ -127,7 +127,7 @@
                 {
                     var mergedResult = mergeOperations(aggregateOperation);
                     writer.WriteLine("### YamlMime:RESTOperationV3");
-                    YamlSerializer.Serialize(writer, mainOperation);
+                    YamlSerializer.Serialize(writer, mergedResult);
                 }
             }
         }
