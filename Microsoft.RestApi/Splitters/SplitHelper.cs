@@ -105,7 +105,7 @@
             return filteredRestPathOperation;
         }
 
-        public static void WriteOperations(string targetDir, GraphAggregateEntity aggregateOperation)
+        public static void WriteOperations(string targetDir, GraphAggregateEntity aggregateOperation, Func<GraphAggregateEntity, OperationEntity> mergeOperations, Func<GraphAggregateEntity, OperationEntity> mergeFunctionOrActions)
         {
             var mainOperation = aggregateOperation.MainOperation;
             var operationFilePath = Utility.GetPath(mainOperation.Service, mainOperation.GroupName, mainOperation.Name);
@@ -119,28 +119,13 @@
                 if (aggregateOperation.IsFunctionOrAction)
                 {
                     //todo: YamlMime:RESTFunctionV3
+                    var mergedResult = mergeFunctionOrActions(aggregateOperation);
                     writer.WriteLine("### YamlMime:RESTOperationV3");
-                    YamlSerializer.Serialize(writer, mainOperation);
-
-                    if (aggregateOperation.GroupedOperations?.Count > 0)
-                    {
-                        foreach (var groupedOperation in aggregateOperation.GroupedOperations)
-                        {
-                            mainOperation.Paths.Add(groupedOperation.Paths[0]);
-                        }
-                    }
-                    writer.WriteLine("### YamlMime:RESTOperationV3");
-                    YamlSerializer.Serialize(writer, mainOperation);
+                    YamlSerializer.Serialize(writer, mergedResult);
                 }
                 else
                 {
-                    if (aggregateOperation.GroupedOperations?.Count > 0)
-                    {
-                        foreach(var groupedOperation in aggregateOperation.GroupedOperations)
-                        {
-                            mainOperation.Paths.Add(groupedOperation.Paths[0]);
-                        }
-                    }
+                    var mergedResult = mergeOperations(aggregateOperation);
                     writer.WriteLine("### YamlMime:RESTOperationV3");
                     YamlSerializer.Serialize(writer, mainOperation);
                 }

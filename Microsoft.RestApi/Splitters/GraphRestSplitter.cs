@@ -79,10 +79,23 @@
                     var aggregateOperations = restTocGroup.RestTocLeaves.OrderBy(p => p.MainOperation.Name);
                     foreach (var aggregateOperation in aggregateOperations)
                     {
-                        SplitHelper.WriteOperations(targetApiVersionDir, aggregateOperation);
+                        SplitHelper.WriteOperations(targetApiVersionDir, aggregateOperation, MergeOperations, MergeOperations);
                     }
                 }
             }
+        }
+
+        private OperationEntity MergeOperations(GraphAggregateEntity aggregateOperation)
+        {
+            var mainOperation = aggregateOperation.MainOperation;
+            if (aggregateOperation.GroupedOperations?.Count > 0)
+            {
+                foreach (var groupedOperation in aggregateOperation.GroupedOperations)
+                {
+                    mainOperation.Paths.Add(groupedOperation.Paths[0]);
+                }
+            }
+            return mainOperation;
         }
 
         private void ResolveComponent(GraphAggregateResult aggregateResult, string componentName, RestTocGroup restTocGroup)
