@@ -108,6 +108,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Schema\FunctionOrActionEntity.cs" />
     <Compile Include="Models\Split\FilteredOpenApiPath.cs" />
     <Compile Include="Models\Schema\ComponentGroupEntity.cs" />
     <Compile Include="Models\Schema\ComponentEntity.cs" />

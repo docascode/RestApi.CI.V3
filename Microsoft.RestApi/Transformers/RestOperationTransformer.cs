@@ -131,11 +131,20 @@
             var parameterEntities = new List<ParameterEntity>();
             foreach (var openApiParameter in openApiOperation.Parameters)
             {
+                string baseName = null;
+                if (openApiParameter.Extensions.TryGetValue("x-ms-docs-key-type", out var baseComponentName))
+                {
+                    if (baseComponentName is OpenApiString stringValue)
+                    {
+                        baseName = stringValue.Value;
+                    }
+                }
                 var parameterEntity = new ParameterEntity
                 {
                     Name = openApiParameter.Name,
                     Description = openApiParameter.Description,
                     In = openApiParameter.In.ToString().ToLower(),
+                    BaseComponentName = baseName,
                     IsRequired = openApiParameter.Required,
                     IsReadOnly = openApiParameter.Schema?.ReadOnly ?? false,
                     Nullable = openApiParameter.Schema?.Nullable ?? true,

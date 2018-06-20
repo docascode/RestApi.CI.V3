@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
 
     using Microsoft.DocAsCode.YamlSerialization;
@@ -34,8 +35,10 @@
 
         public override void WriteToc(string targetApiVersionDir, RestTocGroup restTocGroup)
         {
-            // todo: remove the toc.yml
-            base.WriteToc(targetApiVersionDir, restTocGroup);
+            if (MappingFile.AutoGenToc)
+            {
+                base.WriteToc(targetApiVersionDir, restTocGroup);
+            }
         }
 
         public override string GetOperationName(string operationName)
@@ -79,7 +82,24 @@
                     var aggregateOperations = restTocGroup.RestTocLeaves.OrderBy(p => p.MainOperation.Name);
                     foreach (var aggregateOperation in aggregateOperations)
                     {
-                        SplitHelper.WriteOperations(targetApiVersionDir, aggregateOperation, MergeOperations, MergeOperations);
+                        SplitHelper.WriteOperations(targetApiVersionDir, aggregateOperation, MergeOperations, MergeFunctionOrActions);
+                    }
+
+                    foreach (var aggregateOperation in aggregateOperations)
+                    {
+                        if(aggregateOperation.GroupedOperations?.Count > 0)
+                        {
+                            foreach(var groupedOperation in aggregateOperation.GroupedOperations)
+                            {
+                                using (var writer = new StreamWriter(groupedOperation.InternalOpeartionId))
+                                {
+                                    writer.WriteLine("---");
+                                    writer.WriteLine("uid: groupedOperation.InternalOpeartionId");
+                                    writer.WriteLine("redirect_url: /groupedOperation.InternalOpeartionId");
+                                    writer.WriteLine("---");
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -88,14 +108,50 @@
         private OperationEntity MergeOperations(GraphAggregateEntity aggregateOperation)
         {
             var mainOperation = aggregateOperation.MainOperation;
+            var requestParameters = mainOperation.RequestParameters ?? new List<ParameterEntity>();
             if (aggregateOperation.GroupedOperations?.Count > 0)
             {
                 foreach (var groupedOperation in aggregateOperation.GroupedOperations)
                 {
                     mainOperation.Paths.Add(groupedOperation.Paths[0]);
+                    if (groupedOperation.RequestParameters?.Count > 0)
+                    {
+                        var pathParameters = groupedOperation.RequestParameters.Where(p => p.In == "path").ToList();
+                        foreach (var pathParameter in pathParameters)
+                        {
+                            if (!requestParameters.Any(p => p.Key == pathParameter.Key))
+                            {
+                                requestParameters.Add(pathParameter);
+                            }
+                        }
+                    }
                 }
             }
+            mainOperation.RequestParameters = requestParameters;
             return mainOperation;
+        }
+
+        private FunctionOrActionEntity MergeFunctionOrActions(GraphAggregateEntity aggregateOperation)
+        {
+            var mainOperation = aggregateOperation.MainOperation;
+            var functionOrAction = new FunctionOrActionEntity
+            {
+                Id = mainOperation.Id,
+                Name = mainOperation.Name,
+                Service = mainOperation.Service,
+                GroupName = mainOperation.GroupName,
+                ApiVersion = mainOperation.ApiVersion,
+                Operations = new List<OperationEntity> { mainOperation }
+            };
+            
+            if (aggregateOperation.GroupedOperations?.Count > 0)
+            {
+                foreach (var groupedOperation in aggregateOperation.GroupedOperations)
+                {
+                    functionOrAction.Operations.Add(groupedOperation);
+                }
+            }
+            return functionOrAction;
         }
 
         private void ResolveComponent(GraphAggregateResult aggregateResult, string componentName, RestTocGroup restTocGroup)

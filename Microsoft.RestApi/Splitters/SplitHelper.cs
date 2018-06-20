@@ -105,7 +105,7 @@
             return filteredRestPathOperation;
         }
 
-        public static void WriteOperations(string targetDir, GraphAggregateEntity aggregateOperation, Func<GraphAggregateEntity, OperationEntity> mergeOperations, Func<GraphAggregateEntity, OperationEntity> mergeFunctionOrActions)
+        public static void WriteOperations(string targetDir, GraphAggregateEntity aggregateOperation, Func<GraphAggregateEntity, OperationEntity> mergeOperations, Func<GraphAggregateEntity, FunctionOrActionEntity> mergeFunctionOrActions)
         {
             var mainOperation = aggregateOperation.MainOperation;
             var operationFilePath = Utility.GetPath(mainOperation.Service, mainOperation.GroupName, mainOperation.Name);
@@ -114,13 +114,17 @@
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
             }
+
+            if (File.Exists(absolutePath))
+            {
+                Console.WriteLine($"error: the file already existed. {absolutePath}");
+            }
             using (var writer = new StreamWriter(absolutePath))
             {
-                if (aggregateOperation.IsFunctionOrAction)
+                if (aggregateOperation.IsFunctionOrAction && aggregateOperation.GroupedOperations?.Count > 0)
                 {
-                    //todo: YamlMime:RESTFunctionV3
                     var mergedResult = mergeFunctionOrActions(aggregateOperation);
-                    writer.WriteLine("### YamlMime:RESTOperationV3");
+                    writer.WriteLine("### YamlMime:RESTMultipleFunctionsV3");
                     YamlSerializer.Serialize(writer, mergedResult);
                 }
                 else
@@ -128,24 +132,6 @@
                     var mergedResult = mergeOperations(aggregateOperation);
                     writer.WriteLine("### YamlMime:RESTOperationV3");
                     YamlSerializer.Serialize(writer, mergedResult);
-                }
-            }
-        }
-
-        public static void WriteFunctions(string targetDir, OperationGroupEntity operationGroup)
-        {
-            foreach (var operation in operationGroup.Operations)
-            {
-                var operationFilePath = Utility.GetPath(operationGroup.Service, operationGroup.Name, operation.Name);
-                var absolutePath = Path.Combine(targetDir, $"{operationFilePath}{YamlExtension}");
-                if (!Directory.Exists(Path.GetDirectoryName(absolutePath)))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
-                }
-                using (var writer = new StreamWriter(absolutePath))
-                {
-                    writer.WriteLine("### YamlMime:RESTFunctionOrActionV3");
-                    YamlSerializer.Serialize(writer, operation);
                 }
             }
         }

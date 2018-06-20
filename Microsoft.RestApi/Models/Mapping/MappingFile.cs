@@ -31,5 +31,8 @@
       
         [JsonProperty("component_prefix")]
         public string ComponentPrefix { get; set; }
+
+        [JsonProperty("auto_gen_toc")]
+        public bool AutoGenToc { get; set; } = false;
     }
 }
