@@ -108,28 +108,26 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Schema\Common\BaseEntity.cs" />
+    <Compile Include="Models\Schema\Common\BodyEntity.cs" />
+    <Compile Include="Models\Schema\Common\ComponentType.cs" />
+    <Compile Include="Models\Schema\Common\ReferenceEntity.cs" />
+    <Compile Include="Models\Schema\Components\Example\ExampleEntity.cs" />
+    <Compile Include="Models\Schema\Components\RequestBody\RequestBodyEntity.cs" />
+    <Compile Include="Models\Schema\Components\ResponseHeader\ResponseHeaderEntity.cs" />
+    <Compile Include="Models\Schema\Components\Response\ResponseEntity.cs" />
+    <Compile Include="Models\Schema\OperationV3\OperationV3Entity.cs" />
     <Compile Include="Models\Split\FilteredOpenApiPath.cs" />
     <Compile Include="Models\Schema\ComponentGroupEntity.cs" />
-    <Compile Include="Models\Schema\ComponentEntity.cs" />
-    <Compile Include="Models\Schema\FlowEntity.cs" />
-    <Compile Include="Models\Schema\OperationEntity.cs" />
-    <Compile Include="Models\Schema\OptionalParameter.cs" />
-    <Compile Include="Models\Schema\PropertyEntity.cs" />
-    <Compile Include="Models\Schema\PropertyTypeEntity.cs" />
-    <Compile Include="Models\Schema\HeaderEntity.cs" />
-    <Compile Include="Models\Schema\IdentifiableEntity.cs" />
-    <Compile Include="Models\Schema\NamedEntity.cs" />
+    <Compile Include="Models\Schema\Components\Security\FlowEntity.cs" />
+    <Compile Include="Models\Schema\Common\PropertyEntity.cs" />
+    <Compile Include="Models\Schema\Components\Type\PropertyTypeEntity.cs" />
+    <Compile Include="Models\Schema\Common\IdentifiableEntity.cs" />
+    <Compile Include="Models\Schema\Common\NamedEntity.cs" />
     <Compile Include="Models\Schema\OperationGroupEntity.cs" />
-    <Compile Include="Models\Schema\ParameterEntity.cs" />
-    <Compile Include="Models\Schema\RequestBodyEntity.cs" />
-    <Compile Include="Models\Schema\ResponseEntity.cs" />
-    <Compile Include="Models\Schema\ResponseHeaderEntity.cs" />
-    <Compile Include="Models\Schema\ResponseLinkEntity.cs" />
-    <Compile Include="Models\Schema\SecurityEntity.cs" />
-    <Compile Include="Models\Schema\SecurityScopeEntity.cs" />
-    <Compile Include="Models\Schema\SeeAlsoEntity.cs" />
-    <Compile Include="Models\Schema\ServerEntity.cs" />
-    <Compile Include="Models\Schema\ServerVariableEntity.cs" />
+    <Compile Include="Models\Schema\Components\Parameter\ParameterEntity.cs" />
+    <Compile Include="Models\Schema\Components\Security\SecurityEntity.cs" />
+    <Compile Include="Models\Schema\Components\Security\SecurityScopeEntity.cs" />
     <Compile Include="Models\Split\SplitSwaggerResult.cs" />
     <Compile Include="Models\Split\GraphAggregateResult.cs" />
     <Compile Include="Models\TransformModel.cs" />

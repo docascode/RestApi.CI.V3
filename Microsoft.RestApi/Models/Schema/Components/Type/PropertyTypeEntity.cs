@@ -4,7 +4,7 @@
 
     using YamlDotNet.Serialization;
 
-    public class PropertyTypeEntity : IdentifiableEntity
+    public class PropertyTypeEntity : ReferenceEntity
     {
         [YamlMember(Alias = "isArray")]
         public bool IsArray { get; set; } = false;
@@ -26,12 +26,12 @@
         /// when isDictionary = true, the AdditionalTypes's id should the dictionary type.
         /// </summary>
         [YamlMember(Alias = "additionalTypes")]
-        public List<IdentifiableEntity> AdditionalTypes { get; set; }
+        public List<string> AdditionalTypes { get; set; }
 
         /// <summary>
         /// if is the anonymous object, then we use properties to provide values.
         /// </summary>
         [YamlMember(Alias = "properties")]
-        public List<PropertyEntity> AnonymousChildren { get; set; }
+        public List<PropertyEntity> Properties { get; set; }
     }
 }

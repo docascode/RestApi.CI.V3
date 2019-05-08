@@ -17,6 +17,7 @@
             : base(sourceRootDir, targetRootDir, mappingFilePath, outputDir)
         {
         }
+
         public override void GenerateTocAndYamls(string targetApiVersionDir, SplitSwaggerResult splitSwaggerResult, RestTocGroup restTocGroup)
         {
             Console.WriteLine("Starting to aggregate split result");

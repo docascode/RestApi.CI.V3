@@ -10,15 +10,17 @@
 
     public class RestOperationTransformer
     {
-        public static OperationEntity Transform(TransformModel transformModel)
+        public static OperationV3Entity Transform(TransformModel transformModel)
         {
-            var componentGroupId = transformModel.ComponentGroupId;
-            var allUriParameters = TransformUriParameters(transformModel.Operation.Value, componentGroupId);
-            var requiredQueryUriParameters = allUriParameters.Where(p => p.IsRequired && p.In == "query").ToList();
-            var optionalQueryUriParameters = allUriParameters.Where(p => !p.IsRequired && p.In == "query").ToList();
-            return new OperationEntity
+            var allParameters = TransformHelper.TransformParameters(transformModel, 
+                transformModel.Operation.Value.Parameters.ToDictionary(k => k.Name, v => v));
+            var allResponses = TransformHelper.TransformResponses(transformModel, transformModel.Operation.Value.Responses.ToDictionary(k => k.Key, v => v.Value));
+            var requiredQueryUriParameters = allParameters.Where(p => p.IsRequired && p.In == "query").ToList();
+            var optionalQueryUriParameters = allParameters.Where(p => !p.IsRequired && p.In == "query").ToList();
+            return new OperationV3Entity
             {
                 Id = transformModel.OperationId,
+                Callbacks = null,
                 Name = transformModel.OperationName,
                 Service = transformModel.ServiceName,
                 GroupName = transformModel.OperationGroupName,
@@ -27,20 +29,42 @@
                 ApiVersion = transformModel.OpenApiDoc.Info.Version,
                 IsDeprecated = transformModel.Operation.Value.Deprecated,
                 HttpVerb = transformModel.Operation.Key.ToString().ToUpper(),
-                Servers = TransformHelper.GetServerEnities(transformModel.OpenApiDoc.Servers),
+                Servers = TransformHelper.GetServerEnities(GetRawServers(transformModel)),
+                Parameters = allParameters,
                 Paths = TransformPaths(transformModel.OpenApiPath, transformModel.Operation.Value, requiredQueryUriParameters),
                 // remove this for now
                 // OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
-                RequestParameters = allUriParameters,
-                Responses = TransformResponses(transformModel, transformModel.Operation.Value, componentGroupId),
-                RequestBodies = TransformRequestBody(transformModel.Operation.Value, componentGroupId),
-                Securities = TransformSecurity(transformModel.Operation.Value.Security.Count != 0 ? transformModel.Operation.Value.Security : transformModel.OpenApiDoc.SecurityRequirements),
-                SeeAlsos = TransformExternalDocs(transformModel.Operation.Value),
-                // for internal
-                IsFunctionOrAction = IsFunctionOrAction(transformModel.Operation.Value),
-                GroupedPaths = GetGroupedPaths(transformModel.OpenApiPath, transformModel.Operation.Value),
-                InternalOpeartionId = transformModel.Operation.Value.OperationId.ToLower()
+                Responses = allResponses,
+                RequestBody = TransformHelper.TransformRequestBody(transformModel, new KeyValuePair<string, OpenApiRequestBody>("", transformModel.Operation.Value.RequestBody)),
+                Securities = GetSecurities(transformModel),
+                SeeAlso = TransformExternalDocs(transformModel.Operation.Value)
             };
+        }
+
+        private static List<OperationV3Entity.Security> GetSecurities(TransformModel transformModel)
+        {
+            if (transformModel.Operation.Value.Security != null && transformModel.Operation.Value.Security.Count == 0) return null;
+
+            return transformModel.Operation.Value.Security.SelectMany(s => s.Select(c => new OperationV3Entity.Security
+            {
+                Scopes = c.Value,
+                SecurityId = Utility.GetId(transformModel.ServiceName, ComponentGroup.Securities.ToString(), c.Key.Reference.Id)
+            })).ToList();
+        }
+
+        private static IList<OpenApiServer> GetRawServers(TransformModel transformModel)
+        {
+            if(transformModel.Operation.Value.Servers != null && transformModel.Operation.Value.Servers.Any())
+            {
+                return transformModel.Operation.Value.Servers;
+            }
+
+            if (transformModel.OpenApiPath.Value.Servers != null && transformModel.OpenApiPath.Value.Servers.Any())
+            {
+                return transformModel.OpenApiPath.Value.Servers;
+            }
+
+            return transformModel.OpenApiDoc.Servers;
         }
 
         public static bool IsFunctionOrAction(OpenApiOperation openApiOperation)
@@ -58,7 +82,7 @@
             return false;
         }
 
-        public static IList<string> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
+        public static List<string> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
         {
             var paths = new List<string> { defaultOpenApiPathItem.Key };
 
@@ -126,112 +150,6 @@
             return paths;
         }
 
-        public static IList<ParameterEntity> TransformUriParameters(OpenApiOperation openApiOperation, string componentGroupId)
-        {
-            var parameterEntities = new List<ParameterEntity>();
-            foreach (var openApiParameter in openApiOperation.Parameters)
-            {
-                var parameterEntity = new ParameterEntity
-                {
-                    Name = openApiParameter.Name,
-                    Description = openApiParameter.Description,
-                    In = openApiParameter.In.ToString().ToLower(),
-                    IsRequired = openApiParameter.Required,
-                    IsReadOnly = openApiParameter.Schema?.ReadOnly ?? false,
-                    Nullable = openApiParameter.Schema?.Nullable ?? true,
-                    IsDeprecated = openApiParameter.Deprecated,
-                    Pattern = openApiParameter.Schema?.Pattern,
-                    Format = openApiParameter.Schema?.Format,
-                    Types = new List<PropertyTypeEntity>
-                    {
-                        TransformHelper.ParseOpenApiSchema(openApiParameter.Schema, componentGroupId)
-                    }
-                };
-                parameterEntities.Add(parameterEntity);
-            }
-            return parameterEntities;
-        }
-
-        private static IList<OptionalParameter> TransformOptionalParameters(IList<ParameterEntity> uriParameters)
-        {
-            var optionalParameters = new List<OptionalParameter>();
-            foreach (var uriParameter in uriParameters)
-            {
-                optionalParameters.Add(new OptionalParameter
-                {
-                    Name = uriParameter.Name,
-                    Value = $"{{{uriParameter.Name}}}"
-                });
-            }
-            return optionalParameters;
-        }
-
-        public static IList<RequestBodyEntity> TransformRequestBody(OpenApiOperation openApiOperation, string componentGroupId)
-        {
-            var requestBodies = new List<RequestBodyEntity>();
-            if (openApiOperation.RequestBody != null)
-            {
-                foreach (var requestContent in openApiOperation.RequestBody.Content)
-                {
-                    var requestBodySchemas = new List<RequestBodySchemaEntity>
-                    {
-                        // todo, if there exist oneof/anyof will add all them to the array.
-                        new RequestBodySchemaEntity
-                        {
-                            Name = "default",
-                            Properties = TransformHelper.GetPropertiesFromSchema(requestContent.Value.Schema, componentGroupId)
-                        }
-                    };
-
-                    requestBodies.Add(new RequestBodyEntity
-                    {
-                        MediaType = requestContent.Key,
-                        Description = openApiOperation.RequestBody.Description,
-                        RequestBodySchemas = requestBodySchemas
-                    });
-                }
-            }
-            return requestBodies;
-        }
-
-        public static IList<ResponseLinkEntity> GetResponseLinks(TransformModel transformModel, IDictionary<string, OpenApiLink> openApiLinks)
-        {
-            var links = new List<ResponseLinkEntity>();
-            foreach (var openApiLink in openApiLinks)
-            {
-                links.Add(new ResponseLinkEntity
-                {
-                    Key = openApiLink.Key,
-                    OperationId = openApiLink.Value.OperationId
-                });
-            }
-            return links;
-        }
-
-        public static IList<ResponseEntity> TransformResponses(TransformModel transformModel, OpenApiOperation openApiOperation, string componentGroupId)
-        {
-            var responseEntities = new List<ResponseEntity>();
-            if (openApiOperation.Responses?.Count > 0)
-            {
-                foreach (var openApiResponse in openApiOperation.Responses)
-                {
-                    var bodies = GetResponseMediaTypeAndBodies(openApiResponse.Value.Reference, openApiResponse.Value.Content, componentGroupId);
-                    var links = GetResponseLinks(transformModel, openApiResponse.Value.Links);
-                    var responseEntity = new ResponseEntity
-                    {
-                        Name = TransformHelper.GetStatusCodeString(openApiResponse.Key),
-                        StatusCode = openApiResponse.Key,
-                        Description = openApiResponse.Value.Description,
-                        ResponseMediaTypeAndBodies = bodies.Count > 0 ? bodies : null,
-                        ResponseLinks = links.Count > 0 ? links : null,
-                        ResponseHeaders = null // todo
-                    };
-                    responseEntities.Add(responseEntity);
-                }
-            }
-            return responseEntities;
-        }
-
         public static IList<SecurityEntity> TransformSecurity(IList<OpenApiSecurityRequirement> openApiSecurityRequirements)
         {
             var securities = new List<SecurityEntity>();
@@ -276,89 +194,48 @@
             return securities;
         }
 
-        public static IList<SeeAlsoEntity> TransformExternalDocs(OpenApiOperation openApiOperation)
+        public static List<string> TransformExternalDocs(OpenApiOperation openApiOperation)
         {
-            var seeAlsoEntities = new List<SeeAlsoEntity>();
+            if (openApiOperation.ExternalDocs == null) return null;
+
+            var seealsos = new List<string>();
             if (openApiOperation.ExternalDocs != null)
             {
-                var seeAlsoEntity = new SeeAlsoEntity
-                {
-                    Description = openApiOperation.ExternalDocs.Description,
-                    Url = openApiOperation.ExternalDocs.Url.ToString()
-                };
-                seeAlsoEntities.Add(seeAlsoEntity);
+                seealsos.Add($"[{openApiOperation.ExternalDocs.Description}]({openApiOperation.ExternalDocs.Url.ToString()})");
             }
 
-            if (openApiOperation.Extensions.TryGetValue("x-ms-seeAlso", out var openApiSeeAlsos))
-            {
-                if (openApiSeeAlsos is OpenApiArray seeAlsos)
-                {
-                    foreach (var seeAlso in seeAlsos)
-                    {
-                        if (seeAlso is OpenApiObject seeAlsoObject)
-                        {
-                            var seeAlsoEntity = new SeeAlsoEntity();
-                            if (seeAlsoObject.TryGetValue("description", out var description))
-                            {
-                                if (description is OpenApiString descriptionStringValue)
-                                {
-                                    seeAlsoEntity.Description = descriptionStringValue.Value;
-                                }
-                            }
+            //if (openApiOperation.Extensions.TryGetValue("x-ms-seeAlso", out var openApiSeeAlsos))
+            //{
+            //    if (openApiSeeAlsos is OpenApiArray seeAlsos)
+            //    {
+            //        foreach (var seeAlso in seeAlsos)
+            //        {
+            //            if (seeAlso is OpenApiObject seeAlsoObject)
+            //            {
+            //                var seeAlsoEntity = new SeeAlsoEntity();
+            //                if (seeAlsoObject.TryGetValue("description", out var description))
+            //                {
+            //                    if (description is OpenApiString descriptionStringValue)
+            //                    {
+            //                        seeAlsoEntity.Description = descriptionStringValue.Value;
+            //                    }
+            //                }
 
-                            if (seeAlsoObject.TryGetValue("url", out var url))
-                            {
-                                if (url is OpenApiString urlStringValue)
-                                {
-                                    seeAlsoEntity.Url = urlStringValue.Value;
-                                }
-                            }
+            //                if (seeAlsoObject.TryGetValue("url", out var url))
+            //                {
+            //                    if (url is OpenApiString urlStringValue)
+            //                    {
+            //                        seeAlsoEntity.Url = urlStringValue.Value;
+            //                    }
+            //                }
 
-                            seeAlsoEntities.Add(seeAlsoEntity);
-                        }
-                    }
-                }
-            }
+            //                seeAlsoEntities.Add(seeAlsoEntity);
+            //            }
+            //        }
+            //    }
+            //}
 
-            return seeAlsoEntities;
-        }
-
-        private static IList<ResponseMediaTypeAndBodyEntity> GetResponseMediaTypeAndBodies(OpenApiReference openApiReference, IDictionary<string, OpenApiMediaType> contents, string componentGroupId)
-        {
-            var responseMediaTypeAndBodyEntities = new List<ResponseMediaTypeAndBodyEntity>();
-            foreach (var content in contents)
-            {
-                var propertyTypeEntities = new List<PropertyTypeEntity>();
-                var propertyEntities = new List<PropertyEntity>();
-                if (!string.IsNullOrEmpty(openApiReference?.Id) && openApiReference?.ReferenceV3?.Contains("responses") == false)
-                {
-                    propertyTypeEntities.Add(new PropertyTypeEntity
-                    {
-                        Id = TransformHelper.GetReferenceId(openApiReference, componentGroupId)
-                    });
-                }
-                else
-                {
-                    var type = TransformHelper.ParseOpenApiSchema(content.Value.Schema, componentGroupId);
-                    if(type.AnonymousChildren != null && type.AnonymousChildren.Count > 0)
-                    {
-                        propertyEntities.AddRange(type.AnonymousChildren);
-                    }
-                    else
-                    {
-                        type.AnonymousChildren = null;
-                        propertyTypeEntities.Add(type);
-                    }
-                }
-
-                responseMediaTypeAndBodyEntities.Add(new ResponseMediaTypeAndBodyEntity
-                {
-                    MediaType = content.Key,
-                    ResponseBodyTypes = propertyTypeEntities.Count > 0 ? propertyTypeEntities : null,
-                    ResponseBodySchemas = propertyEntities.Count > 0 ? propertyEntities : null
-                });
-            }
-            return responseMediaTypeAndBodyEntities;
+            return seealsos;
         }
 
         private static FlowEntity NewFlowEntity(string name, IList<string> scopeNames, OpenApiOAuthFlow openApiOAuthFlow)

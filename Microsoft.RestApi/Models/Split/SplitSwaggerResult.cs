@@ -4,8 +4,8 @@ namespace Microsoft.RestApi.Models
 {
     public class SplitSwaggerResult
     {
-        public IList<OperationGroupEntity> OperationGroups { get; set; }
+        public List<OperationGroupEntity> OperationGroups { get; set; }
 
-        public ComponentGroupEntity ComponentGroup { get; set; }
+        public List<ComponentGroupEntity> ComponentGroups { get; set; }
     }
 }

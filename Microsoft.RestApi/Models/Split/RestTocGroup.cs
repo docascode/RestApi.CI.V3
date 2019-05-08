@@ -29,8 +29,6 @@
             {
                 Groups[name] = value;
             }
-        }
-
-        public List<GraphAggregateEntity> RestTocLeaves { get; set; }
+        }        
     }
 }

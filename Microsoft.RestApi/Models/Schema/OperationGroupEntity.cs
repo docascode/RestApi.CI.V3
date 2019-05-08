@@ -10,12 +10,6 @@
         [YamlMember(Alias = "summary")]
         public string Summary { get; set; }
 
-        [YamlMember(Alias = "apiVersion")]
-        public string ApiVersion { get; set; }
-
-        [YamlMember(Alias = "service")]
-        public string Service { get; set; }
-
         [YamlMember(Alias = "operations")]
         public IList<string> OperationIds
         {
@@ -32,6 +26,6 @@
 
         [YamlIgnore]
         [JsonIgnore]
-        public IList<OperationEntity> Operations { get; set; }
+        public List<OperationV3Entity> Operations { get; set; }
     }
 }

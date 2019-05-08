@@ -4,8 +4,11 @@
 
     using YamlDotNet.Serialization;
 
-    public class PropertyEntity : NamedEntity
+    public class PropertyEntity : ReferenceEntity
     {
+        [YamlMember(Alias = "allowReserved")]
+        public bool AllowReserved { get; set; }
+
         [YamlMember(Alias = "isReadyOnly")]
         public bool IsReadOnly { get; set; }
 
@@ -38,5 +41,11 @@
 
         [YamlMember(Alias = "isOneOf")]
         public bool IsOneOf { get; set; }
+        
+        [YamlMember(Alias = "isNot")]
+        public bool IsNot { get; set; }
+
+        [YamlMember(Alias = "isAllOf")]
+        public bool IsAllOf { get; set; }
     }
 }

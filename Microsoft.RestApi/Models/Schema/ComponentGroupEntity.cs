@@ -10,14 +10,8 @@
         [YamlMember(Alias = "summary")]
         public string Summary { get; set; }
 
-        [YamlMember(Alias = "apiVersion")]
-        public string ApiVersion { get; set; }
-
-        [YamlMember(Alias = "service")]
-        public string Service { get; set; }
-
         [YamlIgnore]
-        public IList<ComponentEntity> Components { get; set; }
+        public List<NamedEntity> Components { get; set; }
 
         [YamlMember(Alias = "components")]
         public IList<string> ComponentIds

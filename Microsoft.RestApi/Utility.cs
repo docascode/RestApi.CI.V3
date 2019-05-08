@@ -157,6 +157,12 @@
             return Normalize(id);
         }
 
+        public static string GetId(string groupId, string operationName)
+        {
+            var id = $"{groupId}.{Normalize(operationName)}";
+            return Normalize(id);
+        }
+
         public static string GetPath(string serviceName, string groupName, string operationName)
         {
             var id = GetId(serviceName, groupName, operationName);

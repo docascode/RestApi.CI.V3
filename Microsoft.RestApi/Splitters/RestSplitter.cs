@@ -5,7 +5,7 @@
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
-
+    using Microsoft.DocAsCode.YamlSerialization;
     using Microsoft.OpenApi.Models;
     using Microsoft.OpenApi.Readers;
 
@@ -15,9 +15,10 @@
 
     public class RestSplitter
     {
-        protected static readonly string ComponentGroupName = "resources";
         protected const string TocFileName = "toc.md";
+        public static readonly string YamlExtension = ".yml";
         protected static readonly Regex TocRegex = new Regex(@"^(?<headerLevel>#+)(( |\t)*)\[(?<tocTitle>.+)\]\((?<tocLink>(?!http[s]?://).*?)\)( |\t)*#*( |\t)*(\n|$)", RegexOptions.Compiled);
+        public static readonly YamlSerializer YamlSerializer = new YamlSerializer();
 
         public string SourceRootDir { get; }
         public string TargetRootDir { get; }
@@ -77,13 +78,151 @@
 
                 WriteToc(targetApiDir, rootGroup);
             }
-            
+
             PrintAndClearError();
             Console.WriteLine("Done!");
         }
 
-        public virtual void GenerateTocAndYamls(string targetApiVersionDir, SplitSwaggerResult splitSwaggerResult, RestTocGroup restTocGroup)
+        public virtual void GenerateTocAndYamls(string targetApiVersionDir, SplitSwaggerResult splitSwaggerResult, RestTocGroup serviceGroup)
         {
+            // Generate Toc
+            GenerateToc(splitSwaggerResult, serviceGroup);
+
+            //Write Yamls
+            GenerateYamls(targetApiVersionDir, splitSwaggerResult);
+        }
+
+        private void GenerateYamls(string targetApiVersionDir, SplitSwaggerResult splitSwaggerResult)
+        {
+            var operationGroups = splitSwaggerResult.OperationGroups;
+            var componentGroups = splitSwaggerResult.ComponentGroups;
+            var servicePath = Path.Combine(targetApiVersionDir, operationGroups.First().Service);
+            if (!Directory.Exists(servicePath))
+            {
+                Directory.CreateDirectory(servicePath);
+            }
+
+            GenerateComponents(servicePath, componentGroups);
+            GenerateOperations(servicePath, operationGroups);
+
+        }
+
+        private void GenerateOperations(string servicePath, List<OperationGroupEntity> operationGroups)
+        {
+            foreach (var group in operationGroups)
+            {
+                var groupFolder = Path.Combine(servicePath, group.Name);
+                if (!Directory.Exists(groupFolder))
+                {
+                    Directory.CreateDirectory(groupFolder);
+                }
+
+                using (var writer = new StreamWriter(Path.Combine(servicePath, $"{group.Name}{YamlExtension}")))
+                {
+                    writer.WriteLine("### YamlMime:RESTOperationGroupV3");
+                    YamlSerializer.Serialize(writer, group);
+                }
+
+                foreach (var operation in group.Operations)
+                {
+                    using (var writer = new StreamWriter(Path.Combine(groupFolder, $"{operation.Name}{YamlExtension}")))
+                    {
+                        writer.WriteLine("### YamlMime:RESTOperationV3");
+                        YamlSerializer.Serialize(writer, operation);
+                    }
+                }
+            }
+        }
+
+        private void GenerateComponents(string servicePath, List<ComponentGroupEntity> componentGroups)
+        {
+            var componentsFolder = Path.Combine(servicePath, "Components");
+            if (!Directory.Exists(componentsFolder))
+            {
+                Directory.CreateDirectory(componentsFolder);
+            }
+
+            foreach (var group in componentGroups)
+            {
+                var schema = string.Empty;
+                switch (group.Name)
+                {
+                    case "Schemas":
+                        schema = "RESTTypeV3";
+                        break;
+                    case "Responses":
+                        schema = "RESTResponseV3";
+                        break;
+                    case "Parameters":
+                        schema = "RESTParameterV3";
+                        break;
+                    case "Examples":
+                        schema = "RESTExampleV3";
+                        break;
+                    case "RequestBodies":
+                        schema = "RESTRequestBodyV3";
+                        break;
+                    case "ReponseHeaders":
+                        schema = "RESTResponseHeaderBodyV3";
+                        break;
+                    case "Securities":
+                        schema = "RESTSecurityV3";
+                        break;
+                    default:
+                        schema = string.Empty;
+                        break;
+                }
+
+                var groupFolder = Path.Combine(componentsFolder, group.Name);
+                if (!Directory.Exists(groupFolder))
+                {
+                    Directory.CreateDirectory(groupFolder);
+                }
+
+                using (var writer = new StreamWriter(Path.Combine(componentsFolder, $"{group.Name}{YamlExtension}")))
+                {
+                    writer.WriteLine("### YamlMime:RESTComponentGroupV3");
+                    YamlSerializer.Serialize(writer, group);
+                }
+
+                foreach (var component in group.Components)
+                {
+                    using (var writer = new StreamWriter(Path.Combine(groupFolder, $"{component.Name}{YamlExtension}")))
+                    {
+                        writer.WriteLine($"### YamlMime:{schema}");
+                        YamlSerializer.Serialize(writer, component);
+                    }
+                }
+            }
+
+        }
+
+        private void GenerateToc(SplitSwaggerResult splitSwaggerResult, RestTocGroup serviceGroup)
+        {
+            var componnentGroups = new RestTocGroup { Name = "Components" };
+            serviceGroup[componnentGroups.Name] = componnentGroups;
+
+            foreach (var cpGroup in splitSwaggerResult.ComponentGroups)
+            {
+                var componnentGroup = new RestTocGroup { Name = cpGroup.Name, Id = cpGroup.Id };
+                componnentGroups[componnentGroup.Name] = componnentGroup;
+
+                foreach (var component in cpGroup.Components)
+                {
+                    componnentGroup[component.Name] = new RestTocGroup { Name = component.Name, Id = component.Id };
+                }
+            }
+
+            foreach (var opGroup in splitSwaggerResult.OperationGroups)
+            {
+                var operationGroup = new RestTocGroup { Name = opGroup.Name, Id = opGroup.Id };
+                serviceGroup[operationGroup.Name] = operationGroup;
+                foreach (var operation in opGroup.Operations)
+                {
+                    operationGroup[operation.Name] = new RestTocGroup { Name = operation.Name, Id = operation.Id };
+                }
+            }
+
         }
 
         public virtual void WriteToc(string targetApiDir, RestTocGroup restTocGroup)
@@ -131,15 +270,6 @@
                         WriteTocCore(writer, group.Value, signs, depth + 1);
                     }
                 }
-
-                if (tocGroup.RestTocLeaves?.Count > 0)
-                {
-                    var aggregateOperations = tocGroup.RestTocLeaves.OrderBy(p => p.MainOperation.Name);
-                    foreach (var aggregateOperation in aggregateOperations)
-                    {
-                        writer.WriteLine($"{signs} [{Utility.ExtractPascalNameByRegex(aggregateOperation.MainOperation.Name)}](xref:{aggregateOperation.MainOperation.Id})");
-                    }
-                }
             }
         }
 
@@ -181,57 +311,58 @@
             return rootGroup;
         }
 
-        private void ResolveRelationships(SplitSwaggerResult splitResult)
-        {
-            Console.WriteLine("starting to resolve relationships");
-            foreach (var operationGroup in splitResult.OperationGroups)
-            {
-                foreach(var operation in operationGroup.Operations)
-                {
-                    if (operation.Responses?.Count > 0)
-                    {
-                        foreach(var response in operation.Responses)
-                        {
-                            if (response.ResponseLinks?.Count > 0)
-                            {
-                                foreach (var link in response.ResponseLinks)
-                                {
-                                    var foundOperation = FindOperation(splitResult, link.OperationId);
-                                    if (foundOperation != null)
-                                    {
-                                        link.OperationId = foundOperation.Id;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine($"can not resolve relationship of operation id: {link.OperationId}");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            Console.WriteLine("finished to resolve relationships");
-        }
+        //private void ResolveRelationships(SplitSwaggerResult splitResult)
+        //{
+        //    Console.WriteLine("starting to resolve relationships");
+        //    foreach (var operationGroup in splitResult.OperationGroups)
+        //    {
+        //        foreach(var operation in operationGroup.Operations)
+        //        {
+        //            if (operation.Responses?.Count > 0)
+        //            {
+        //                foreach(var response in operation.Responses)
+        //                {
+        //                    if (response.ResponseLinks?.Count > 0)
+        //                    {
+        //                        foreach (var link in response.ResponseLinks)
+        //                        {
+        //                            var foundOperation = FindOperation(splitResult, link.OperationId);
+        //                            if (foundOperation != null)
+        //                            {
+        //                                link.OperationId = foundOperation.Id;
+        //                            }
+        //                            else
+        //                            {
+        //                                Console.WriteLine($"can not resolve relationship of operation id: {link.OperationId}");
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    Console.WriteLine("finished to resolve relationships");
+        //}
 
-        private OperationEntity FindOperation(SplitSwaggerResult splitResult, string internalOpeartionId)
-        {
-            foreach (var operationGroup in splitResult.OperationGroups)
-            {
-                foreach (var operation in operationGroup.Operations)
-                {
-                    if (string.Equals(operation.InternalOpeartionId, internalOpeartionId, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return operation;
-                    }
-                }
-            }
-            return null;
-        }
+        //private OperationEntity FindOperation(SplitSwaggerResult splitResult, string internalOpeartionId)
+        //{
+        //    foreach (var operationGroup in splitResult.OperationGroups)
+        //    {
+        //        foreach (var operation in operationGroup.Operations)
+        //        {
+        //            if (string.Equals(operation.InternalOpeartionId, internalOpeartionId, StringComparison.OrdinalIgnoreCase))
+        //            {
+        //                return operation;
+        //            }
+        //        }
+        //    }
+        //    return null;
+        //}
 
         private RestTocGroup SplitSwaggers(string targetApiDir, ServiceInfo service)
         {
-            var rootGroup = new RestTocGroup();
+            var serviceGroup = new RestTocGroup { Name = service.TocFile };
+            var splitResults = new List<SplitSwaggerResult>();
             foreach (var swagger in service.SwaggerInfo)
             {
                 var sourceFile = Path.Combine(SourceRootDir, swagger.Source.TrimEnd());
@@ -242,20 +373,52 @@
                 }
 
                 string subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
-                var restTocGroup = rootGroup[subGroupName];
-                if (restTocGroup == null)
-                {
-                    rootGroup.Name = subGroupName;
-                    rootGroup[subGroupName] = new RestTocGroup();
-                }
-                restTocGroup = rootGroup[subGroupName];
-                var splitResult = SplitSwagger(sourceFile, service.UrlGroup, swagger.OperationGroupMapping, MappingFile);
+                splitResults.Add(SplitSwagger(sourceFile, service.UrlGroup, swagger.OperationGroupMapping, MappingFile));
                 Console.WriteLine($"finished to split swagger: {sourceFile}");
 
-                ResolveRelationships(splitResult);
-                GenerateTocAndYamls(targetApiDir, splitResult, restTocGroup);
+                //ResolveRelationships(splitResult);
             }
-            return rootGroup;
+
+            GenerateTocAndYamls(targetApiDir, MergeResults(splitResults), serviceGroup);
+            return serviceGroup;
+        }
+
+        private SplitSwaggerResult MergeResults(List<SplitSwaggerResult> splitResults)
+        {
+            var componentGroupDictionary = new Dictionary<string, ComponentGroupEntity>();
+            var operationGroupDictionary = new Dictionary<string, OperationGroupEntity>();
+            foreach (var singleResult in splitResults)
+            {
+                foreach (var cg in singleResult.ComponentGroups)
+                {
+                    if (!componentGroupDictionary.ContainsKey(cg.Id))
+                    {
+                        componentGroupDictionary[cg.Id] = cg;
+                    }
+                    else
+                    {
+                        componentGroupDictionary[cg.Id].Components.AddRange(cg.Components);
+                    }
+                }
+
+                foreach (var og in singleResult.OperationGroups)
+                {
+                    if (!operationGroupDictionary.ContainsKey(og.Id))
+                    {
+                        operationGroupDictionary[og.Id] = og;
+                    }
+                    else
+                    {
+                        operationGroupDictionary[og.Id].Operations.AddRange(og.Operations);
+                    }
+                }
+            }
+
+            return new SplitSwaggerResult
+            {
+                ComponentGroups = new List<ComponentGroupEntity>(componentGroupDictionary.Values),
+                OperationGroups = new List<OperationGroupEntity>(operationGroupDictionary.Values)
+            };
         }
 
         private SplitSwaggerResult SplitSwagger(string sourceFilePath, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
@@ -278,14 +441,22 @@
                     throw new Exception(JsonUtility.ToIndentedJsonString(context.Errors));
                 }
                 splitSwaggerResult.OperationGroups = SplitSwaggerByTag(openApiDoc, serviceName, operationGroupMapping, mappingFile);
-                splitSwaggerResult.ComponentGroup = GetTransformerdComponentGroup(openApiDoc, serviceName);
+                splitSwaggerResult.ComponentGroups = GetTransformerdComponentGroups(openApiDoc, serviceName);
             }
             return splitSwaggerResult;
         }
 
         public virtual string GetOperationName(string operationName)
         {
-            return operationName.FirstLetterToLower();
+            if (operationName.Contains('-'))
+            {
+                operationName = operationName.Split('-').Last();
+            }
+            if (operationName.Contains('.'))
+            {
+                operationName = operationName.Split('.').Last();
+            }
+            return operationName.FirstLetterToLower(); ;
         }
 
         public virtual string GetOperationGroupName(string operationGroupName, string operationId)
@@ -293,7 +464,7 @@
             return operationGroupName;
         }
 
-        private IList<OperationGroupEntity> SplitSwaggerByTag(OpenApiDocument openApiDoc, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
+        private List<OperationGroupEntity> SplitSwaggerByTag(OpenApiDocument openApiDoc, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
         {
             openApiDoc = SplitHelper.AggregateOpenApiTagsFromPaths(openApiDoc);
 
@@ -316,57 +487,219 @@
                         OpenApiTag = tag,
                         ServiceName = serviceName,
                         OperationGroupName = groupName,
-                        OperationGroupId = Utility.GetId(serviceName, groupName, null),
-                        ComponentGroupName = ComponentGroupName,
-                        ComponentGroupId = Utility.GetId(serviceName, ComponentGroupName, null),
+                        OperationGroupId = Utility.GetId(serviceName, groupName, null)
                     };
-                    var componentGroup = RestOperationGroupTransformer.Transform(model);
-                    componentGroup.Operations = GetTransformerdOperationGroups(filteredOpenApiPath, model);
-                    operationGroups.Add(componentGroup);
+                    var operationGroup = RestOperationGroupTransformer.Transform(model);
+                    operationGroup.Operations = GetTransformerdOperations(filteredOpenApiPath, model);
+                    operationGroups.Add(operationGroup);
                 }
             }
             return operationGroups;
         }
 
-        private IList<OperationEntity> GetTransformerdOperationGroups(FilteredOpenApiPath filteredOpenApiPath, TransformModel model)
+        private List<OperationV3Entity> GetTransformerdOperations(FilteredOpenApiPath filteredOpenApiPath, TransformModel operationGroup)
         {
-            var operations = new List<OperationEntity>();
+            var operations = new List<OperationV3Entity>();
             foreach (var operation in filteredOpenApiPath.Operations)
             {
                 var operationName = GetOperationName(operation.Operation.Value.OperationId);
-                model.OperationGroupName = GetOperationGroupName(model.OperationGroupName, operation.Operation.Value.OperationId);
-                model.OperationGroupId = Utility.GetId(model.ServiceName, model.OperationGroupName, null);
-                model.OperationId = Utility.GetId(model.ServiceName, model.OperationGroupName, operationName);
-                model.OperationName = Utility.ExtractPascalNameByRegex(operationName);
-                model.Operation = operation.Operation;
-                model.OpenApiPath = operation.OpenApiPath;
-                operations.Add(RestOperationTransformer.Transform(model));
+                operationGroup.ServiceName = operationGroup.ServiceName;
+                operationGroup.OperationId = Utility.GetId(operationGroup.ServiceName, operationGroup.OperationGroupName, operationName);
+                operationGroup.OperationName = Utility.ExtractPascalNameByRegex(operationName);
+                operationGroup.Operation = operation.Operation;
+                operationGroup.OpenApiPath = operation.OpenApiPath;
+                operations.Add(RestOperationTransformer.Transform(operationGroup));
             }
             return operations;
         }
 
-        private ComponentGroupEntity GetTransformerdComponentGroup(OpenApiDocument openApiDoc, string serviceName)
+        private List<ComponentGroupEntity> GetTransformerdComponentGroups(OpenApiDocument openApiDoc, string serviceName)
         {
+            if (openApiDoc.Components == null) return null;
+            var componentGroups = new List<ComponentGroupEntity>();
+
+            if (openApiDoc.Components.Examples != null && openApiDoc.Components.Examples.Any())
+            {
+                componentGroups.Add(GetTransformerdExampleGroup(openApiDoc, serviceName));
+            }
+
+            if (openApiDoc.Components.Headers != null && openApiDoc.Components.Headers.Any())
+            {
+                componentGroups.Add(GetTransformerdResponseHeaderGroup(openApiDoc, serviceName));
+            }
+
+            if (openApiDoc.Components.Parameters != null && openApiDoc.Components.Parameters.Any())
+            {
+                componentGroups.Add(GetTransformerdParametersGroup(openApiDoc, serviceName));
+            }
+
+            if (openApiDoc.Components.RequestBodies != null && openApiDoc.Components.RequestBodies.Any())
+            {
+                componentGroups.Add(GetTransformerdRequestBodiesGroup(openApiDoc, serviceName));
+            }
+
+            if (openApiDoc.Components.Responses != null && openApiDoc.Components.Responses.Any())
+            {
+                componentGroups.Add(GetTransformerdReponsesGroup(openApiDoc, serviceName));
+            }
+
+            if (openApiDoc.Components.Schemas != null && openApiDoc.Components.Schemas.Any())
+            {
+                componentGroups.Add(GetTransformerdTypesGroup(openApiDoc, serviceName));
+            }
+
+            if (openApiDoc.Components.SecuritySchemes != null && openApiDoc.Components.SecuritySchemes.Any())
+            {
+                componentGroups.Add(GetTransformerdSecurityGroup(openApiDoc, serviceName));
+            }
+
+            return componentGroups;
+        }
+
+        private ComponentGroupEntity GetTransformerdSecurityGroup(OpenApiDocument openApiDoc, string serviceName)
+        {
+            var componentGroupName = ComponentGroup.Securities.ToString();
             var model = new TransformModel
             {
                 OpenApiDoc = openApiDoc,
                 ServiceName = serviceName,
-                ComponentGroupName = ComponentGroupName,
-                ComponentGroupId = Utility.GetId(serviceName, ComponentGroupName, null),
+                ComponentGroupName = componentGroupName,
+                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
             };
             var componentGroup = RestComponentGroupTransformer.Transform(model);
-            var components = new List<ComponentEntity>();
-            if (openApiDoc.Components?.Schemas != null)
+            componentGroup.Components = new List<NamedEntity>();
+
+            foreach (var security in TransformHelper.TransformSecurities(model, openApiDoc.Components.SecuritySchemes))
             {
-                foreach (var schema in openApiDoc.Components?.Schemas)
-                {
-                    model.ComponentId = Utility.GetId(serviceName, ComponentGroupName, schema.Key);
-                    model.ComponentName = schema.Key;
-                    model.OpenApiSchema = schema.Value;
-                    components.Add(RestComponentTransformer.Transform(model));
-                }
+                componentGroup.Components.Add(security);
             }
-            componentGroup.Components = components;
+
+            return componentGroup;
+        }
+
+        private ComponentGroupEntity GetTransformerdTypesGroup(OpenApiDocument openApiDoc, string serviceName)
+        {
+            var componentGroupName = ComponentGroup.Schemas.ToString();
+            var model = new TransformModel
+            {
+                OpenApiDoc = openApiDoc,
+                ServiceName = serviceName,
+                ComponentGroupName = componentGroupName,
+                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
+            };
+            var componentGroup = RestComponentGroupTransformer.Transform(model);
+            componentGroup.Components = new List<NamedEntity>();
+
+            foreach (var schema in TransformHelper.TransformSchemas(model, openApiDoc.Components.Schemas, true))
+            {
+                componentGroup.Components.Add(schema);
+            }
+
+            return componentGroup;
+        }
+
+        private ComponentGroupEntity GetTransformerdReponsesGroup(OpenApiDocument openApiDoc, string serviceName)//
+        {
+            var componentGroupName = ComponentGroup.Responses.ToString();
+            var model = new TransformModel
+            {
+                OpenApiDoc = openApiDoc,
+                ServiceName = serviceName,
+                ComponentGroupName = componentGroupName,
+                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
+            };
+            var componentGroup = RestComponentGroupTransformer.Transform(model);
+            componentGroup.Components = new List<NamedEntity>();
+
+            foreach (var response in TransformHelper.TransformResponses(model, openApiDoc.Components.Responses, true))
+            {
+                componentGroup.Components.Add(response);
+            }
+
+            return componentGroup;
+        }
+
+        private ComponentGroupEntity GetTransformerdRequestBodiesGroup(OpenApiDocument openApiDoc, string serviceName)
+        {
+            var componentGroupName = ComponentGroup.RequestBodies.ToString();
+            var model = new TransformModel
+            {
+                OpenApiDoc = openApiDoc,
+                ServiceName = serviceName,
+                ComponentGroupName = componentGroupName,
+                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
+            };
+            var componentGroup = RestComponentGroupTransformer.Transform(model);
+            componentGroup.Components = new List<NamedEntity>();
+
+            foreach (var requestBody in TransformHelper.TransformRequestBodies(model, openApiDoc.Components.RequestBodies, true))
+            {
+                componentGroup.Components.Add(requestBody);
+            }
+
+            return componentGroup;
+        }
+
+        private ComponentGroupEntity GetTransformerdParametersGroup(OpenApiDocument openApiDoc, string serviceName)
+        {
+            var componentGroupName = ComponentGroup.Parameters.ToString();
+            var model = new TransformModel
+            {
+                OpenApiDoc = openApiDoc,
+                ServiceName = serviceName,
+                ComponentGroupName = componentGroupName,
+                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
+            };
+            var componentGroup = RestComponentGroupTransformer.Transform(model);
+            componentGroup.Components = new List<NamedEntity>();
+
+            foreach (var parameter in TransformHelper.TransformParameters(model, openApiDoc.Components.Parameters, true))
+            {
+                componentGroup.Components.Add(parameter);
+            }
+
+            return componentGroup;
+        }
+
+        private ComponentGroupEntity GetTransformerdResponseHeaderGroup(OpenApiDocument openApiDoc, string serviceName)
+        {
+            var componentGroupName = ComponentGroup.ReponseHeaders.ToString();
+            var model = new TransformModel
+            {
+                OpenApiDoc = openApiDoc,
+                ServiceName = serviceName,
+                ComponentGroupName = componentGroupName,
+                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
+            };
+            var componentGroup = RestComponentGroupTransformer.Transform(model);
+            componentGroup.Components = new List<NamedEntity>();
+
+            foreach (var header in TransformHelper.TransformResponseHeaders(model, openApiDoc.Components.Headers, true))
+            {
+                componentGroup.Components.Add(header);
+            }
+
+            return componentGroup;
+        }
+
+        private ComponentGroupEntity GetTransformerdExampleGroup(OpenApiDocument openApiDoc, string serviceName)
+        {
+            var componentGroupName = ComponentGroup.Examples.ToString();
+            var model = new TransformModel
+            {
+                OpenApiDoc = openApiDoc,
+                ServiceName = serviceName,
+                ComponentGroupName = componentGroupName,
+                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
+            };
+            var componentGroup = RestComponentGroupTransformer.Transform(model);
+            componentGroup.Components = new List<NamedEntity>();
+
+            foreach (var example in TransformHelper.TransformExamples(model, openApiDoc.Components.Examples, true))
+            {
+                componentGroup.Components.Add(example);
+            }
+
             return componentGroup;
         }
     }

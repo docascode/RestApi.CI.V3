@@ -2,11 +2,10 @@
 {
     using System;
 
-    using Newtonsoft.Json;
     using YamlDotNet.Serialization;
 
     [Serializable]
-    public class IdentifiableEntity
+    public class IdentifiableEntity: BaseEntity
     {
         [YamlMember(Alias = "uid", Order = -10)]
         public string Id { get; set; }

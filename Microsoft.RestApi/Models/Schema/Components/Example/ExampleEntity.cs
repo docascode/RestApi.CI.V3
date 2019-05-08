@@ -2,13 +2,12 @@
 {
     using YamlDotNet.Serialization;
 
-    public class SeeAlsoEntity
+    public class ExampleEntity : ReferenceEntity
     {
         [YamlMember(Alias = "description")]
         public string Description { get; set; }
 
-        [YamlMember(Alias = "url")]
-        public string Url { get; set; }
-
+        [YamlMember(Alias = "value")]
+        public string Value { get; set; }
     }
 }
