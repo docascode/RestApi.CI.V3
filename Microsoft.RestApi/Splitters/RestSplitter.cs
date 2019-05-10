@@ -50,6 +50,10 @@
         public virtual void Process()
         {
             var targetApiDir = SplitHelper.GetOutputDirectory(OutputDir);
+            if(Directory.Exists(targetApiDir))
+            {
+                Directory.Delete(targetApiDir, true);
+            }
             if (MappingFile.VersionList?.Count > 0)
             {
                 Console.WriteLine($"Found version list : {string.Join(",", MappingFile.VersionList)}");
@@ -209,7 +213,14 @@
 
                 foreach (var component in cpGroup.Components)
                 {
-                    componnentGroup[component.Name] = new RestTocGroup { Name = component.Name, Id = component.Id };
+                    try
+                    {
+                        componnentGroup[component.Name] = new RestTocGroup { Name = component.Name, Id = component.Id };
+                    }
+                    catch
+                    {
+
+                    }
                 }
             }
 
@@ -253,11 +264,6 @@
                 {
                     if (!string.IsNullOrEmpty(group.Key))
                     {
-                        if (depth < 3)
-                        {
-                            writer.WriteLine($"{signs} {Utility.ExtractPascalNameByRegex(group.Key)}");
-                        }
-                        else
                         {
                             writer.WriteLine(!string.IsNullOrEmpty(group.Value.Id)
                                   ? $"{signs} [{Utility.ExtractPascalNameByRegex(group.Key)}](xref:{group.Value.Id})"

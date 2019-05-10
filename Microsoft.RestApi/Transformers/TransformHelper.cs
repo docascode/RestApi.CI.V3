@@ -313,7 +313,7 @@
                         {
                             Examples = TransformExamples(transformModel, responseContent.Value.Examples),
                             MediaType = responseContent.Key,
-                            Properties = GetPropertiesFromSchema(responseContent.Value.Schema, transformModel)
+                            Type = ParseOpenApiSchema(responseContent.Value.Schema, transformModel)
                         };
 
                         responseEntity.Bodies.Add(body);
@@ -338,8 +338,9 @@
 
         public static RequestBodyEntity TransformRequestBody(TransformModel transformModel, KeyValuePair<string, OpenApiRequestBody> requestBody, bool isComponent = false)
         {
-            var requestBodies = new List<RequestBodyEntity>();
+            //var requestBodies = new List<RequestBodyEntity>();
             var sourceRequestBody = requestBody.Value;
+            if (sourceRequestBody == null) return null;
             if (sourceRequestBody.Reference != null && !isComponent)
             {
                 return new RequestBodyEntity
@@ -361,7 +362,7 @@
                 {
                     Examples = TransformExamples(transformModel, requestContent.Value.Examples),
                     MediaType = requestContent.Key,
-                    Properties = GetPropertiesFromSchema(requestContent.Value.Schema, transformModel)
+                    Type = ParseOpenApiSchema(requestContent.Value.Schema, transformModel)
                 };
 
                 requestBodyEntity.Bodies.Add(body);
@@ -437,14 +438,14 @@
                 var security = new SecurityEntity
                 {
                     Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Securities.ToString(), openApiSeurity.Key),
-                    Name = value.Name,
+                    Name = openApiSeurity.Key,
                     Type = value.Type.ToString(),
                     BearerFormat = value.BearerFormat,
                     Description = value.Description,
                     Service = transformModel.ServiceName,
                     ApiVersion = transformModel.OpenApiDoc.Info.Version,
                     Scheme = value.Scheme,
-                    OpenIdConnectUrl = value.OpenIdConnectUrl.ToString(),
+                    OpenIdConnectUrl = value.OpenIdConnectUrl?.ToString(),
                     In = value.In.ToString(),
                     Flows = GetFlow(value.Flows)
                 };

@@ -15,7 +15,7 @@
         [YamlMember(Alias = "mediaType")]
         public string MediaType { get; set; }
 
-        [YamlMember(Alias = "schemas")]
-        public IList<PropertyEntity> Properties { get; set; }
+        [YamlMember(Alias = "type")]
+        public PropertyTypeEntity Type { get; set; }
     }
 }

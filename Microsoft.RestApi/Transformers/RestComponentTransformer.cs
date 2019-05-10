@@ -9,24 +9,6 @@
 
     public class RestComponentTransformer
     {
-        public static ComponentEntity Transform(TransformModel transformModel)
-        {
-            var properties = TransformHelper.GetPropertiesFromSchema(transformModel.OpenApiSchema, transformModel.ComponentGroupId);
-            var component = new ComponentEntity
-            {
-                Id = transformModel.ComponentId,
-                Name = transformModel.ComponentName,
-                Service = transformModel.ServiceName,
-                GroupName = transformModel.ComponentGroupName,
-                ApiVersion = transformModel.OpenApiDoc.Info.Version,
-                Description = transformModel.OpenApiSchema.Description ?? transformModel.OpenApiSchema.Title,
-                PropertyItems = properties.ToList(),
-                Example = GetComponentExample(transformModel.OpenApiSchema)
-            };
-
-            return component;
-        }
-
         private static string GetComponentExample(OpenApiSchema schema)
         {
             if(schema.Example == null)

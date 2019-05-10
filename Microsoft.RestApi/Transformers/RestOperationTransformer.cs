@@ -12,8 +12,8 @@
     {
         public static OperationV3Entity Transform(TransformModel transformModel)
         {
-            var allParameters = TransformHelper.TransformParameters(transformModel, 
-                transformModel.Operation.Value.Parameters.ToDictionary(k => k.Name, v => v));
+            var allParameters = TransformHelper.TransformParameters(transformModel,
+                GetRawParameters(transformModel).ToDictionary(k => k.Name, v => v));
             var allResponses = TransformHelper.TransformResponses(transformModel, transformModel.Operation.Value.Responses.ToDictionary(k => k.Key, v => v.Value));
             var requiredQueryUriParameters = allParameters.Where(p => p.IsRequired && p.In == "query").ToList();
             var optionalQueryUriParameters = allParameters.Where(p => !p.IsRequired && p.In == "query").ToList();
@@ -41,9 +41,17 @@
             };
         }
 
+        private static IList<OpenApiParameter> GetRawParameters(TransformModel transformModel)
+        {
+            if (transformModel.Operation.Value.Parameters != null && transformModel.Operation.Value.Parameters.Any())
+                return transformModel.Operation.Value.Parameters;
+
+            return transformModel.OpenApiPath.Value.Parameters;
+        }
+
         private static List<OperationV3Entity.Security> GetSecurities(TransformModel transformModel)
         {
-            if (transformModel.Operation.Value.Security != null && transformModel.Operation.Value.Security.Count == 0) return null;
+            if (transformModel.Operation.Value.Security != null || transformModel.Operation.Value.Security.Count == 0) return null;
 
             return transformModel.Operation.Value.Security.SelectMany(s => s.Select(c => new OperationV3Entity.Security
             {

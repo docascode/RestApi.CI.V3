@@ -15,7 +15,7 @@
                     Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [source_root_directory] [target_root_directory] [mappingfile.json] [output_directory]");
                     return 1;
                 }
-                var restSplitter = RestSplitterFactory.GetRestSplitter(args[0], args[1], args[2], args[3]);
+                var restSplitter = new RestSplitter(args[0], args[1], args[2], args[3]);
                 restSplitter.Process();
 
                 return 0;
