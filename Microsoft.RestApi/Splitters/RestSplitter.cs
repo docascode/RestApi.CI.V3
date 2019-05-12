@@ -115,13 +115,14 @@
         {
             foreach (var group in operationGroups)
             {
-                var groupFolder = Path.Combine(servicePath, group.Name);
+                var groupFileName = Utility.GetId("", group.Name);
+                var groupFolder = Path.Combine(servicePath, groupFileName);
                 if (!Directory.Exists(groupFolder))
                 {
                     Directory.CreateDirectory(groupFolder);
                 }
 
-                using (var writer = new StreamWriter(Path.Combine(servicePath, $"{group.Name}{YamlExtension}")))
+                using (var writer = new StreamWriter(Path.Combine(servicePath, $"{groupFileName}{YamlExtension}")))
                 {
                     writer.WriteLine("### YamlMime:RESTOperationGroupV3");
                     YamlSerializer.Serialize(writer, group);
@@ -129,7 +130,7 @@
 
                 foreach (var operation in group.Operations)
                 {
-                    using (var writer = new StreamWriter(Path.Combine(groupFolder, $"{operation.Name}{YamlExtension}")))
+                    using (var writer = new StreamWriter(Path.Combine(groupFolder, $"{Utility.GetId("", operation.Name)}{YamlExtension}")))
                     {
                         writer.WriteLine("### YamlMime:RESTOperationV3");
                         YamlSerializer.Serialize(writer, operation);
@@ -167,7 +168,7 @@
                         schema = "RESTRequestBodyV3";
                         break;
                     case "ReponseHeaders":
-                        schema = "RESTResponseHeaderBodyV3";
+                        schema = "RESTResponseHeaderV3";
                         break;
                     case "Securities":
                         schema = "RESTSecurityV3";
@@ -177,13 +178,14 @@
                         break;
                 }
 
-                var groupFolder = Path.Combine(componentsFolder, group.Name);
+                var groupFileName = Utility.GetId("", group.Name);
+                var groupFolder = Path.Combine(componentsFolder, groupFileName);
                 if (!Directory.Exists(groupFolder))
                 {
                     Directory.CreateDirectory(groupFolder);
                 }
 
-                using (var writer = new StreamWriter(Path.Combine(componentsFolder, $"{group.Name}{YamlExtension}")))
+                using (var writer = new StreamWriter(Path.Combine(componentsFolder, $"{groupFileName}{YamlExtension}")))
                 {
                     writer.WriteLine("### YamlMime:RESTComponentGroupV3");
                     YamlSerializer.Serialize(writer, group);
@@ -191,7 +193,7 @@
 
                 foreach (var component in group.Components)
                 {
-                    using (var writer = new StreamWriter(Path.Combine(groupFolder, $"{component.Name}{YamlExtension}")))
+                    using (var writer = new StreamWriter(Path.Combine(groupFolder, $"{Utility.GetId("", component.Name)}{YamlExtension}")))
                     {
                         writer.WriteLine($"### YamlMime:{schema}");
                         YamlSerializer.Serialize(writer, component);

@@ -12,6 +12,7 @@
 
     public static class TransformHelper
     {
+        private static HashSet<string> PrimitiveTypes = new HashSet<string> { "integer", "number", "string", "boolean" };
         public static string GetOperationSummary(string summary, string description)
         {
             var content = summary;
@@ -439,6 +440,7 @@
                 {
                     Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Securities.ToString(), openApiSeurity.Key),
                     Name = openApiSeurity.Key,
+                    ApiKeyName = value.Name,
                     Type = value.Type.ToString(),
                     BearerFormat = value.BearerFormat,
                     Description = value.Description,
@@ -446,7 +448,7 @@
                     ApiVersion = transformModel.OpenApiDoc.Info.Version,
                     Scheme = value.Scheme,
                     OpenIdConnectUrl = value.OpenIdConnectUrl?.ToString(),
-                    In = value.In.ToString(),
+                    In = value.In.ToString().ToLower(),
                     Flows = GetFlow(value.Flows)
                 };
                 securities.Add(security);
@@ -517,7 +519,7 @@
                 if (openApiSchema.AdditionalProperties != null)
                 {
                     type.IsDictionary = true;
-                    type.AdditionalTypes = new List<string> { openApiSchema.AdditionalProperties.Type };
+                    type.AdditionalTypes = new List<string> { GetTypeReferenceId(openApiSchema.AdditionalProperties.Type, transformModel) };
                     return type;
                 }
 
@@ -568,6 +570,13 @@
             }
 
             return type;
+        }
+
+        private static string GetTypeReferenceId(string type, TransformModel transformModel)
+        {
+            if (PrimitiveTypes.Contains(type))
+                return type;
+            return Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), type);
         }
 
         public static IList<PropertyEntity> GetPropertiesFromSchema(OpenApiSchema openApiSchema, TransformModel transformModel)

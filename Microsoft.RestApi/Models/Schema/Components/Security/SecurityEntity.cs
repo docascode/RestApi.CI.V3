@@ -9,6 +9,9 @@
         [YamlMember(Alias = "type")]
         public string Type { get; set; }
 
+        [YamlMember(Alias = "apiKeyName")]
+        public string ApiKeyName { get; set; }
+
         [YamlMember(Alias = "bearerFormat")]
         public string BearerFormat { get; set; }
 
