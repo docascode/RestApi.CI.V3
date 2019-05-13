@@ -508,7 +508,7 @@
         {
             var type = new PropertyTypeEntity();
             type.ReferenceTo = openApiSchema.Type;
-            if (openApiSchema.Type == "object")
+            if (openApiSchema.Type == "object" || openApiSchema.Properties?.Count > 0)
             {
                 if (openApiSchema.Reference != null && !isComponent)
                 {
@@ -583,7 +583,7 @@
         {
             var properties = new List<PropertyEntity>();
             var required = openApiSchema.Required;
-            if (openApiSchema.Type == "object")
+            if (openApiSchema.Type == "object" || openApiSchema.Properties?.Count > 0)
             {
                 foreach (var property in openApiSchema.Properties)
                 {

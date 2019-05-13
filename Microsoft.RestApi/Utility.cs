@@ -148,7 +148,7 @@
 
         private static string Normalize(string path)
         {
-            return string.IsNullOrEmpty(path) ? string.Empty : path.Replace(" ", "").Replace("..", ".").Trim('.').ToLower();
+            return string.IsNullOrEmpty(path) ? string.Empty : path.Replace(" ", "").Replace("$", "").Replace("..", ".").Trim('.').ToLower();
         }
 
         public static string GetId(string serviceName, string groupName, string operationName)
