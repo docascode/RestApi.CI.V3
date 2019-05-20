@@ -33,5 +33,8 @@
         /// </summary>
         [YamlMember(Alias = "properties")]
         public List<PropertyEntity> Properties { get; set; }
+
+        [YamlMember(Alias = "isPrimitiveTypes")]
+        public bool IsPrimitiveTypes { get; internal set; }
     }
 }

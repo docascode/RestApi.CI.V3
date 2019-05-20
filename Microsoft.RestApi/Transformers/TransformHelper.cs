@@ -513,25 +513,18 @@
                 if (openApiSchema.Reference != null && !isComponent)
                 {
                     type.ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), openApiSchema.Reference.Id);
-                    return type;
                 }
-
-                if (openApiSchema.AdditionalProperties != null)
+                else if (openApiSchema.AdditionalProperties != null)
                 {
                     type.IsDictionary = true;
                     type.AdditionalTypes = new List<string> { GetTypeReferenceId(openApiSchema.AdditionalProperties.Type, transformModel) };
-                    return type;
                 }
-
-                if (openApiSchema.Properties?.Count > 0)
+                else if (openApiSchema.Properties?.Count > 0)
                 {
                     type.Properties = new List<PropertyEntity>();
                     type.Properties.AddRange(GetPropertiesFromSchema(openApiSchema, transformModel));
                     type.ReferenceTo = null;
-                    return type;
                 }
-
-                return type;
             }
             else if (openApiSchema.Type == "array")
             {
@@ -552,7 +545,6 @@
                     }
                 }
                 type.IsArray = true;
-                return type;
             }
             else
             {
@@ -567,6 +559,11 @@
             {
                 type.Service = transformModel.ServiceName;
                 type.ApiVersion = transformModel.OpenApiDoc.Info.Version;
+            }
+
+            if (type.ReferenceTo != null && PrimitiveTypes.Contains(type.ReferenceTo))
+            {
+                type.IsPrimitiveTypes = true;
             }
 
             return type;
