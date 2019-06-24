@@ -66,6 +66,16 @@
                             {
                                 tags.Add(firstTag);
                             }
+                            else
+                            {
+                                operation.Value.Tags.Add(new OpenApiTag() { Name = operation.Value.OperationId });
+                                tags.Add(new OpenApiTag() { Name = operation.Value.OperationId });
+                            }
+                        }
+                        else
+                        {
+                            operation.Value.Tags = new List<OpenApiTag> { new OpenApiTag() { Name = operation.Value.OperationId } };
+                            tags.Add(new OpenApiTag() { Name = operation.Value.OperationId });
                         }
                     }
                 }

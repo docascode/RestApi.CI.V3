@@ -528,7 +528,7 @@
             }
             else if (openApiSchema.Type == "array")
             {
-                if (openApiSchema.Items.Enum?.Count > 0)
+                if (openApiSchema.Items?.Enum?.Count > 0)
                 {
                     type.Kind = "enum";
                     type.ReferenceTo = openApiSchema.Items.Type;
@@ -536,12 +536,12 @@
                 }
                 else
                 {
-                    type.ReferenceTo = openApiSchema.Items.Reference != null ?
+                    type.ReferenceTo = openApiSchema.Items?.Reference != null ?
                         Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), openApiSchema.Items.Reference.Id) :
-                        openApiSchema.Items.Type;
+                        openApiSchema.Items?.Type;
                     if (type.ReferenceTo == "array" || type.ReferenceTo == "object")
                     {
-                        throw new Exception($"Type {type.ReferenceTo} is not defined.");
+                        //throw new Exception($"Type {type.ReferenceTo} is not defined.");
                     }
                 }
                 type.IsArray = true;

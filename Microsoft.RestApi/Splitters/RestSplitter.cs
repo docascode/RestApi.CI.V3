@@ -526,40 +526,44 @@
             if (openApiDoc.Components == null) return null;
             var componentGroups = new List<ComponentGroupEntity>();
 
-            if (openApiDoc.Components.Examples != null && openApiDoc.Components.Examples.Any())
-            {
-                componentGroups.Add(GetTransformerdExampleGroup(openApiDoc, serviceName));
-            }
-
-            if (openApiDoc.Components.Headers != null && openApiDoc.Components.Headers.Any())
-            {
-                componentGroups.Add(GetTransformerdResponseHeaderGroup(openApiDoc, serviceName));
-            }
-
-            if (openApiDoc.Components.Parameters != null && openApiDoc.Components.Parameters.Any())
-            {
-                componentGroups.Add(GetTransformerdParametersGroup(openApiDoc, serviceName));
-            }
-
-            if (openApiDoc.Components.RequestBodies != null && openApiDoc.Components.RequestBodies.Any())
-            {
-                componentGroups.Add(GetTransformerdRequestBodiesGroup(openApiDoc, serviceName));
-            }
-
-            if (openApiDoc.Components.Responses != null && openApiDoc.Components.Responses.Any())
-            {
-                componentGroups.Add(GetTransformerdReponsesGroup(openApiDoc, serviceName));
-            }
 
             if (openApiDoc.Components.Schemas != null && openApiDoc.Components.Schemas.Any())
             {
                 componentGroups.Add(GetTransformerdTypesGroup(openApiDoc, serviceName));
             }
 
-            if (openApiDoc.Components.SecuritySchemes != null && openApiDoc.Components.SecuritySchemes.Any())
-            {
-                componentGroups.Add(GetTransformerdSecurityGroup(openApiDoc, serviceName));
-            }
+            // todo: Callbacks
+
+            //if (openApiDoc.Components.Examples != null && openApiDoc.Components.Examples.Any())
+            //{
+            //    componentGroups.Add(GetTransformerdExampleGroup(openApiDoc, serviceName));
+            //}
+
+            //if (openApiDoc.Components.Headers != null && openApiDoc.Components.Headers.Any())
+            //{
+            //    componentGroups.Add(GetTransformerdResponseHeaderGroup(openApiDoc, serviceName));
+            //}
+
+            //if (openApiDoc.Components.Parameters != null && openApiDoc.Components.Parameters.Any())
+            //{
+            //    componentGroups.Add(GetTransformerdParametersGroup(openApiDoc, serviceName));
+            //}
+
+            //if (openApiDoc.Components.RequestBodies != null && openApiDoc.Components.RequestBodies.Any())
+            //{
+            //    componentGroups.Add(GetTransformerdRequestBodiesGroup(openApiDoc, serviceName));
+            //}
+
+            //if (openApiDoc.Components.Responses != null && openApiDoc.Components.Responses.Any())
+            //{
+            //    componentGroups.Add(GetTransformerdReponsesGroup(openApiDoc, serviceName));
+            //}
+
+
+            //if (openApiDoc.Components.SecuritySchemes != null && openApiDoc.Components.SecuritySchemes.Any())
+            //{
+            //    componentGroups.Add(GetTransformerdSecurityGroup(openApiDoc, serviceName));
+            //}
 
             return componentGroups;
         }
