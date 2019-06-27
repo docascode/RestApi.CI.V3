@@ -100,7 +100,10 @@
         {
             var operationGroups = splitSwaggerResult.OperationGroups;
             var componentGroups = splitSwaggerResult.ComponentGroups;
-            var servicePath = Path.Combine(targetApiVersionDir, operationGroups.First().Service);
+            var serviceName = operationGroups != null ? operationGroups.First().Service :
+                componentGroups != null ? componentGroups.First().Service 
+                : null;
+            var servicePath = Path.Combine(targetApiVersionDir, serviceName);
             if (!Directory.Exists(servicePath))
             {
                 Directory.CreateDirectory(servicePath);
@@ -113,6 +116,7 @@
 
         private void GenerateOperations(string servicePath, List<OperationGroupEntity> operationGroups)
         {
+            if (operationGroups == null) return;
             foreach (var group in operationGroups)
             {
                 var groupFileName = Utility.GetId("", group.Name);
@@ -226,16 +230,18 @@
                 }
             }
 
-            foreach (var opGroup in splitSwaggerResult.OperationGroups)
+            if (splitSwaggerResult.OperationGroups != null)
             {
-                var operationGroup = new RestTocGroup { Name = opGroup.Name, Id = opGroup.Id };
-                serviceGroup[operationGroup.Name] = operationGroup;
-                foreach (var operation in opGroup.Operations)
+                foreach (var opGroup in splitSwaggerResult.OperationGroups)
                 {
-                    operationGroup[operation.Name] = new RestTocGroup { Name = operation.Name, Id = operation.Id };
+                    var operationGroup = new RestTocGroup { Name = opGroup.Name, Id = opGroup.Id };
+                    serviceGroup[operationGroup.Name] = operationGroup;
+                    foreach (var operation in opGroup.Operations)
+                    {
+                        operationGroup[operation.Name] = new RestTocGroup { Name = operation.Name, Id = operation.Id };
+                    }
                 }
             }
-
         }
 
         public virtual void WriteToc(string targetApiDir, RestTocGroup restTocGroup)
@@ -397,35 +403,41 @@
             var operationGroupDictionary = new Dictionary<string, OperationGroupEntity>();
             foreach (var singleResult in splitResults)
             {
-                foreach (var cg in singleResult.ComponentGroups)
+                if (singleResult.ComponentGroups != null)
                 {
-                    if (!componentGroupDictionary.ContainsKey(cg.Id))
+                    foreach (var cg in singleResult.ComponentGroups)
                     {
-                        componentGroupDictionary[cg.Id] = cg;
-                    }
-                    else
-                    {
-                        componentGroupDictionary[cg.Id].Components.AddRange(cg.Components);
+                        if (!componentGroupDictionary.ContainsKey(cg.Id))
+                        {
+                            componentGroupDictionary[cg.Id] = cg;
+                        }
+                        else
+                        {
+                            componentGroupDictionary[cg.Id].Components.AddRange(cg.Components);
+                        }
                     }
                 }
 
-                foreach (var og in singleResult.OperationGroups)
+                if (singleResult.OperationGroups != null)
                 {
-                    if (!operationGroupDictionary.ContainsKey(og.Id))
+                    foreach (var og in singleResult.OperationGroups)
                     {
-                        operationGroupDictionary[og.Id] = og;
-                    }
-                    else
-                    {
-                        operationGroupDictionary[og.Id].Operations.AddRange(og.Operations);
+                        if (!operationGroupDictionary.ContainsKey(og.Id))
+                        {
+                            operationGroupDictionary[og.Id] = og;
+                        }
+                        else
+                        {
+                            operationGroupDictionary[og.Id].Operations.AddRange(og.Operations);
+                        }
                     }
                 }
             }
 
             return new SplitSwaggerResult
             {
-                ComponentGroups = new List<ComponentGroupEntity>(componentGroupDictionary.Values),
-                OperationGroups = new List<OperationGroupEntity>(operationGroupDictionary.Values)
+                ComponentGroups = componentGroupDictionary.Any()? componentGroupDictionary.Values.ToList() : null,
+                OperationGroups = operationGroupDictionary.Any()? operationGroupDictionary.Values.ToList() : null
             };
         }
 
@@ -448,8 +460,10 @@
                     }
                     throw new Exception(JsonUtility.ToIndentedJsonString(context.Errors));
                 }
+
+                var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
                 splitSwaggerResult.OperationGroups = SplitSwaggerByTag(openApiDoc, serviceName, operationGroupMapping, mappingFile);
-                splitSwaggerResult.ComponentGroups = GetTransformerdComponentGroups(openApiDoc, serviceName);
+                splitSwaggerResult.ComponentGroups = GetTransformerdComponentGroups(openApiDoc, serviceName, ref needExtractedSchemas);
             }
             return splitSwaggerResult;
         }
@@ -472,7 +486,11 @@
             return operationGroupName;
         }
 
-        private List<OperationGroupEntity> SplitSwaggerByTag(OpenApiDocument openApiDoc, string serviceName, OperationGroupMapping operationGroupMapping, MappingFile mappingFile)
+        private List<OperationGroupEntity> SplitSwaggerByTag(
+            OpenApiDocument openApiDoc, 
+            string serviceName, 
+            OperationGroupMapping operationGroupMapping, 
+            MappingFile mappingFile)
         {
             openApiDoc = SplitHelper.AggregateOpenApiTagsFromPaths(openApiDoc);
 
@@ -521,15 +539,14 @@
             return operations;
         }
 
-        private List<ComponentGroupEntity> GetTransformerdComponentGroups(OpenApiDocument openApiDoc, string serviceName)
+        private List<ComponentGroupEntity> GetTransformerdComponentGroups(OpenApiDocument openApiDoc, string serviceName, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
         {
             if (openApiDoc.Components == null) return null;
             var componentGroups = new List<ComponentGroupEntity>();
 
-
             if (openApiDoc.Components.Schemas != null && openApiDoc.Components.Schemas.Any())
             {
-                componentGroups.Add(GetTransformerdTypesGroup(openApiDoc, serviceName));
+                componentGroups.Add(GetTransformerdTypesGroup(openApiDoc, serviceName, ref needExtractedSchemas));
             }
 
             // todo: Callbacks
@@ -589,7 +606,7 @@
             return componentGroup;
         }
 
-        private ComponentGroupEntity GetTransformerdTypesGroup(OpenApiDocument openApiDoc, string serviceName)
+        private ComponentGroupEntity GetTransformerdTypesGroup(OpenApiDocument openApiDoc, string serviceName, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
         {
             var componentGroupName = ComponentGroup.Schemas.ToString();
             var model = new TransformModel
@@ -601,8 +618,7 @@
             };
             var componentGroup = RestComponentGroupTransformer.Transform(model);
             componentGroup.Components = new List<NamedEntity>();
-
-            foreach (var schema in TransformHelper.TransformSchemas(model, openApiDoc.Components.Schemas, true))
+            foreach (var schema in TransformHelper.TransformSchemas(model, openApiDoc.Components.Schemas, ref needExtractedSchemas, true))
             {
                 componentGroup.Components.Add(schema);
             }

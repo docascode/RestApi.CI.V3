@@ -8,10 +8,7 @@
     {
         [YamlMember(Alias = "allowReserved")]
         public bool AllowReserved { get; set; }
-
-        [YamlMember(Alias = "isReadyOnly")]
-        public bool IsReadOnly { get; set; }
-
+        
         [YamlMember(Alias = "isRequired")]
         public bool IsRequired { get; set; }
 
@@ -26,10 +23,7 @@
 
         [YamlMember(Alias = "types")]
         public List<PropertyTypeEntity> Types { get; set; }
-
-        [YamlMember(Alias = "typesTitle")]
-        public string TypesTitle { get; set; }
-
+        
         [YamlMember(Alias = "pattern")]
         public string Pattern { get; set; }
 

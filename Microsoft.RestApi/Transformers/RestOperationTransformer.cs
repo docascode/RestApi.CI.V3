@@ -10,7 +10,7 @@
 
     public class RestOperationTransformer
     {
-        public static OperationV3Entity Transform(TransformModel transformModel)
+        public static OperationV3Entity Transform(TransformModel transformModel) //, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
         {
             var allParameters = TransformHelper.TransformParameters(transformModel,
                 GetRawParameters(transformModel).ToDictionary(k => k.Name, v => v));

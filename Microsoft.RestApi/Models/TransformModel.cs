@@ -16,6 +16,10 @@
 
         public OpenApiSchema OpenApiSchema { get; set; }
 
+        public string SourceFileName { get; set; }
+
+        public string SourceFilePath { get; set; }
+
         public string ServiceName { get; set; }
 
         public string OperationGroupId { get; set; }

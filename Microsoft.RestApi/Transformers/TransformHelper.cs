@@ -186,6 +186,7 @@
             }
             else
             {
+                var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
                 parameterEntity = new ParameterEntity
                 {
                     Name = openApiParameter.Name,
@@ -194,7 +195,6 @@
                     In = openApiParameter.In.ToString().ToLower(),
                     Examples = TransformExamples(transformModel, openApiParameter.Examples),
                     IsRequired = openApiParameter.Required,
-                    IsReadOnly = openApiParameter.Schema?.ReadOnly ?? false,
                     IsAnyOf = openApiParameter.Schema?.AnyOf?.Any() == true,
                     IsAllOf = openApiParameter.Schema?.AllOf?.Any() == true,
                     IsOneOf = openApiParameter.Schema?.OneOf?.Any() == true,
@@ -204,7 +204,7 @@
                     Format = openApiParameter.Schema?.Format,
                     Types = new List<PropertyTypeEntity>
                     {
-                        ParseOpenApiSchema(openApiParameter.Schema, transformModel)
+                        ParseOpenApiSchema(openApiParameter.Name, openApiParameter.Schema, transformModel, ref needExtractedSchemas)
                     }
                 };
             }
@@ -234,6 +234,7 @@
                 }
                 else
                 {
+                    var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
                     responseHeaderEntity = new ResponseHeaderEntity
                     {
                         Name = responseHeader.Key,
@@ -241,7 +242,6 @@
                         Description = responseHeader.Value.Description,
                         Examples = TransformExamples(transformModel, responseHeader.Value.Examples),
                         IsRequired = responseHeader.Value.Required,
-                        IsReadOnly = responseHeader.Value.Schema?.ReadOnly ?? false,
                         IsAnyOf = responseHeader.Value.Schema?.AnyOf?.Any() == true,
                         IsAllOf = responseHeader.Value.Schema?.AllOf?.Any() == true,
                         IsOneOf = responseHeader.Value.Schema?.OneOf?.Any() == true,
@@ -251,7 +251,7 @@
                         Format = responseHeader.Value.Schema?.Format,
                         Types = new List<PropertyTypeEntity>
                     {
-                        ParseOpenApiSchema( responseHeader.Value.Schema, transformModel)
+                        ParseOpenApiSchema(responseHeader.Key,  responseHeader.Value.Schema, transformModel, ref needExtractedSchemas)
                     }
                     };
                 }
@@ -310,11 +310,12 @@
 
                     foreach (var responseContent in openApiResponse.Value.Content)
                     {
+                        var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
                         var body = new BodyEntity
                         {
                             Examples = TransformExamples(transformModel, responseContent.Value.Examples),
                             MediaType = responseContent.Key,
-                            Type = ParseOpenApiSchema(responseContent.Value.Schema, transformModel)
+                            Type = ParseOpenApiSchema("response", responseContent.Value.Schema, transformModel, ref needExtractedSchemas)
                         };
 
                         responseEntity.Bodies.Add(body);
@@ -359,11 +360,12 @@
 
             foreach (var requestContent in sourceRequestBody.Content)
             {
+                var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
                 var body = new BodyEntity
                 {
                     Examples = TransformExamples(transformModel, requestContent.Value.Examples),
                     MediaType = requestContent.Key,
-                    Type = ParseOpenApiSchema(requestContent.Value.Schema, transformModel)
+                    Type = ParseOpenApiSchema("requestBody", requestContent.Value.Schema, transformModel, ref needExtractedSchemas)
                 };
 
                 requestBodyEntity.Bodies.Add(body);
@@ -416,15 +418,42 @@
             return exampleEntities;
         }
 
-        public static List<PropertyTypeEntity> TransformSchemas(TransformModel transformModel, IDictionary<string, OpenApiSchema> schemas, bool isComponent = false)
+        public static List<PropertyTypeEntity> TransformSchemas(TransformModel transformModel, IDictionary<string, OpenApiSchema> schemas, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
             var types = new List<PropertyTypeEntity>();
-            foreach (var shcema in schemas)
+            var schemaNames = new HashSet<string>();
+
+            foreach (var schema in schemas)
             {
-                var type = ParseOpenApiSchema(shcema.Value, transformModel, isComponent);
-                type.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), shcema.Key);
-                type.Name = shcema.Key;
+                var type = ParseOpenApiSchema(schema.Key, schema.Value, transformModel, ref needExtractedSchemas, isComponent);
+                type.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), schema.Key);
+                type.Name = schema.Key;
                 types.Add(type);
+
+                schemaNames.Add(schema.Key);
+            }
+
+            var newNeedExtractedSchemas = needExtractedSchemas;
+            while (newNeedExtractedSchemas?.Count > 0)
+            {
+                needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
+                foreach (var schema in newNeedExtractedSchemas)
+                {
+                    if (schemaNames.Contains(schema.Key))
+                    {
+                        Console.WriteLine($"Please move schema definition in property \"{GetRawPropertyName(schema.Key)}\" to schema components in file {transformModel.SourceFilePath}");
+                    }
+                    else
+                    {
+                        var type = ParseOpenApiSchema(schema.Key, schema.Value, transformModel, ref needExtractedSchemas, isComponent);
+                        type.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), schema.Key);
+                        type.Name = schema.Key;
+                        types.Add(type);
+                    }
+
+                    schemaNames.Add(schema.Key);
+                }
+                newNeedExtractedSchemas = needExtractedSchemas;
             }
 
             return types;
@@ -500,11 +529,11 @@
                 AuthorizationUrl = openApiFlow.AuthorizationUrl.ToString(),
                 RefreshUrl = openApiFlow.RefreshUrl.ToString(),
                 TokenUrl = openApiFlow.TokenUrl.ToString(),
-                Scopes = openApiFlow.Scopes.Select(scope => new SecurityScopeEntity { Name = scope.Key, Description = scope.Value}).ToList()
+                Scopes = openApiFlow.Scopes.Select(scope => new SecurityScopeEntity { Name = scope.Key, Description = scope.Value }).ToList()
             };
         }
 
-        public static PropertyTypeEntity ParseOpenApiSchema(OpenApiSchema openApiSchema, TransformModel transformModel, bool isComponent = false)
+        public static PropertyTypeEntity ParseOpenApiSchema(string schemaName, OpenApiSchema openApiSchema, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
             var type = new PropertyTypeEntity();
             type.ReferenceTo = openApiSchema.Type;
@@ -517,12 +546,29 @@
                 else if (openApiSchema.AdditionalProperties != null)
                 {
                     type.IsDictionary = true;
-                    type.AdditionalTypes = new List<string> { GetTypeReferenceId(openApiSchema.AdditionalProperties.Type, transformModel) };
+                    if (PrimitiveTypes.Contains(openApiSchema.AdditionalProperties.Type))
+                    {
+                        type.ReferenceTo = openApiSchema.AdditionalProperties.Type;
+                    }
+                    else if (openApiSchema.AdditionalProperties.Reference == null)
+                    {
+                        OpenApiReference reference = null;
+                        SetExtractedSchemas(schemaName, openApiSchema.AdditionalProperties, transformModel, needExtractedSchemas, ref reference);
+
+                        if(reference != null)
+                        {
+                            type.ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), reference.Id);
+                        }
+                    }
+                    else
+                    {
+                        type.ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), openApiSchema.AdditionalProperties.Reference.Id);
+                    }
                 }
                 else if (openApiSchema.Properties?.Count > 0)
                 {
                     type.Properties = new List<PropertyEntity>();
-                    type.Properties.AddRange(GetPropertiesFromSchema(openApiSchema, transformModel));
+                    type.Properties.AddRange(GetPropertiesFromSchema(openApiSchema, transformModel, ref needExtractedSchemas));
                     type.ReferenceTo = null;
                 }
             }
@@ -530,7 +576,6 @@
             {
                 if (openApiSchema.Items?.Enum?.Count > 0)
                 {
-                    type.Kind = "enum";
                     type.ReferenceTo = openApiSchema.Items.Type;
                     type.Values = GetValueFromListAny(openApiSchema.Items.Enum).ToList();
                 }
@@ -541,7 +586,17 @@
                         openApiSchema.Items?.Type;
                     if (type.ReferenceTo == "array" || type.ReferenceTo == "object")
                     {
-                        //throw new Exception($"Type {type.ReferenceTo} is not defined.");
+                        if (needExtractedSchemas == null) needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
+                        var extractedName = GetExtractedName(schemaName);
+                        if (needExtractedSchemas.ContainsKey(extractedName))
+                        {
+                            Console.WriteLine($"Please move schema definition in property \"{schemaName}\" to schema components in file {transformModel.SourceFilePath}");
+                        }
+                        else
+                        {
+                            needExtractedSchemas.Add(extractedName, openApiSchema.Items);
+                            type.ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), extractedName);
+                        }
                     }
                 }
                 type.IsArray = true;
@@ -550,7 +605,6 @@
             {
                 if (openApiSchema.Enum?.Count > 0)
                 {
-                    type.Kind = "enum";
                     type.Values = GetValueFromListAny(openApiSchema.Enum).ToList();
                 }
             }
@@ -569,14 +623,7 @@
             return type;
         }
 
-        private static string GetTypeReferenceId(string type, TransformModel transformModel)
-        {
-            if (PrimitiveTypes.Contains(type))
-                return type;
-            return Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), type);
-        }
-
-        public static IList<PropertyEntity> GetPropertiesFromSchema(OpenApiSchema openApiSchema, TransformModel transformModel)
+        public static IList<PropertyEntity> GetPropertiesFromSchema(OpenApiSchema openApiSchema, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
         {
             var properties = new List<PropertyEntity>();
             var required = openApiSchema.Required;
@@ -587,38 +634,28 @@
                     var types = new List<PropertyTypeEntity>();
                     if (property.Value.AnyOf?.Count() > 0)
                     {
-                        foreach (var anyOf in property.Value.AnyOf)
-                        {
-                            types.Add(ParseOpenApiSchema(anyOf, transformModel));
-                        }
+                        types = ExtractTypes(property.Key, property.Value.AnyOf.ToList(), transformModel, ref needExtractedSchemas);
                     }
                     else if (property.Value.OneOf?.Count() > 0)
                     {
-                        foreach (var oneOf in property.Value.OneOf)
-                        {
-                            types.Add(ParseOpenApiSchema(oneOf, transformModel));
-                        }
+                        types = ExtractTypes(property.Key, property.Value.OneOf.ToList(), transformModel, ref needExtractedSchemas);
                     }
                     else if (property.Value.AllOf?.Count() > 0)
                     {
-                        foreach (var allOf in property.Value.AllOf)
-                        {
-                            types.Add(ParseOpenApiSchema(allOf, transformModel));
-                        }
+                        types = ExtractTypes(property.Key, property.Value.AllOf.ToList(), transformModel, ref needExtractedSchemas);
                     }
                     else if (property.Value.Not != null)
                     {
-                        types.Add(ParseOpenApiSchema(property.Value.Not, transformModel));
+                        types = ExtractTypes(property.Key, new List<OpenApiSchema> { property.Value.Not }, transformModel, ref needExtractedSchemas);
                     }
                     else
                     {
-                        types.Add(ParseOpenApiSchema(property.Value, transformModel));
+                        types = ExtractTypes(property.Key, new List<OpenApiSchema> { property.Value }, transformModel, ref needExtractedSchemas);
                     }
 
                     properties.Add(new PropertyEntity
                     {
                         Name = property.Key,
-                        IsReadOnly = property.Value.ReadOnly,
                         IsRequired = required.Contains(property.Key),
                         IsDeprecated = property.Value.Deprecated,
                         Nullable = property.Value.Nullable,
@@ -633,20 +670,79 @@
                     });
                 }
             }
-            else if (openApiSchema.Enum?.Count > 0)
-            {
-                var enumValues = GetValueFromListAny(openApiSchema.Enum);
-                foreach (var enumValue in enumValues)
-                {
-                    properties.Add(new PropertyEntity
-                    {
-                        Name = enumValue,
-                        Types = new List<PropertyTypeEntity> { new PropertyTypeEntity { ReferenceTo = openApiSchema.Type } }
-                    });
-                }
-            }
+            //else if (openApiSchema.Enum?.Count > 0)
+            //{
+            //    var enumValues = GetValueFromListAny(openApiSchema.Enum);
+            //    foreach (var enumValue in enumValues)
+            //    {
+            //        properties.Add(new PropertyEntity
+            //        {
+            //            Name = enumValue,
+            //            Types = new List<PropertyTypeEntity> { new PropertyTypeEntity { ReferenceTo = openApiSchema.Type } }
+            //        });
+            //    }
+            //}
 
             return properties;
         }
+
+        private static string GetExtractedName(string propertyName)
+        {
+            return string.IsNullOrEmpty(propertyName) ? string.Empty : propertyName + "Param";
+        }
+
+        private static string GetRawPropertyName(string extractedName)
+        {
+            if (string.IsNullOrEmpty(extractedName)) return extractedName;
+            return extractedName.EndsWith("Param") ? extractedName.Substring(0, extractedName.Length - 5) : extractedName;
+        }
+
+        private static List<PropertyTypeEntity> ExtractTypes(string propertyName, List<OpenApiSchema> schemas, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        {
+            if (schemas?.Count < 1) return null;
+
+            if(schemas?.Count > 1 && schemas.Any(schema => schema.Reference == null && schema.Properties?.Count > 0))
+            {
+                Console.WriteLine($"Please move schema definition in property \"{propertyName}\" to schema components in file {transformModel.SourceFilePath}");
+                return null;
+            }
+
+            var types = new List<PropertyTypeEntity>();
+            foreach (var schema in schemas)
+            {
+                if (schema.Reference == null && schema.Properties?.Count > 0)
+                {
+                    OpenApiReference reference = null;
+
+                    SetExtractedSchemas(propertyName, schema, transformModel, needExtractedSchemas, ref reference);
+
+                    if (reference == null) return null;
+
+                    schema.Reference = new OpenApiReference { Id = GetExtractedName(propertyName) };
+                }
+
+                types.Add(ParseOpenApiSchema(propertyName, schema, transformModel, ref needExtractedSchemas));
+            }
+
+            return types;
+        }
+
+        private static void SetExtractedSchemas(string propertyName, OpenApiSchema schema, TransformModel transformModel, Dictionary<string, OpenApiSchema> needExtractedSchemas, ref OpenApiReference reference)
+        {
+            if (needExtractedSchemas == null) needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
+
+            var extractedName = GetExtractedName(propertyName);
+            if (needExtractedSchemas.ContainsKey(extractedName))
+            {
+                Console.WriteLine($"Please move schema definition in property \"{propertyName}\" to schema components in file {transformModel.SourceFilePath}");
+            }
+            else
+            {
+                needExtractedSchemas.Add(extractedName, schema);
+                reference = new OpenApiReference { Id = extractedName };
+            }
+
+        }
+
     }
 }
