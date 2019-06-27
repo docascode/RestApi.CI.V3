@@ -7,16 +7,27 @@
     using Microsoft.OpenApi.Any;
     using System.Linq;
     using System;
+    using Newtonsoft.Json;
 
     public class RestOperationTransformer
     {
-        public static OperationV3Entity Transform(TransformModel transformModel) //, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        public static OperationV3Entity Transform(
+            TransformModel transformModel,
+            ref Dictionary<string, OpenApiSchema> needExtractedSchemas, 
+            ref List<OpenApiOperation> needExtractedCallbacks)
         {
-            var allParameters = TransformHelper.TransformParameters(transformModel,
-                GetRawParameters(transformModel).ToDictionary(k => k.Name, v => v));
-            var allResponses = TransformHelper.TransformResponses(transformModel, transformModel.Operation.Value.Responses.ToDictionary(k => k.Key, v => v.Value));
-            var requiredQueryUriParameters = allParameters.Where(p => p.IsRequired && p.In == "query").ToList();
-            var optionalQueryUriParameters = allParameters.Where(p => !p.IsRequired && p.In == "query").ToList();
+            var allParameters = TransformParameters(transformModel,
+                GetRawParameters(transformModel),
+                ref needExtractedSchemas);
+
+            var allResponses = TransformResponses(transformModel, 
+                transformModel.Operation.Value?.Responses?.ToDictionary(k => k.Key, v => v.Value),
+                ref needExtractedSchemas);
+
+            var requestBody = TransformRequestBody(transformModel, 
+                transformModel.Operation.Value.RequestBody,
+                ref needExtractedSchemas);
+            
             return new OperationV3Entity
             {
                 Id = transformModel.OperationId,
@@ -29,35 +40,316 @@
                 ApiVersion = transformModel.OpenApiDoc.Info.Version,
                 IsDeprecated = transformModel.Operation.Value.Deprecated,
                 HttpVerb = transformModel.Operation.Key.ToString().ToUpper(),
-                Servers = TransformHelper.GetServerEnities(GetRawServers(transformModel)),
+                Servers = GetServerEnities(GetRawServers(transformModel)),
                 Parameters = allParameters,
-                Paths = TransformPaths(transformModel.OpenApiPath, transformModel.Operation.Value, requiredQueryUriParameters),
-                // remove this for now
-                // OptionalParameters = TransformOptionalParameters(optionalQueryUriParameters),
+                Paths = TransformPaths(transformModel.OpenApiPath, allParameters),
                 Responses = allResponses,
-                RequestBody = TransformHelper.TransformRequestBody(transformModel, new KeyValuePair<string, OpenApiRequestBody>("", transformModel.Operation.Value.RequestBody)),
+                RequestBody = requestBody,
                 Securities = GetSecurities(transformModel),
                 SeeAlso = TransformExternalDocs(transformModel.Operation.Value)
             };
         }
+        private static List<ExampleEntity> TransformExamples(TransformModel transformModel, IDictionary<string, OpenApiExample> examples, bool isComponent = false)
+        {
+            if (examples == null || !examples.Any()) return null;
+            var exampleEntities = new List<ExampleEntity>();
+            foreach (var example in examples)
+            {
+                ExampleEntity exampleEntity;
+                if (example.Value.Reference != null && !isComponent)
+                {
+                    exampleEntity = new ExampleEntity
+                    {
+                        ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Examples.ToString(), example.Value.Reference.Id)
+                    };
+                }
+                else
+                {
+                    exampleEntity = new ExampleEntity
+                    {
+                        Name = example.Key,
+                        Value = JsonConvert.SerializeObject(example.Value.Value),
+                        Description = example.Value.Description
+                    };
+                }
+
+                if (isComponent)
+                {
+                    exampleEntity.Service = transformModel.ServiceName;
+                    exampleEntity.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Examples.ToString(), example.Key);
+                    exampleEntity.ApiVersion = transformModel.OpenApiDoc.Info.Version;
+                }
+
+                exampleEntities.Add(exampleEntity);
+            }
+            return exampleEntities;
+        }
+
+        private static RequestBodyEntity TransformRequestBody(
+            TransformModel transformModel,
+            OpenApiRequestBody requestBody,
+            ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        {
+            //var requestBodies = new List<RequestBodyEntity>();
+            if (requestBody == null) return null;
+
+            var requestBodyEntity = new RequestBodyEntity
+            {
+                Description = requestBody.Description,
+                isRequired = requestBody.Required,
+                Bodies = new List<BodyEntity>()
+            };
+
+            foreach (var requestContent in requestBody.Content)
+            {
+                var body = new BodyEntity
+                {
+                    Examples = TransformExamples(transformModel, requestContent.Value.Examples),
+                    MediaType = requestContent.Key,
+                    Type = TransformHelper.ParseOpenApiSchema("requestBody", requestContent.Value.Schema, transformModel, ref needExtractedSchemas)
+                };
+
+                requestBodyEntity.Bodies.Add(body);
+            }
+
+            return requestBodyEntity;
+        }
+
+        public static List<ResponseEntity> TransformResponses(
+            TransformModel transformModel,
+            IDictionary<string, OpenApiResponse> responses,
+            ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        {
+            if (responses == null || !responses.Any()) return null;
+
+            var responseEntities = new List<ResponseEntity>();
+
+            foreach (var openApiResponse in responses)
+            {
+                var responseEntity = new ResponseEntity
+                {
+                    Description = openApiResponse.Value.Description,
+                    Bodies = new List<BodyEntity>(),
+                    StatusCode = openApiResponse.Key
+                };
+
+                if (openApiResponse.Value.Headers != null && openApiResponse.Value.Headers.Any())
+                {
+                    responseEntity.Headers = TransformResponseHeaders(transformModel, openApiResponse.Value.Headers, ref needExtractedSchemas);
+                }
+
+                foreach (var responseContent in openApiResponse.Value.Content)
+                {
+                    var body = new BodyEntity
+                    {
+                        Examples = TransformExamples(transformModel, responseContent.Value.Examples),
+                        MediaType = responseContent.Key,
+                        Type = TransformHelper.ParseOpenApiSchema("response", responseContent.Value.Schema, transformModel, ref needExtractedSchemas)
+                    };
+
+                    responseEntity.Bodies.Add(body);
+                }
+                responseEntities.Add(responseEntity);
+            }
+
+            return responseEntities;
+        }
+
+        private static List<ResponseHeaderEntity> TransformResponseHeaders(
+            TransformModel transformModel,
+            IDictionary<string, OpenApiHeader> responseHeaders,
+            ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        {
+            var responseHeaderEntities = new List<ResponseHeaderEntity>();
+            foreach (var responseHeader in responseHeaders)
+            {
+                ResponseHeaderEntity responseHeaderEntity;
+                {
+                    responseHeaderEntity = new ResponseHeaderEntity
+                    {
+                        Name = responseHeader.Key,
+                        AllowReserved = responseHeader.Value.AllowReserved,
+                        Description = responseHeader.Value.Description,
+                        Examples = TransformExamples(transformModel, responseHeader.Value.Examples),
+                        IsRequired = responseHeader.Value.Required,
+                        IsAnyOf = responseHeader.Value.Schema?.AnyOf?.Any() == true,
+                        IsAllOf = responseHeader.Value.Schema?.AllOf?.Any() == true,
+                        IsOneOf = responseHeader.Value.Schema?.OneOf?.Any() == true,
+                        Nullable = responseHeader.Value.Schema?.Nullable ?? true,
+                        IsDeprecated = responseHeader.Value.Deprecated,
+                        Pattern = responseHeader.Value.Schema?.Pattern,
+                        Format = responseHeader.Value.Schema?.Format,
+                        Types = new List<PropertyTypeEntity>
+                        {
+                            TransformHelper.ParseOpenApiSchema(responseHeader.Key,  responseHeader.Value.Schema, transformModel, ref needExtractedSchemas)
+                        }
+                    };
+                }
+
+                responseHeaderEntities.Add(responseHeaderEntity);
+            }
+            return responseHeaderEntities;
+        }
+
+        private static IList<ParameterEntity> TransformParameters(
+            TransformModel transformModel,
+            IList<OpenApiParameter> parameters,
+            ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        {
+            if (parameters == null) return null;
+
+            var parameterEntities = new List<ParameterEntity>();
+            foreach (var openApiParameter in parameters)
+            {
+                parameterEntities.Add(TransformParameter(transformModel, openApiParameter, ref needExtractedSchemas));
+            }
+            return parameterEntities;
+        }
+
+        private static ParameterEntity TransformParameter(
+            TransformModel transformModel,
+            OpenApiParameter parameter,
+            ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        {
+            return new ParameterEntity
+            {
+                Name = parameter.Name,
+                AllowReserved = parameter.AllowReserved,
+                Description = parameter.Description,
+                In = parameter.In?.ToString().ToLower(),
+                Examples = TransformExamples(transformModel, parameter.Examples),
+                IsRequired = parameter.Required,
+                IsAnyOf = parameter.Schema?.AnyOf?.Any() == true,
+                IsAllOf = parameter.Schema?.AllOf?.Any() == true,
+                IsOneOf = parameter.Schema?.OneOf?.Any() == true,
+                Nullable = parameter.Schema?.Nullable ?? true,
+                IsDeprecated = parameter.Deprecated,
+                Pattern = parameter.Schema?.Pattern,
+                Format = parameter.Schema?.Format,
+                Types = new List<PropertyTypeEntity>
+                    {
+                        TransformHelper.ParseOpenApiSchema(parameter.Name, parameter.Schema, transformModel, ref needExtractedSchemas)
+                    }
+            };
+        }
+
+        private static IList<ServerEntity> GetServerEnities(IList<OpenApiServer> apiServers)
+        {
+            if (apiServers == null) return null;
+            var servers = new List<ServerEntity>();
+
+            foreach (var apiServer in apiServers)
+            {
+                var name = apiServer.Url;
+                var description = apiServer.Description;
+
+                var serverVariables = new List<ServerVariableEntity>();
+                if (apiServer.Variables != null)
+                {
+                    foreach (var variable in apiServer.Variables)
+                    {
+                        var serverVariable = new ServerVariableEntity
+                        {
+                            Name = variable.Key,
+                            DefaultValue = variable.Value.Default,
+                            Description = variable.Value.Description,
+                            Values = variable.Value.Enum
+                        };
+                        serverVariables.Add(serverVariable);
+                    }
+                }
+
+                servers.Add(new ServerEntity
+                {
+                    Name = name,
+                    Description = description,
+                    ServerVariables = serverVariables.Count > 0 ? serverVariables : null
+                });
+            }
+
+            return servers;
+        }
 
         private static IList<OpenApiParameter> GetRawParameters(TransformModel transformModel)
         {
-            if (transformModel.Operation.Value.Parameters != null && transformModel.Operation.Value.Parameters.Any())
+            if (transformModel.Operation.Value?.Parameters?.Count > 0)
                 return transformModel.Operation.Value.Parameters;
 
-            return transformModel.OpenApiPath.Value.Parameters;
+            return transformModel.OpenApiPath.Value?.Parameters;
         }
 
-        private static List<OperationV3Entity.Security> GetSecurities(TransformModel transformModel)
+        private static List<SecurityEntity> GetSecurities(TransformModel transformModel)
         {
-            if (transformModel.Operation.Value.Security != null || transformModel.Operation.Value.Security.Count == 0) return null;
+            if (transformModel.Operation.Value.Security == null || transformModel.Operation.Value.Security.Count == 0) return null;
 
-            return transformModel.Operation.Value.Security.SelectMany(s => s.Select(c => new OperationV3Entity.Security
+            return transformModel.Operation.Value.Security.SelectMany(s => s.Select(c =>
             {
-                Scopes = c.Value,
-                SecurityId = Utility.GetId(transformModel.ServiceName, ComponentGroup.Securities.ToString(), c.Key.Reference.Id)
+                var security = c.Key;
+                var scopes = c.Value;
+
+                return new SecurityEntity
+                {
+                    Name = security.Reference?.Id,
+                    Description = security.Description,
+                    ApiKeyName = security.Name,
+                    BearerFormat = security.BearerFormat,
+                    In = security.In.ToString().ToLower(),
+                    OpenIdConnectUrl = security.OpenIdConnectUrl?.ToString(),
+                    Scheme = security.Scheme,
+                    Type = security.Type.ToString(),
+                    Flows = GetFlow(security.Flows, scopes)
+                };
             })).ToList();
+        }
+
+
+        private static List<FlowEntity> GetFlow(OpenApiOAuthFlows openApiFlows, IList<string> usedScopes)
+        {
+            if (openApiFlows == null) return null;
+
+            var flows = new List<FlowEntity>();
+            if (openApiFlows.AuthorizationCode != null)
+            {
+                var flow = TransformFlow(openApiFlows.AuthorizationCode, usedScopes);
+                flow.Type = "AuthorizationCode";
+                flows.Add(flow);
+            }
+
+            if (openApiFlows.ClientCredentials != null)
+            {
+                var flow = TransformFlow(openApiFlows.ClientCredentials, usedScopes);
+                flow.Type = "ClientCredentials";
+                flows.Add(flow);
+            }
+
+            if (openApiFlows.Implicit != null)
+            {
+                var flow = TransformFlow(openApiFlows.Implicit, usedScopes);
+                flow.Type = "Implicit";
+                flows.Add(flow);
+            }
+
+            if (openApiFlows.Password != null)
+            {
+                var flow = TransformFlow(openApiFlows.Password, usedScopes);
+                flow.Type = "Password";
+                flows.Add(flow);
+            }
+
+            return flows;
+        }
+
+        private static FlowEntity TransformFlow(OpenApiOAuthFlow openApiFlow, IList<string> usedScopes)
+        {
+            return new FlowEntity
+            {
+                AuthorizationUrl = openApiFlow.AuthorizationUrl.ToString(),
+                RefreshUrl = openApiFlow.RefreshUrl.ToString(),
+                TokenUrl = openApiFlow.TokenUrl.ToString(),
+                Scopes = usedScopes != null ? openApiFlow.Scopes.Where(scope => usedScopes.Contains(scope.Key))
+                    .Select(scope => new SecurityScopeEntity { Name = scope.Key, Description = scope.Value })
+                    .ToList() : null
+            };
         }
 
         private static IList<OpenApiServer> GetRawServers(TransformModel transformModel)
@@ -90,52 +382,61 @@
             return false;
         }
 
-        public static List<string> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, OpenApiOperation openApiOperation, IList<ParameterEntity> requiredQueryUriParameters)
+        private static List<PathEntity> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, IList<ParameterEntity> parameters)
         {
-            var paths = new List<string> { defaultOpenApiPathItem.Key };
+            var pathEntities = new List<PathEntity>();
 
-            if (requiredQueryUriParameters?.Count > 0)
+            var paths = defaultOpenApiPathItem.Key?.Split('?');
+            var requiredQueryStrings = parameters.Where(p => p.IsRequired && p.In == "query");
+            var requiredPath = paths[0];
+
+            if (requiredQueryStrings.Any())
             {
-                var finalPaths = new List<string>();
-                foreach (var path in paths)
-                {
-                    var parameters = requiredQueryUriParameters.Select(p => new { Name = p.Name, Value = $"{{{p.Name}}}" }).ToList();
-                    if (path.Contains("?"))
-                    {
-                        var basepath = path.Split('?')[0];
-                        var querystringString = path.Split('?')[1];
-                        var querystrings = querystringString.Split('&');
-
-                        var allQueryStrings = new List<string>();
-                        foreach (var querystring in querystrings)
-                        {
-                            if (querystring.Contains("="))
-                            {
-                                var pairKey = querystring.Split('=')[0];
-                                var pairValue = querystring.Split('=')[1];
-                                if (!parameters.Any(p => p.Name == pairKey))
-                                {
-                                    parameters.Add(new { Name = pairKey, Value = pairValue });
-                                }
-                            }
-                            else
-                            {
-                                allQueryStrings.Add(querystring);
-                            }
-                        }
-                        allQueryStrings.AddRange(parameters.Select(p => $"{p.Name}={p.Value}"));
-                        allQueryStrings.Sort();
-                        finalPaths.Add(basepath + "?" + string.Join("&", allQueryStrings));
-                    }
-                    else
-                    {
-                        finalPaths.Add(path + "?" + string.Join("&", parameters.OrderBy(p => p.Name).Select(p => $"{p.Name}={p.Value}")));
-                    }
-                }
-                return finalPaths;
+                requiredPath = requiredPath + "?" + FormatPathQueryStrings(paths.Count() > 1 ? paths[1] : null, requiredQueryStrings);
             }
 
-            return paths;
+            pathEntities.Add(new PathEntity
+            {
+                Content = requiredPath,
+                IsOptional = false
+            });
+
+            var allQueryStrings = parameters.Where(p => p.In == "query");
+            var optionPath = paths[0];
+            if (!allQueryStrings.All(p => p.IsRequired))
+            {
+                optionPath = optionPath + "?" + FormatPathQueryStrings(paths.Count() > 1 ? paths[1] : null, allQueryStrings);
+
+                pathEntities.Add(new PathEntity
+                {
+                    Content = optionPath,
+                    IsOptional = true
+                });
+            }
+            return pathEntities;
+        }
+
+        private static string FormatPathQueryStrings(string initParameters, IEnumerable<ParameterEntity> queryParameters)
+        {
+            var queries = new List<string>();
+            if (!string.IsNullOrEmpty(initParameters))
+            {
+                var initStrings = initParameters.Split('&').Select(p =>
+                {
+                    if (!queryParameters.Any(q => q.Name == p?.Split('=')[0]))
+                    {
+                        return p;
+                    }
+                    return null;
+                });
+                queries.AddRange(initStrings.Where(s => !string.IsNullOrEmpty(s)));
+            }
+            var queryStrings = queryParameters.Select(p =>
+            {
+                return $"{p.Name}={{{p.Name}}}";
+            });
+            queries.AddRange(queryStrings);
+            return string.Join("&", queries);
         }
 
         public static IList<string> GetGroupedPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, OpenApiOperation openApiOperation)

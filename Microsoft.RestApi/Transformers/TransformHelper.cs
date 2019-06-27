@@ -23,39 +23,6 @@
             return content;
         }
 
-        public static IList<OperationV3Entity.ServerEntity> GetServerEnities(IList<OpenApiServer> apiServers)
-        {
-            if (apiServers == null) return new List<OperationV3Entity.ServerEntity>();
-            var servers = new List<OperationV3Entity.ServerEntity>();
-
-            foreach (var apiServer in apiServers)
-            {
-                var name = apiServer.Url;
-                var description = apiServer.Description;
-
-                var serverVariables = new List<OperationV3Entity.ServerVariableEntity>();
-                foreach (var variable in apiServer.Variables)
-                {
-                    var serverVariable = new OperationV3Entity.ServerVariableEntity
-                    {
-                        Name = variable.Key,
-                        DefaultValue = variable.Value.Default,
-                        Description = variable.Value.Description,
-                        Values = variable.Value.Enum
-                    };
-                    serverVariables.Add(serverVariable);
-                }
-                servers.Add(new OperationV3Entity.ServerEntity
-                {
-                    Name = name,
-                    Description = description,
-                    ServerVariables = serverVariables.Count > 0 ? serverVariables : null
-                });
-            }
-
-            return servers;
-        }
-
         public static string GetStatusCodeString(string statusCode)
         {
             switch (statusCode)
@@ -163,260 +130,60 @@
             return null;
         }
 
-        public static IList<ParameterEntity> TransformParameters(TransformModel transformModel, IDictionary<string, OpenApiParameter> parameters, bool isComponent = false)
-        {
-            var parameterEntities = new List<ParameterEntity>();
-            foreach (var openApiParameter in parameters)
-            {
-                parameterEntities.Add(TransformParameter(transformModel, openApiParameter, isComponent));
-            }
-            return parameterEntities;
-        }
+        //public static IList<ParameterEntity> TransformParameters(
+        //    TransformModel transformModel,
+        //    IList<OpenApiParameter> parameters,
+        //    ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        //{
+        //    if (parameters == null) return null;
 
-        public static ParameterEntity TransformParameter(TransformModel transformModel, KeyValuePair<string, OpenApiParameter> parameter, bool isComponent = false)
-        {
-            var parameterEntity = new ParameterEntity();
-            var openApiParameter = parameter.Value;
-            if (parameter.Value.Reference != null && !isComponent)
-            {
-                parameterEntity = new ParameterEntity
-                {
-                    ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Parameters.ToString(), parameter.Value.Reference.Id)
-                };
-            }
-            else
-            {
-                var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
-                parameterEntity = new ParameterEntity
-                {
-                    Name = openApiParameter.Name,
-                    AllowReserved = openApiParameter.AllowReserved,
-                    Description = openApiParameter.Description,
-                    In = openApiParameter.In.ToString().ToLower(),
-                    Examples = TransformExamples(transformModel, openApiParameter.Examples),
-                    IsRequired = openApiParameter.Required,
-                    IsAnyOf = openApiParameter.Schema?.AnyOf?.Any() == true,
-                    IsAllOf = openApiParameter.Schema?.AllOf?.Any() == true,
-                    IsOneOf = openApiParameter.Schema?.OneOf?.Any() == true,
-                    Nullable = openApiParameter.Schema?.Nullable ?? true,
-                    IsDeprecated = openApiParameter.Deprecated,
-                    Pattern = openApiParameter.Schema?.Pattern,
-                    Format = openApiParameter.Schema?.Format,
-                    Types = new List<PropertyTypeEntity>
-                    {
-                        ParseOpenApiSchema(openApiParameter.Name, openApiParameter.Schema, transformModel, ref needExtractedSchemas)
-                    }
-                };
-            }
+        //    var parameterEntities = new List<ParameterEntity>();
+        //    foreach (var openApiParameter in parameters)
+        //    {
+        //        parameterEntities.Add(TransformParameter(transformModel, openApiParameter, ref needExtractedSchemas));
+        //    }
+        //    return parameterEntities;
+        //}
 
-            if (isComponent)
-            {
-                parameterEntity.Service = transformModel.ServiceName;
-                parameterEntity.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Parameters.ToString(), parameter.Key);
-                parameterEntity.ApiVersion = transformModel.OpenApiDoc.Info.Version;
-            }
+        //public static ParameterEntity TransformParameter(
+        //    TransformModel transformModel,
+        //    OpenApiParameter parameter,
+        //    ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        //{
+        //    return new ParameterEntity
+        //    {
+        //        Name = parameter.Name,
+        //        AllowReserved = parameter.AllowReserved,
+        //        Description = parameter.Description,
+        //        In = parameter.In?.ToString().ToLower(),
+        //        Examples = TransformExamples(transformModel, parameter.Examples),
+        //        IsRequired = parameter.Required,
+        //        IsAnyOf = parameter.Schema?.AnyOf?.Any() == true,
+        //        IsAllOf = parameter.Schema?.AllOf?.Any() == true,
+        //        IsOneOf = parameter.Schema?.OneOf?.Any() == true,
+        //        Nullable = parameter.Schema?.Nullable ?? true,
+        //        IsDeprecated = parameter.Deprecated,
+        //        Pattern = parameter.Schema?.Pattern,
+        //        Format = parameter.Schema?.Format,
+        //        Types = new List<PropertyTypeEntity>
+        //            {
+        //                ParseOpenApiSchema(parameter.Name, parameter.Schema, transformModel, ref needExtractedSchemas)
+        //            }
+        //    };
+        //}
 
-            return parameterEntity;
-        }
 
-        public static List<ResponseHeaderEntity> TransformResponseHeaders(TransformModel transformModel, IDictionary<string, OpenApiHeader> responseHeaders, bool isComponent = false)
-        {
-            var responseHeaderEntities = new List<ResponseHeaderEntity>();
-            foreach (var responseHeader in responseHeaders)
-            {
-                ResponseHeaderEntity responseHeaderEntity;
-                if (responseHeader.Value.Reference != null && !isComponent)
-                {
-                    responseHeaderEntity = new ResponseHeaderEntity
-                    {
-                        ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.ReponseHeaders.ToString(), responseHeader.Value.Reference.Id)
-                    };
-                }
-                else
-                {
-                    var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
-                    responseHeaderEntity = new ResponseHeaderEntity
-                    {
-                        Name = responseHeader.Key,
-                        AllowReserved = responseHeader.Value.AllowReserved,
-                        Description = responseHeader.Value.Description,
-                        Examples = TransformExamples(transformModel, responseHeader.Value.Examples),
-                        IsRequired = responseHeader.Value.Required,
-                        IsAnyOf = responseHeader.Value.Schema?.AnyOf?.Any() == true,
-                        IsAllOf = responseHeader.Value.Schema?.AllOf?.Any() == true,
-                        IsOneOf = responseHeader.Value.Schema?.OneOf?.Any() == true,
-                        Nullable = responseHeader.Value.Schema?.Nullable ?? true,
-                        IsDeprecated = responseHeader.Value.Deprecated,
-                        Pattern = responseHeader.Value.Schema?.Pattern,
-                        Format = responseHeader.Value.Schema?.Format,
-                        Types = new List<PropertyTypeEntity>
-                    {
-                        ParseOpenApiSchema(responseHeader.Key,  responseHeader.Value.Schema, transformModel, ref needExtractedSchemas)
-                    }
-                    };
-                }
+        //public static List<RequestBodyEntity> TransformRequestBodies(TransformModel transformModel, IDictionary<string, OpenApiRequestBody> requestBodies, bool isComponent = false)
+        //{
+        //    var requestEntities = new List<RequestBodyEntity>();
+        //    foreach (var openApiRequestBody in requestBodies)
+        //    {
+        //        requestEntities.Add(TransformRequestBody(transformModel, openApiRequestBody, isComponent));
+        //    }
 
-                if (isComponent)
-                {
-                    responseHeaderEntity.Service = transformModel.ServiceName;
-                    responseHeaderEntity.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.ReponseHeaders.ToString(), responseHeader.Key);
-                    responseHeaderEntity.ApiVersion = transformModel.OpenApiDoc.Info.Version;
-                }
+        //    return requestEntities;
+        //}
 
-                responseHeaderEntities.Add(responseHeaderEntity);
-            }
-            return responseHeaderEntities;
-        }
-
-        public static List<ResponseEntity> TransformResponses(TransformModel transformModel, IDictionary<string, OpenApiResponse> responses, bool isComponent = false)
-        {
-            if (responses == null || !responses.Any()) return null;
-
-            var responseEntities = new List<ResponseEntity>();
-
-            foreach (var openApiResponse in responses)
-            {
-                if (openApiResponse.Value.Reference != null && !isComponent)
-                {
-                    responseEntities.Add(new ResponseEntity
-                    {
-                        ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Responses.ToString(), openApiResponse.Value.Reference.Id)
-                    });
-                }
-                else
-                {
-                    var responseEntity = new ResponseEntity
-                    {
-                        Description = openApiResponse.Value.Description,
-                        Bodies = new List<BodyEntity>()
-                    };
-
-                    if (isComponent)
-                    {
-                        responseEntity.Service = transformModel.ServiceName;
-                        responseEntity.Name = openApiResponse.Key;
-                        responseEntity.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Responses.ToString(), openApiResponse.Key);
-                        responseEntity.ApiVersion = transformModel.OpenApiDoc.Info.Version;
-                    }
-                    else
-                    {
-                        responseEntity.StatusCode = openApiResponse.Key;
-                    }
-
-                    if (openApiResponse.Value.Headers != null && openApiResponse.Value.Headers.Any())
-                    {
-                        responseEntity.Headers = TransformResponseHeaders(transformModel, openApiResponse.Value.Headers);
-                    }
-
-                    foreach (var responseContent in openApiResponse.Value.Content)
-                    {
-                        var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
-                        var body = new BodyEntity
-                        {
-                            Examples = TransformExamples(transformModel, responseContent.Value.Examples),
-                            MediaType = responseContent.Key,
-                            Type = ParseOpenApiSchema("response", responseContent.Value.Schema, transformModel, ref needExtractedSchemas)
-                        };
-
-                        responseEntity.Bodies.Add(body);
-                    }
-                    responseEntities.Add(responseEntity);
-                }
-            }
-
-            return responseEntities;
-        }
-
-        public static List<RequestBodyEntity> TransformRequestBodies(TransformModel transformModel, IDictionary<string, OpenApiRequestBody> requestBodies, bool isComponent = false)
-        {
-            var requestEntities = new List<RequestBodyEntity>();
-            foreach (var openApiRequestBody in requestBodies)
-            {
-                requestEntities.Add(TransformRequestBody(transformModel, openApiRequestBody, isComponent));
-            }
-
-            return requestEntities;
-        }
-
-        public static RequestBodyEntity TransformRequestBody(TransformModel transformModel, KeyValuePair<string, OpenApiRequestBody> requestBody, bool isComponent = false)
-        {
-            //var requestBodies = new List<RequestBodyEntity>();
-            var sourceRequestBody = requestBody.Value;
-            if (sourceRequestBody == null) return null;
-            if (sourceRequestBody.Reference != null && !isComponent)
-            {
-                return new RequestBodyEntity
-                {
-                    ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.RequestBodies.ToString(), sourceRequestBody.Reference.Id)
-                };
-            }
-
-            var requestBodyEntity = new RequestBodyEntity
-            {
-                Description = sourceRequestBody.Description,
-                isRequired = sourceRequestBody.Required,
-                Bodies = new List<BodyEntity>()
-            };
-
-            foreach (var requestContent in sourceRequestBody.Content)
-            {
-                var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
-                var body = new BodyEntity
-                {
-                    Examples = TransformExamples(transformModel, requestContent.Value.Examples),
-                    MediaType = requestContent.Key,
-                    Type = ParseOpenApiSchema("requestBody", requestContent.Value.Schema, transformModel, ref needExtractedSchemas)
-                };
-
-                requestBodyEntity.Bodies.Add(body);
-            }
-
-            if (isComponent)
-            {
-                requestBodyEntity.Service = transformModel.ServiceName;
-                requestBodyEntity.Name = requestBody.Key;
-                requestBodyEntity.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.RequestBodies.ToString(), requestBody.Key);
-                requestBodyEntity.ApiVersion = transformModel.OpenApiDoc.Info.Version;
-            }
-
-            return requestBodyEntity;
-        }
-
-        public static List<ExampleEntity> TransformExamples(TransformModel transformModel, IDictionary<string, OpenApiExample> examples, bool isComponent = false)
-        {
-            if (examples == null || !examples.Any()) return null;
-            var exampleEntities = new List<ExampleEntity>();
-            foreach (var example in examples)
-            {
-                ExampleEntity exampleEntity;
-                if (example.Value.Reference != null && !isComponent)
-                {
-                    exampleEntity = new ExampleEntity
-                    {
-                        ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Examples.ToString(), example.Value.Reference.Id)
-                    };
-                }
-                else
-                {
-                    exampleEntity = new ExampleEntity
-                    {
-                        Name = example.Key,
-                        Value = JsonConvert.SerializeObject(example.Value.Value),
-                        Description = example.Value.Description
-                    };
-                }
-
-                if (isComponent)
-                {
-                    exampleEntity.Service = transformModel.ServiceName;
-                    exampleEntity.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Examples.ToString(), example.Key);
-                    exampleEntity.ApiVersion = transformModel.OpenApiDoc.Info.Version;
-                }
-
-                exampleEntities.Add(exampleEntity);
-            }
-            return exampleEntities;
-        }
 
         public static List<PropertyTypeEntity> TransformSchemas(TransformModel transformModel, IDictionary<string, OpenApiSchema> schemas, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
@@ -459,79 +226,79 @@
             return types;
         }
 
-        internal static List<SecurityEntity> TransformSecurities(TransformModel transformModel, IDictionary<string, OpenApiSecurityScheme> securitySchemes)
-        {
-            var securities = new List<SecurityEntity>();
-            foreach (var openApiSeurity in securitySchemes)
-            {
-                var value = openApiSeurity.Value;
-                var security = new SecurityEntity
-                {
-                    Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Securities.ToString(), openApiSeurity.Key),
-                    Name = openApiSeurity.Key,
-                    ApiKeyName = value.Name,
-                    Type = value.Type.ToString(),
-                    BearerFormat = value.BearerFormat,
-                    Description = value.Description,
-                    Service = transformModel.ServiceName,
-                    ApiVersion = transformModel.OpenApiDoc.Info.Version,
-                    Scheme = value.Scheme,
-                    OpenIdConnectUrl = value.OpenIdConnectUrl?.ToString(),
-                    In = value.In.ToString().ToLower(),
-                    Flows = GetFlow(value.Flows)
-                };
-                securities.Add(security);
-            }
+        //internal static List<SecurityEntity> TransformSecurities(TransformModel transformModel, IDictionary<string, OpenApiSecurityScheme> securitySchemes)
+        //{
+        //    var securities = new List<SecurityEntity>();
+        //    foreach (var openApiSeurity in securitySchemes)
+        //    {
+        //        var value = openApiSeurity.Value;
+        //        var security = new SecurityEntity
+        //        {
+        //            Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Securities.ToString(), openApiSeurity.Key),
+        //            Name = openApiSeurity.Key,
+        //            ApiKeyName = value.Name,
+        //            Type = value.Type.ToString(),
+        //            BearerFormat = value.BearerFormat,
+        //            Description = value.Description,
+        //            Service = transformModel.ServiceName,
+        //            ApiVersion = transformModel.OpenApiDoc.Info.Version,
+        //            Scheme = value.Scheme,
+        //            OpenIdConnectUrl = value.OpenIdConnectUrl?.ToString(),
+        //            In = value.In.ToString().ToLower(),
+        //            Flows = GetFlow(value.Flows)
+        //        };
+        //        securities.Add(security);
+        //    }
 
-            return securities;
-        }
+        //    return securities;
+        //}
 
-        private static List<FlowEntity> GetFlow(OpenApiOAuthFlows openApiFlows)
-        {
-            if (openApiFlows == null) return null;
+        //private static List<FlowEntity> GetFlow(OpenApiOAuthFlows openApiFlows)
+        //{
+        //    if (openApiFlows == null) return null;
 
-            var flows = new List<FlowEntity>();
-            if (openApiFlows.AuthorizationCode != null)
-            {
-                var flow = TransformFlow(openApiFlows.AuthorizationCode);
-                flow.Type = "AuthorizationCode";
-                flows.Add(flow);
-            }
+        //    var flows = new List<FlowEntity>();
+        //    if (openApiFlows.AuthorizationCode != null)
+        //    {
+        //        var flow = TransformFlow(openApiFlows.AuthorizationCode);
+        //        flow.Type = "AuthorizationCode";
+        //        flows.Add(flow);
+        //    }
 
-            if (openApiFlows.ClientCredentials != null)
-            {
-                var flow = TransformFlow(openApiFlows.ClientCredentials);
-                flow.Type = "ClientCredentials";
-                flows.Add(flow);
-            }
+        //    if (openApiFlows.ClientCredentials != null)
+        //    {
+        //        var flow = TransformFlow(openApiFlows.ClientCredentials);
+        //        flow.Type = "ClientCredentials";
+        //        flows.Add(flow);
+        //    }
 
-            if (openApiFlows.Implicit != null)
-            {
-                var flow = TransformFlow(openApiFlows.Implicit);
-                flow.Type = "Implicit";
-                flows.Add(flow);
-            }
+        //    if (openApiFlows.Implicit != null)
+        //    {
+        //        var flow = TransformFlow(openApiFlows.Implicit);
+        //        flow.Type = "Implicit";
+        //        flows.Add(flow);
+        //    }
 
-            if (openApiFlows.Password != null)
-            {
-                var flow = TransformFlow(openApiFlows.Password);
-                flow.Type = "Password";
-                flows.Add(flow);
-            }
+        //    if (openApiFlows.Password != null)
+        //    {
+        //        var flow = TransformFlow(openApiFlows.Password);
+        //        flow.Type = "Password";
+        //        flows.Add(flow);
+        //    }
 
-            return flows;
-        }
+        //    return flows;
+        //}
 
-        private static FlowEntity TransformFlow(OpenApiOAuthFlow openApiFlow)
-        {
-            return new FlowEntity
-            {
-                AuthorizationUrl = openApiFlow.AuthorizationUrl.ToString(),
-                RefreshUrl = openApiFlow.RefreshUrl.ToString(),
-                TokenUrl = openApiFlow.TokenUrl.ToString(),
-                Scopes = openApiFlow.Scopes.Select(scope => new SecurityScopeEntity { Name = scope.Key, Description = scope.Value }).ToList()
-            };
-        }
+        //private static FlowEntity TransformFlow(OpenApiOAuthFlow openApiFlow)
+        //{
+        //    return new FlowEntity
+        //    {
+        //        AuthorizationUrl = openApiFlow.AuthorizationUrl.ToString(),
+        //        RefreshUrl = openApiFlow.RefreshUrl.ToString(),
+        //        TokenUrl = openApiFlow.TokenUrl.ToString(),
+        //        Scopes = openApiFlow.Scopes.Select(scope => new SecurityScopeEntity { Name = scope.Key, Description = scope.Value }).ToList()
+        //    };
+        //}
 
         public static PropertyTypeEntity ParseOpenApiSchema(string schemaName, OpenApiSchema openApiSchema, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
@@ -555,7 +322,7 @@
                         OpenApiReference reference = null;
                         SetExtractedSchemas(schemaName, openApiSchema.AdditionalProperties, transformModel, needExtractedSchemas, ref reference);
 
-                        if(reference != null)
+                        if (reference != null)
                         {
                             type.ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Schemas.ToString(), reference.Id);
                         }
@@ -701,7 +468,7 @@
         {
             if (schemas?.Count < 1) return null;
 
-            if(schemas?.Count > 1 && schemas.Any(schema => schema.Reference == null && schema.Properties?.Count > 0))
+            if (schemas?.Count > 1 && schemas.Any(schema => schema.Reference == null && schema.Properties?.Count > 0))
             {
                 Console.WriteLine($"Please move schema definition in property \"{propertyName}\" to schema components in file {transformModel.SourceFilePath}");
                 return null;
@@ -741,7 +508,6 @@
                 needExtractedSchemas.Add(extractedName, schema);
                 reference = new OpenApiReference { Id = extractedName };
             }
-
         }
 
     }

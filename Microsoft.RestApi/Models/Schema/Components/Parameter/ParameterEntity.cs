@@ -11,6 +11,9 @@
         [YamlMember(Alias = "in")]
         public string In { get; set; }
 
+        [YamlMember(Alias = "link")]
+        public string Link { get; set; }
+
         [YamlMember(Alias = "examples")]
         public List<ExampleEntity> Examples { get; set; }
     }
