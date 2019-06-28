@@ -49,7 +49,7 @@
         public virtual void Process()
         {
             var targetApiDir = SplitHelper.GetOutputDirectory(OutputDir);
-            if(Directory.Exists(targetApiDir))
+            if (Directory.Exists(targetApiDir))
             {
                 Directory.Delete(targetApiDir, true);
             }
@@ -100,7 +100,7 @@
             var operationGroups = splitSwaggerResult.OperationGroups;
             var componentGroups = splitSwaggerResult.ComponentGroups;
             var serviceName = operationGroups != null ? operationGroups.First().Service :
-                componentGroups != null ? componentGroups.First().Service 
+                componentGroups != null ? componentGroups.First().Service
                 : null;
             var servicePath = Path.Combine(targetApiVersionDir, serviceName);
             if (!Directory.Exists(servicePath))
@@ -203,23 +203,19 @@
 
                 foreach (var component in cpGroup.Components)
                 {
-                    try
-                    {
-                        componnentGroup[component.Name] = new RestTocGroup { Name = component.Name, Id = component.Id };
-                    }
-                    catch
-                    {
-
-                    }
+                    componnentGroup[component.Name] = new RestTocGroup { Name = component.Name, Id = component.Id };
                 }
             }
 
             if (splitSwaggerResult.OperationGroups != null)
             {
+                var operationGroups = new RestTocGroup { Name = "Operations" };
+                serviceGroup[operationGroups.Name] = operationGroups;
+
                 foreach (var opGroup in splitSwaggerResult.OperationGroups)
                 {
                     var operationGroup = new RestTocGroup { Name = opGroup.Name, Id = opGroup.Id };
-                    serviceGroup[operationGroup.Name] = operationGroup;
+                    operationGroups[operationGroup.Name] = operationGroup;
                     foreach (var operation in opGroup.Operations)
                     {
                         operationGroup[operation.Name] = new RestTocGroup { Name = operation.Name, Id = operation.Id };
@@ -370,8 +366,8 @@
 
             return new SplitSwaggerResult
             {
-                ComponentGroups = componentGroupDictionary.Any()? componentGroupDictionary.Values.ToList() : null,
-                OperationGroups = operationGroupDictionary.Any()? operationGroupDictionary.Values.ToList() : null
+                ComponentGroups = componentGroupDictionary.Any() ? componentGroupDictionary.Values.ToList() : null,
+                OperationGroups = operationGroupDictionary.Any() ? operationGroupDictionary.Values.ToList() : null
             };
         }
 
@@ -406,9 +402,9 @@
 
         private List<OperationGroupEntity> SplitSwaggerByTag(
             string sourceFilePath,
-            OpenApiDocument openApiDoc, 
-            string serviceName, 
-            OperationGroupMapping operationGroupMapping, 
+            OpenApiDocument openApiDoc,
+            string serviceName,
+            OperationGroupMapping operationGroupMapping,
             MappingFile mappingFile,
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas,
             ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks)
@@ -458,18 +454,18 @@
                 .Where(operation => operation != null)
                 .ToDictionary(key => key.OriginalOperationId, value => value);
 
-            foreach(var linkObjectKeyValue in linkObjects)
+            foreach (var linkObjectKeyValue in linkObjects)
             {
-                foreach(var linkObject in linkObjectKeyValue.Value)
+                foreach (var linkObject in linkObjectKeyValue.Value)
                 {
                     var linkOperationId = linkObject.OperationId;
-                    if(operations.ContainsKey(linkOperationId))
+                    if (operations.ContainsKey(linkOperationId))
                     {
                         var linkedOperation = operations[linkOperationId];
 
                         if (linkObject.Parameters?.Count > 0 && linkedOperation.Parameters?.Count > 0)
                         {
-                            foreach(var parameter in linkObject.Parameters)
+                            foreach (var parameter in linkObject.Parameters)
                             {
                                 var linkedParameter = linkedOperation.Parameters.FirstOrDefault(p => p.Name == parameter.Key);
 
@@ -492,14 +488,14 @@
                                 OperationId = linkObjectKeyValue.Key
                             };
                         }
-                    }                    
+                    }
                 }
             }
         }
 
         private List<OperationV3Entity> GetTransformerdOperations(
-            FilteredOpenApiPath filteredOpenApiPath, 
-            TransformModel operationGroup, 
+            FilteredOpenApiPath filteredOpenApiPath,
+            TransformModel operationGroup,
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas,
             ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks,
             ref Dictionary<string, List<OpenApiLink>> linkObjects)
@@ -522,7 +518,7 @@
         {
             if (openApiDoc.Components == null) return null;
             var componentGroups = new List<ComponentGroupEntity>();
-            
+
             if (needExtractedCallbacks != null && needExtractedCallbacks.Any())
             {
                 componentGroups.Add(GetTransformerdCallbackGroup(sourceFilePath, openApiDoc, needExtractedCallbacks, serviceName, ref needExtractedSchemas));
