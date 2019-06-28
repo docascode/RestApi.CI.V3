@@ -5,7 +5,10 @@
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Models;
     using Microsoft.OpenApi.Any;
+    using Microsoft.OpenApi.Expressions;
+    using Microsoft.OpenApi.Writers;
     using System.Linq;
+    using System.IO;
     using System;
     using Newtonsoft.Json;
 
@@ -13,25 +16,25 @@
     {
         public static OperationV3Entity Transform(
             TransformModel transformModel,
-            ref Dictionary<string, OpenApiSchema> needExtractedSchemas, 
-            ref List<OpenApiOperation> needExtractedCallbacks)
+            ref Dictionary<string, OpenApiSchema> needExtractedSchemas,
+            ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks)
         {
             var allParameters = TransformParameters(transformModel,
                 GetRawParameters(transformModel),
                 ref needExtractedSchemas);
 
-            var allResponses = TransformResponses(transformModel, 
+            var allResponses = TransformResponses(transformModel,
                 transformModel.Operation.Value?.Responses?.ToDictionary(k => k.Key, v => v.Value),
                 ref needExtractedSchemas);
 
-            var requestBody = TransformRequestBody(transformModel, 
+            var requestBody = TransformRequestBody(transformModel,
                 transformModel.Operation.Value.RequestBody,
                 ref needExtractedSchemas);
-            
+
             return new OperationV3Entity
             {
                 Id = transformModel.OperationId,
-                Callbacks = null,
+                Callbacks = TransformCallbacks(transformModel, transformModel.Operation.Value.Callbacks, ref needExtractedCallbacks),
                 Name = transformModel.OperationName,
                 Service = transformModel.ServiceName,
                 GroupName = transformModel.OperationGroupName,
@@ -49,40 +52,74 @@
                 SeeAlso = TransformExternalDocs(transformModel.Operation.Value)
             };
         }
-        private static List<ExampleEntity> TransformExamples(TransformModel transformModel, IDictionary<string, OpenApiExample> examples, bool isComponent = false)
+
+        private static List<ExampleEntity> TransformExamples(TransformModel transformModel, IDictionary<string, OpenApiExample> examples)
         {
             if (examples == null || !examples.Any()) return null;
             var exampleEntities = new List<ExampleEntity>();
             foreach (var example in examples)
             {
-                ExampleEntity exampleEntity;
-                if (example.Value.Reference != null && !isComponent)
+                using (var stringWriter = new StringWriter())
                 {
-                    exampleEntity = new ExampleEntity
-                    {
-                        ReferenceTo = Utility.GetId(transformModel.ServiceName, ComponentGroup.Examples.ToString(), example.Value.Reference.Id)
-                    };
-                }
-                else
-                {
-                    exampleEntity = new ExampleEntity
+                    var openapiWriter = new OpenApiJsonWriter(stringWriter);
+                    example.Value.Value.Write(openapiWriter);
+                    exampleEntities.Add(new ExampleEntity
                     {
                         Name = example.Key,
-                        Value = JsonConvert.SerializeObject(example.Value.Value),
+                        Value = stringWriter.ToString(),
                         Description = example.Value.Description
-                    };
+                    });
                 }
-
-                if (isComponent)
-                {
-                    exampleEntity.Service = transformModel.ServiceName;
-                    exampleEntity.Id = Utility.GetId(transformModel.ServiceName, ComponentGroup.Examples.ToString(), example.Key);
-                    exampleEntity.ApiVersion = transformModel.OpenApiDoc.Info.Version;
-                }
-
-                exampleEntities.Add(exampleEntity);
             }
             return exampleEntities;
+        }
+
+        private static List<CallbackEntity> TransformCallbacks(
+            TransformModel transformModel,
+            IDictionary<string, OpenApiCallback> callbacks,
+            ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks)
+        {
+            if (callbacks == null || !callbacks.Any())
+            {
+                return null;
+            }
+            
+            if (needExtractedCallbacks == null)
+            {
+                needExtractedCallbacks = new Dictionary<string, OpenApiPathItem>();
+            }
+
+            var callbackEntities = new List<CallbackEntity>();
+            foreach (var callback in callbacks)
+            {
+                var callbackEntity = new CallbackEntity { Name = callback.Key, CallbackOperations = new List<string>() };
+                var callbackBaseId = callback.Value.Reference != null ? callback.Value.Reference.Id : transformModel.Operation.Value.OperationId + callback.Key;
+                //var baseId = Utility.GetId(transformModel.ServiceName, ComponentGroup.Callbacks.ToString(), callbackId);
+                if (callback.Value.PathItems?.Count > 0)
+                {
+                    foreach(var pathItem in callback.Value.PathItems)
+                    {
+                        needExtractedCallbacks[pathItem.Key.Expression] = pathItem.Value;
+
+                        var pathBaseId = callbackBaseId + pathItem.Key;
+                        if (pathItem.Value.Operations?.Count > 0)
+                        {
+                            foreach(var operation in pathItem.Value.Operations)
+                            {
+                                if (string.IsNullOrEmpty(operation.Value.OperationId))
+                                {
+                                    operation.Value.OperationId = operation.Key + pathBaseId;
+                                }
+
+                                callbackEntity.CallbackOperations.Add(Utility.GetId(transformModel.ServiceName, ComponentGroup.Callbacks.ToString(), operation.Value.OperationId));
+                            }
+                        }
+                    }
+                }
+                callbackEntities.Add(callbackEntity);
+            }
+
+            return callbackEntities;
         }
 
         private static RequestBodyEntity TransformRequestBody(
@@ -354,7 +391,7 @@
 
         private static IList<OpenApiServer> GetRawServers(TransformModel transformModel)
         {
-            if(transformModel.Operation.Value.Servers != null && transformModel.Operation.Value.Servers.Any())
+            if (transformModel.Operation.Value.Servers != null && transformModel.Operation.Value.Servers.Any())
             {
                 return transformModel.Operation.Value.Servers;
             }
@@ -553,7 +590,7 @@
             foreach (var scopeName in scopeNames)
             {
                 var flowScope = openApiOAuthFlow.Scopes.SingleOrDefault(s => s.Key.Equals(scopeName));
-                if(flowScope.Value != null)
+                if (flowScope.Value != null)
                 {
                     var scope = new SecurityScopeEntity
                     {

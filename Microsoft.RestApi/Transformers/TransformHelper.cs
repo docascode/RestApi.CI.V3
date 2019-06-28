@@ -300,6 +300,42 @@
         //    };
         //}
 
+        public static IEnumerable<OperationV3Entity> TransformCallbacks(TransformModel componentGroup, OpenApiDocument openApiDoc, Dictionary<string, OpenApiPathItem> needExtractedCallbacks, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        {
+            var operations = new List<OperationV3Entity>();
+            foreach (var pathItem in needExtractedCallbacks)
+            {
+                foreach (var operation in pathItem.Value.Operations)
+                {
+                    var operationName = GetOperationName(operation.Value.OperationId);
+                    componentGroup.ServiceName = componentGroup.ServiceName;
+                    componentGroup.OperationId = Utility.GetId(componentGroup.ServiceName, componentGroup.ComponentGroupName, operation.Value.OperationId);
+                    componentGroup.OperationName = Utility.ExtractPascalNameByRegex(operationName);
+                    componentGroup.Operation = operation;
+                    componentGroup.OpenApiPath = pathItem;
+
+                    var ignoredCallbacks = new Dictionary<string, OpenApiPathItem>();
+                    operations.Add(RestOperationTransformer.Transform(componentGroup, ref needExtractedSchemas, ref ignoredCallbacks));
+                }
+            }
+            return operations;
+        }
+
+        public static string GetOperationName(string operationName)
+        {
+            operationName = operationName.Replace('/', '.').Replace('\\', '.');
+
+            if (operationName.Contains('-'))
+            {
+                operationName = operationName.Split('-').Last();
+            }
+            if (operationName.Contains('.'))
+            {
+                operationName = operationName.Split('.').Last();
+            }
+            return operationName.FirstLetterToLower(); ;
+        }
+
         public static PropertyTypeEntity ParseOpenApiSchema(string schemaName, OpenApiSchema openApiSchema, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
             var type = new PropertyTypeEntity();
@@ -509,6 +545,5 @@
                 reference = new OpenApiReference { Id = extractedName };
             }
         }
-
     }
 }

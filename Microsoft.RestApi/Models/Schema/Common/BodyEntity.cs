@@ -6,9 +6,6 @@
 
     public class BodyEntity
     {
-        [YamlMember(Alias = "description")]
-        public string Description { get; set; }
-
         [YamlMember(Alias = "examples")]
         public List<ExampleEntity> Examples { get; set; }
 
