@@ -9,7 +9,9 @@
 
     public static class TransformHelper
     {
+        public static IList<string> Errors = new List<string>();
         private static HashSet<string> PrimitiveTypes = new HashSet<string> { "integer", "number", "string", "boolean" };
+
         public static string GetOperationSummary(string summary, string description)
         {
             var content = summary;
@@ -150,7 +152,7 @@
                 {
                     if (schemaNames.Contains(schema.Key))
                     {
-                        Console.WriteLine($"Please move schema definition in property \"{GetRawPropertyName(schema.Key)}\" to schema components in file {transformModel.SourceFilePath}");
+                        Errors.Add($"Please move schema definition in property \"{GetRawPropertyName(schema.Key)}\" to schema components in file {transformModel.SourceFilePath}");
                     }
                     else
                     {
@@ -262,7 +264,7 @@
                         var extractedName = GetExtractedName(schemaName);
                         if (needExtractedSchemas.ContainsKey(extractedName))
                         {
-                            Console.WriteLine($"Please move schema definition in property \"{schemaName}\" to schema components in file {transformModel.SourceFilePath}");
+                            Errors.Add($"Please move schema definition in property \"{schemaName}\" to schema components in file {transformModel.SourceFilePath}");
                         }
                         else
                         {
@@ -363,7 +365,7 @@
 
             if (schemas?.Count > 1 && schemas.Any(schema => schema.Reference == null && schema.Properties?.Count > 0))
             {
-                Console.WriteLine($"Please move schema definition in property \"{propertyName}\" to schema components in file {transformModel.SourceFilePath}");
+                Errors.Add($"Please move schema definition in property \"{propertyName}\" to schema components in file {transformModel.SourceFilePath}");
                 return null;
             }
 
@@ -394,7 +396,7 @@
             var extractedName = GetExtractedName(propertyName);
             if (needExtractedSchemas.ContainsKey(extractedName))
             {
-                Console.WriteLine($"Please move schema definition in property \"{propertyName}\" to schema components in file {transformModel.SourceFilePath}");
+                Errors.Add($"Please move schema definition in property \"{propertyName}\" to schema components in file {transformModel.SourceFilePath}");
             }
             else
             {

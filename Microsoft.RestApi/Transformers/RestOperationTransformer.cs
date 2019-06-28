@@ -422,21 +422,6 @@
             return transformModel.OpenApiDoc.Servers;
         }
 
-        public static bool IsFunctionOrAction(OpenApiOperation openApiOperation)
-        {
-            if (openApiOperation.Extensions.TryGetValue("x-ms-docs-operation-type", out var openApiString))
-            {
-                if (openApiString is OpenApiString stringValue)
-                {
-                    if (!string.Equals(stringValue.Value, "operation", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
         private static List<PathEntity> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, IList<ParameterEntity> parameters)
         {
             var pathEntities = new List<PathEntity>();
@@ -494,26 +479,6 @@
             return string.Join("&", queries);
         }
 
-        public static IList<string> GetGroupedPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, OpenApiOperation openApiOperation)
-        {
-            var paths = new List<string>();
-
-            if (defaultOpenApiPathItem.Value.Extensions.TryGetValue("x-ms-docs-grouped-path", out var openApiArrayAdditionalPaths))
-            {
-                if (openApiArrayAdditionalPaths is OpenApiArray additionalPaths)
-                {
-                    foreach (var additionalPath in additionalPaths)
-                    {
-                        if (additionalPath is OpenApiString pathStringValue)
-                        {
-                            paths.Add(pathStringValue.Value);
-                        }
-                    }
-                }
-            }
-            return paths;
-        }
-
         public static IList<SecurityEntity> TransformSecurity(IList<OpenApiSecurityRequirement> openApiSecurityRequirements)
         {
             var securities = new List<SecurityEntity>();
@@ -567,37 +532,6 @@
             {
                 seealsos.Add($"[{openApiOperation.ExternalDocs.Description}]({openApiOperation.ExternalDocs.Url.ToString()})");
             }
-
-            //if (openApiOperation.Extensions.TryGetValue("x-ms-seeAlso", out var openApiSeeAlsos))
-            //{
-            //    if (openApiSeeAlsos is OpenApiArray seeAlsos)
-            //    {
-            //        foreach (var seeAlso in seeAlsos)
-            //        {
-            //            if (seeAlso is OpenApiObject seeAlsoObject)
-            //            {
-            //                var seeAlsoEntity = new SeeAlsoEntity();
-            //                if (seeAlsoObject.TryGetValue("description", out var description))
-            //                {
-            //                    if (description is OpenApiString descriptionStringValue)
-            //                    {
-            //                        seeAlsoEntity.Description = descriptionStringValue.Value;
-            //                    }
-            //                }
-
-            //                if (seeAlsoObject.TryGetValue("url", out var url))
-            //                {
-            //                    if (url is OpenApiString urlStringValue)
-            //                    {
-            //                        seeAlsoEntity.Url = urlStringValue.Value;
-            //                    }
-            //                }
-
-            //                seeAlsoEntities.Add(seeAlsoEntity);
-            //            }
-            //        }
-            //    }
-            //}
 
             return seealsos;
         }

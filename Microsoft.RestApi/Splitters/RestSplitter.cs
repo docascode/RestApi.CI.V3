@@ -24,7 +24,7 @@
         public string TargetRootDir { get; }
         public string OutputDir { get; }
         public MappingFile MappingFile { get; }
-        public IList<string> Errors { get; set; }
+        public List<string> Errors { get; set; }
 
         public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir)
         {
@@ -46,13 +46,14 @@
             MappingFile = JsonUtility.ReadFromFile<MappingFile>(mappingFilePath).SortMappingFile();
         }
 
-        public virtual void Process()
+        public void Process()
         {
             var targetApiDir = SplitHelper.GetOutputDirectory(OutputDir);
             if (Directory.Exists(targetApiDir))
             {
                 Directory.Delete(targetApiDir, true);
             }
+
             if (MappingFile.VersionList?.Count > 0)
             {
                 Console.WriteLine($"Found version list : {string.Join(",", MappingFile.VersionList)}");
@@ -82,6 +83,7 @@
                 WriteToc(targetApiDir, rootGroup);
             }
 
+            Errors.AddRange(TransformHelper.Errors);
             PrintAndClearError();
             Console.WriteLine("Done!");
         }

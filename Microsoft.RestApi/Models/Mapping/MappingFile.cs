@@ -11,8 +11,14 @@
         [JsonProperty("product")]
         public string Product { get; set; }
 
+        [JsonProperty("apis_page_options")]
+        public ApisPageOptions ApisPageOptions { get; set; }
+
         [JsonProperty("enable_markdown_fragment")]
         public bool EnableMarkdownFragment { get; set; }
+
+        [JsonProperty("use_service_url_group")]
+        public bool UseServiceUrlGroup { get; set; } = true;
 
         [JsonProperty("temp_target_api_root_dir")]
         public string TempTargetApiRootDir { get; set; }

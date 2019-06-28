@@ -18,6 +18,11 @@
                 var restSplitter = new RestSplitter(args[0], args[1], args[2], args[3]);
                 restSplitter.Process();
 
+                if (restSplitter.Errors.Count > 0)
+                {
+                    return 1;
+                }
+
                 return 0;
             }
             catch (Exception ex)
