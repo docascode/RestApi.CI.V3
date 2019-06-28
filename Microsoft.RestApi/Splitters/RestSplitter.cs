@@ -159,23 +159,8 @@
                     case "Schemas":
                         schema = "RESTTypeV3";
                         break;
-                    case "Responses":
-                        schema = "RESTResponseV3";
-                        break;
-                    case "Parameters":
-                        schema = "RESTParameterV3";
-                        break;
-                    case "Examples":
-                        schema = "RESTExampleV3";
-                        break;
-                    case "RequestBodies":
-                        schema = "RESTRequestBodyV3";
-                        break;
-                    case "ReponseHeaders":
-                        schema = "RESTResponseHeaderV3";
-                        break;
-                    case "Securities":
-                        schema = "RESTSecurityV3";
+                    case "Callbacks":
+                        schema = "RESTOperationV3";
                         break;
                     default:
                         schema = string.Empty;
@@ -483,8 +468,9 @@
             ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks)
         {
             openApiDoc = SplitHelper.AggregateOpenApiTagsFromPaths(openApiDoc);
-
             var operationGroups = new List<OperationGroupEntity>();
+            var linkObjects = new Dictionary<string, List<OpenApiLink>>();
+
             foreach (var tag in openApiDoc.Tags)
             {
                 var filteredOpenApiPath = SplitHelper.FindOperationsByTag(openApiDoc.Paths, tag);
@@ -506,18 +492,69 @@
                         OperationGroupId = Utility.GetId(serviceName, groupName, null)
                     };
                     var operationGroup = RestOperationGroupTransformer.Transform(model);
-                    operationGroup.Operations = GetTransformerdOperations(filteredOpenApiPath, model, ref needExtractedSchemas, ref needExtractedCallbacks);
+                    operationGroup.Operations = GetTransformerdOperations(filteredOpenApiPath, model, ref needExtractedSchemas, ref needExtractedCallbacks, ref linkObjects);
                     operationGroups.Add(operationGroup);
                 }
             }
+
+            // Update linkObjects
+            UpdateLinkObjects(operationGroups, linkObjects);
             return operationGroups;
+        }
+
+        private void UpdateLinkObjects(List<OperationGroupEntity> operationGroups, Dictionary<string, List<OpenApiLink>> linkObjects)
+        {
+            if (operationGroups?.Count == 0 || linkObjects?.Count == 0) return;
+
+            var operations = operationGroups.SelectMany(og => og.Operations)
+                .Where(operation => operation != null)
+                .ToDictionary(key => key.OriginalOperationId, value => value);
+
+            foreach(var linkObjectKeyValue in linkObjects)
+            {
+                foreach(var linkObject in linkObjectKeyValue.Value)
+                {
+                    var linkOperationId = linkObject.OperationId;
+                    if(operations.ContainsKey(linkOperationId))
+                    {
+                        var linkedOperation = operations[linkOperationId];
+
+                        if (linkObject.Parameters?.Count > 0 && linkedOperation.Parameters?.Count > 0)
+                        {
+                            foreach(var parameter in linkObject.Parameters)
+                            {
+                                var linkedParameter = linkedOperation.Parameters.FirstOrDefault(p => p.Name == parameter.Key);
+
+                                if (linkedParameter != null && linkedParameter.Link == null)
+                                {
+                                    linkedParameter.Link = new LinkEntity
+                                    {
+                                        OperationId = linkObjectKeyValue.Key,
+                                        LinkedProperty = parameter.Value.Expression.Expression
+                                    };
+                                }
+                            }
+                        }
+
+                        if (linkObject.RequestBody != null && linkedOperation.RequestBody.Link == null)
+                        {
+                            linkedOperation.RequestBody.Link = new LinkEntity
+                            {
+                                LinkedProperty = linkObject.RequestBody.Expression.Expression,
+                                OperationId = linkObjectKeyValue.Key
+                            };
+                        }
+                    }                    
+                }
+            }
         }
 
         private List<OperationV3Entity> GetTransformerdOperations(
             FilteredOpenApiPath filteredOpenApiPath, 
             TransformModel operationGroup, 
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas,
-            ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks)
+            ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks,
+            ref Dictionary<string, List<OpenApiLink>> linkObjects)
         {
             var operations = new List<OperationV3Entity>();
             foreach (var operation in filteredOpenApiPath.Operations)
@@ -528,7 +565,7 @@
                 operationGroup.OperationName = Utility.ExtractPascalNameByRegex(operationName);
                 operationGroup.Operation = operation.Operation;
                 operationGroup.OpenApiPath = operation.OpenApiPath;
-                operations.Add(RestOperationTransformer.Transform(operationGroup, ref needExtractedSchemas, ref needExtractedCallbacks));
+                operations.Add(RestOperationTransformer.Transform(operationGroup, ref needExtractedSchemas, ref needExtractedCallbacks, ref linkObjects));
             }
             return operations;
         }

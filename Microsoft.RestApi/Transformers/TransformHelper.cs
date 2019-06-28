@@ -315,7 +315,8 @@
                     componentGroup.OpenApiPath = pathItem;
 
                     var ignoredCallbacks = new Dictionary<string, OpenApiPathItem>();
-                    operations.Add(RestOperationTransformer.Transform(componentGroup, ref needExtractedSchemas, ref ignoredCallbacks));
+                    var ignoredLinkObjects = new Dictionary<string, List<OpenApiLink>>();
+                    operations.Add(RestOperationTransformer.Transform(componentGroup, ref needExtractedSchemas, ref ignoredCallbacks, ref ignoredLinkObjects));
                 }
             }
             return operations;

@@ -6,6 +6,9 @@
 
     public class OperationV3Entity: NamedEntity
     {
+        [YamlIgnore]
+        public string OriginalOperationId { get; set; }
+
         [YamlMember(Alias = "callbacks")]
         public List<CallbackEntity> Callbacks { get; set; }
 

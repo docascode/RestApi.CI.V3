@@ -17,7 +17,8 @@
         public static OperationV3Entity Transform(
             TransformModel transformModel,
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas,
-            ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks)
+            ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks,
+            ref Dictionary<string, List<OpenApiLink>> linkObjects)
         {
             var allParameters = TransformParameters(transformModel,
                 GetRawParameters(transformModel),
@@ -25,7 +26,8 @@
 
             var allResponses = TransformResponses(transformModel,
                 transformModel.Operation.Value?.Responses?.ToDictionary(k => k.Key, v => v.Value),
-                ref needExtractedSchemas);
+                ref needExtractedSchemas,
+                ref linkObjects);
 
             var requestBody = TransformRequestBody(transformModel,
                 transformModel.Operation.Value.RequestBody,
@@ -34,6 +36,7 @@
             return new OperationV3Entity
             {
                 Id = transformModel.OperationId,
+                OriginalOperationId = transformModel.Operation.Value.OperationId,
                 Callbacks = TransformCallbacks(transformModel, transformModel.Operation.Value.Callbacks, ref needExtractedCallbacks),
                 Name = transformModel.OperationName,
                 Service = transformModel.ServiceName,
@@ -155,7 +158,8 @@
         public static List<ResponseEntity> TransformResponses(
             TransformModel transformModel,
             IDictionary<string, OpenApiResponse> responses,
-            ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+            ref Dictionary<string, OpenApiSchema> needExtractedSchemas,
+            ref Dictionary<string, List<OpenApiLink>> linkObjects)
         {
             if (responses == null || !responses.Any()) return null;
 
@@ -173,6 +177,20 @@
                 if (openApiResponse.Value.Headers != null && openApiResponse.Value.Headers.Any())
                 {
                     responseEntity.Headers = TransformResponseHeaders(transformModel, openApiResponse.Value.Headers, ref needExtractedSchemas);
+                }
+
+                if(openApiResponse.Value.Links?.Count > 0)
+                {
+                    if (linkObjects == null)
+                    {
+                        linkObjects = new Dictionary<string, List<OpenApiLink>>();
+                    }
+
+                    var internalLinks = openApiResponse.Value.Links.Values.Where(l => !string.IsNullOrEmpty(l.OperationId)).ToList();
+                    if (internalLinks.Any())
+                    {
+                        linkObjects[transformModel.OperationId] = internalLinks;
+                    }
                 }
 
                 foreach (var responseContent in openApiResponse.Value.Content)

@@ -11,8 +11,11 @@
         [YamlMember(Alias = "in")]
         public string In { get; set; }
 
+        /// <summary>
+        /// Get this parameter from this operationId
+        /// </summary>
         [YamlMember(Alias = "link")]
-        public string Link { get; set; }
+        public LinkEntity Link { get; set; }
 
         [YamlMember(Alias = "examples")]
         public List<ExampleEntity> Examples { get; set; }
