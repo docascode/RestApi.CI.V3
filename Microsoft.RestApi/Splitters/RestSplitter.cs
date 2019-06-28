@@ -24,7 +24,6 @@
         public string TargetRootDir { get; }
         public string OutputDir { get; }
         public MappingFile MappingFile { get; }
-
         public IList<string> Errors { get; set; }
 
         public RestSplitter(string sourceRootDir, string targetRootDir, string mappingFilePath, string outputDir)
@@ -310,54 +309,6 @@
             return rootGroup;
         }
 
-        //private void ResolveRelationships(SplitSwaggerResult splitResult)
-        //{
-        //    Console.WriteLine("starting to resolve relationships");
-        //    foreach (var operationGroup in splitResult.OperationGroups)
-        //    {
-        //        foreach(var operation in operationGroup.Operations)
-        //        {
-        //            if (operation.Responses?.Count > 0)
-        //            {
-        //                foreach(var response in operation.Responses)
-        //                {
-        //                    if (response.ResponseLinks?.Count > 0)
-        //                    {
-        //                        foreach (var link in response.ResponseLinks)
-        //                        {
-        //                            var foundOperation = FindOperation(splitResult, link.OperationId);
-        //                            if (foundOperation != null)
-        //                            {
-        //                                link.OperationId = foundOperation.Id;
-        //                            }
-        //                            else
-        //                            {
-        //                                Console.WriteLine($"can not resolve relationship of operation id: {link.OperationId}");
-        //                            }
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //    Console.WriteLine("finished to resolve relationships");
-        //}
-
-        //private OperationEntity FindOperation(SplitSwaggerResult splitResult, string internalOpeartionId)
-        //{
-        //    foreach (var operationGroup in splitResult.OperationGroups)
-        //    {
-        //        foreach (var operation in operationGroup.Operations)
-        //        {
-        //            if (string.Equals(operation.InternalOpeartionId, internalOpeartionId, StringComparison.OrdinalIgnoreCase))
-        //            {
-        //                return operation;
-        //            }
-        //        }
-        //    }
-        //    return null;
-        //}
-
         private RestTocGroup SplitSwaggers(string targetApiDir, ServiceInfo service)
         {
             var serviceGroup = new RestTocGroup { Name = service.TocFile };
@@ -374,8 +325,6 @@
                 string subGroupName = swagger.SubGroupTocTitle ?? string.Empty;
                 splitResults.Add(SplitSwagger(sourceFile, service.UrlGroup, swagger.OperationGroupMapping, MappingFile));
                 Console.WriteLine($"finished to split swagger: {sourceFile}");
-
-                //ResolveRelationships(splitResult);
             }
 
             GenerateTocAndYamls(targetApiDir, MergeResults(splitResults), serviceGroup);
@@ -448,18 +397,15 @@
 
                 var needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
                 var needExtractedCallbacks = new Dictionary<string, OpenApiPathItem>();
-                splitSwaggerResult.OperationGroups = SplitSwaggerByTag(openApiDoc, serviceName, operationGroupMapping, mappingFile, ref needExtractedSchemas, ref needExtractedCallbacks);
-                splitSwaggerResult.ComponentGroups = GetTransformerdComponentGroups(openApiDoc, serviceName, needExtractedCallbacks, ref needExtractedSchemas);
+
+                splitSwaggerResult.OperationGroups = SplitSwaggerByTag(sourceFilePath, openApiDoc, serviceName, operationGroupMapping, mappingFile, ref needExtractedSchemas, ref needExtractedCallbacks);
+                splitSwaggerResult.ComponentGroups = GetTransformerdComponentGroups(sourceFilePath, openApiDoc, serviceName, needExtractedCallbacks, ref needExtractedSchemas);
             }
             return splitSwaggerResult;
         }
 
-        public virtual string GetOperationGroupName(string operationGroupName, string operationId)
-        {
-            return operationGroupName;
-        }
-
         private List<OperationGroupEntity> SplitSwaggerByTag(
+            string sourceFilePath,
             OpenApiDocument openApiDoc, 
             string serviceName, 
             OperationGroupMapping operationGroupMapping, 
@@ -482,14 +428,16 @@
                         newTagName = foundTagName;
                     }
                     var groupName = string.IsNullOrEmpty(mappingFile.TagSeparator) ? newTagName : newTagName.Replace(mappingFile.TagSeparator, ".");
-
+                    var sourceFileName = Path.GetFileNameWithoutExtension(sourceFilePath);
                     var model = new TransformModel
                     {
+                        SourceFilePath = sourceFilePath,
+                        SourceFileName = sourceFileName,
                         OpenApiDoc = openApiDoc,
                         OpenApiTag = tag,
                         ServiceName = serviceName,
                         OperationGroupName = groupName,
-                        OperationGroupId = Utility.GetId(serviceName, groupName, null)
+                        OperationGroupId = Utility.GetId(serviceName, sourceFileName, groupName, null)
                     };
                     var operationGroup = RestOperationGroupTransformer.Transform(model);
                     operationGroup.Operations = GetTransformerdOperations(filteredOpenApiPath, model, ref needExtractedSchemas, ref needExtractedCallbacks, ref linkObjects);
@@ -561,7 +509,7 @@
             {
                 var operationName = TransformHelper.GetOperationName(operation.Operation.Value.OperationId);
                 operationGroup.ServiceName = operationGroup.ServiceName;
-                operationGroup.OperationId = Utility.GetId(operationGroup.ServiceName, operationGroup.OperationGroupName, operation.Operation.Value.OperationId);
+                operationGroup.OperationId = Utility.GetId(operationGroup.ServiceName, operationGroup.SourceFileName, operationGroup.OperationGroupName, operation.Operation.Value.OperationId);
                 operationGroup.OperationName = Utility.ExtractPascalNameByRegex(operationName);
                 operationGroup.Operation = operation.Operation;
                 operationGroup.OpenApiPath = operation.OpenApiPath;
@@ -570,34 +518,37 @@
             return operations;
         }
 
-        private List<ComponentGroupEntity> GetTransformerdComponentGroups(OpenApiDocument openApiDoc, string serviceName, Dictionary<string, OpenApiPathItem> needExtractedCallbacks, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        private List<ComponentGroupEntity> GetTransformerdComponentGroups(string sourceFilePath, OpenApiDocument openApiDoc, string serviceName, Dictionary<string, OpenApiPathItem> needExtractedCallbacks, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
         {
             if (openApiDoc.Components == null) return null;
             var componentGroups = new List<ComponentGroupEntity>();
             
             if (needExtractedCallbacks != null && needExtractedCallbacks.Any())
             {
-                componentGroups.Add(GetTransformerdCallbackGroup(openApiDoc, needExtractedCallbacks, serviceName, ref needExtractedSchemas));
+                componentGroups.Add(GetTransformerdCallbackGroup(sourceFilePath, openApiDoc, needExtractedCallbacks, serviceName, ref needExtractedSchemas));
             }
 
             if (openApiDoc.Components.Schemas != null && openApiDoc.Components.Schemas.Any())
             {
-                componentGroups.Add(GetTransformerdTypesGroup(openApiDoc, serviceName, ref needExtractedSchemas));
+                componentGroups.Add(GetTransformerdTypesGroup(sourceFilePath, openApiDoc, serviceName, ref needExtractedSchemas));
             }
 
             return componentGroups;
         }
 
-        private ComponentGroupEntity GetTransformerdCallbackGroup(OpenApiDocument openApiDoc, Dictionary<string, OpenApiPathItem> needExtractedCallbacks, string serviceName, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        private ComponentGroupEntity GetTransformerdCallbackGroup(string sourceFilePath, OpenApiDocument openApiDoc, Dictionary<string, OpenApiPathItem> needExtractedCallbacks, string serviceName, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
         {
             var componentGroupName = ComponentGroup.Callbacks.ToString();
+            var sourceFileName = Path.GetFileNameWithoutExtension(sourceFilePath);
             var model = new TransformModel
             {
+                SourceFileName = sourceFileName,
+                SourceFilePath = sourceFilePath,
                 OpenApiDoc = openApiDoc,
                 ServiceName = serviceName,
                 ComponentGroupName = componentGroupName,
-                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
-                OperationGroupId = Utility.GetId(serviceName, componentGroupName, null),
+                ComponentGroupId = Utility.GetId(serviceName, sourceFileName, componentGroupName, null),
+                OperationGroupId = Utility.GetId(serviceName, sourceFileName, componentGroupName, null),
                 OperationGroupName = componentGroupName
             };
             var componentGroup = RestComponentGroupTransformer.Transform(model);
@@ -611,36 +562,18 @@
             return componentGroup;
         }
 
-        //private ComponentGroupEntity GetTransformerdSecurityGroup(OpenApiDocument openApiDoc, string serviceName)
-        //{
-        //    var componentGroupName = ComponentGroup.Securities.ToString();
-        //    var model = new TransformModel
-        //    {
-        //        OpenApiDoc = openApiDoc,
-        //        ServiceName = serviceName,
-        //        ComponentGroupName = componentGroupName,
-        //        ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
-        //    };
-        //    var componentGroup = RestComponentGroupTransformer.Transform(model);
-        //    componentGroup.Components = new List<NamedEntity>();
-
-        //    foreach (var security in TransformHelper.TransformSecurities(model, openApiDoc.Components.SecuritySchemes))
-        //    {
-        //        componentGroup.Components.Add(security);
-        //    }
-
-        //    return componentGroup;
-        //}
-
-        private ComponentGroupEntity GetTransformerdTypesGroup(OpenApiDocument openApiDoc, string serviceName, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        private ComponentGroupEntity GetTransformerdTypesGroup(string sourceFilePath, OpenApiDocument openApiDoc, string serviceName, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
         {
             var componentGroupName = ComponentGroup.Schemas.ToString();
+            var sourceFileName = Path.GetFileNameWithoutExtension(sourceFilePath);
             var model = new TransformModel
             {
+                SourceFilePath = sourceFilePath,
+                SourceFileName = sourceFileName,
                 OpenApiDoc = openApiDoc,
                 ServiceName = serviceName,
                 ComponentGroupName = componentGroupName,
-                ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
+                ComponentGroupId = Utility.GetId(serviceName, sourceFileName, componentGroupName, null),
             };
             var componentGroup = RestComponentGroupTransformer.Transform(model);
             componentGroup.Components = new List<NamedEntity>();
@@ -651,113 +584,5 @@
 
             return componentGroup;
         }
-
-        //private ComponentGroupEntity GetTransformerdReponsesGroup(OpenApiDocument openApiDoc, string serviceName)//
-        //{
-        //    var componentGroupName = ComponentGroup.Responses.ToString();
-        //    var model = new TransformModel
-        //    {
-        //        OpenApiDoc = openApiDoc,
-        //        ServiceName = serviceName,
-        //        ComponentGroupName = componentGroupName,
-        //        ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
-        //    };
-        //    var componentGroup = RestComponentGroupTransformer.Transform(model);
-        //    componentGroup.Components = new List<NamedEntity>();
-
-        //    foreach (var response in TransformHelper.TransformResponses(model, openApiDoc.Components.Responses, true))
-        //    {
-        //        componentGroup.Components.Add(response);
-        //    }
-
-        //    return componentGroup;
-        //}
-
-        //private ComponentGroupEntity GetTransformerdRequestBodiesGroup(OpenApiDocument openApiDoc, string serviceName)
-        //{
-        //    var componentGroupName = ComponentGroup.RequestBodies.ToString();
-        //    var model = new TransformModel
-        //    {
-        //        OpenApiDoc = openApiDoc,
-        //        ServiceName = serviceName,
-        //        ComponentGroupName = componentGroupName,
-        //        ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
-        //    };
-        //    var componentGroup = RestComponentGroupTransformer.Transform(model);
-        //    componentGroup.Components = new List<NamedEntity>();
-
-        //    foreach (var requestBody in TransformHelper.TransformRequestBodies(model, openApiDoc.Components.RequestBodies, true))
-        //    {
-        //        componentGroup.Components.Add(requestBody);
-        //    }
-
-        //    return componentGroup;
-        //}
-
-        //private ComponentGroupEntity GetTransformerdParametersGroup(
-        //    OpenApiDocument openApiDoc, 
-        //    string serviceName, 
-        //    ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
-        //{
-        //    var componentGroupName = ComponentGroup.Parameters.ToString();
-        //    var model = new TransformModel
-        //    {
-        //        OpenApiDoc = openApiDoc,
-        //        ServiceName = serviceName,
-        //        ComponentGroupName = componentGroupName,
-        //        ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
-        //    };
-        //    var componentGroup = RestComponentGroupTransformer.Transform(model);
-        //    componentGroup.Components = new List<NamedEntity>();
-
-        //    foreach (var parameter in TransformHelper.TransformParameters(model, openApiDoc.Components.Parameters, ref needExtractedSchemas))
-        //    {
-        //        componentGroup.Components.Add(parameter);
-        //    }
-
-        //    return componentGroup;
-        //}
-
-        //private ComponentGroupEntity GetTransformerdResponseHeaderGroup(OpenApiDocument openApiDoc, string serviceName)
-        //{
-        //    var componentGroupName = ComponentGroup.ReponseHeaders.ToString();
-        //    var model = new TransformModel
-        //    {
-        //        OpenApiDoc = openApiDoc,
-        //        ServiceName = serviceName,
-        //        ComponentGroupName = componentGroupName,
-        //        ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
-        //    };
-        //    var componentGroup = RestComponentGroupTransformer.Transform(model);
-        //    componentGroup.Components = new List<NamedEntity>();
-
-        //    foreach (var header in TransformHelper.TransformResponseHeaders(model, openApiDoc.Components.Headers, true))
-        //    {
-        //        componentGroup.Components.Add(header);
-        //    }
-
-        //    return componentGroup;
-        //}
-
-        //private ComponentGroupEntity GetTransformerdExampleGroup(OpenApiDocument openApiDoc, string serviceName)
-        //{
-        //    var componentGroupName = ComponentGroup.Examples.ToString();
-        //    var model = new TransformModel
-        //    {
-        //        OpenApiDoc = openApiDoc,
-        //        ServiceName = serviceName,
-        //        ComponentGroupName = componentGroupName,
-        //        ComponentGroupId = Utility.GetId(serviceName, componentGroupName, null),
-        //    };
-        //    var componentGroup = RestComponentGroupTransformer.Transform(model);
-        //    componentGroup.Components = new List<NamedEntity>();
-
-        //    foreach (var example in TransformHelper.TransformExamples(model, openApiDoc.Components.Examples, true))
-        //    {
-        //        componentGroup.Components.Add(example);
-        //    }
-
-        //    return componentGroup;
-        //}
     }
 }

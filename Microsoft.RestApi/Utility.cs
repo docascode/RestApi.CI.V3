@@ -151,9 +151,9 @@
             return string.IsNullOrEmpty(path) ? string.Empty : path.Replace(" ", "").Replace("$", "").Replace("..", ".").Trim('.').ToLower();
         }
 
-        public static string GetId(string serviceName, string groupName, string operationName)
+        public static string GetId(string serviceName, string sourceFileName, string groupName, string operationName)
         {
-            var id = $"{Normalize(serviceName)}.{Normalize(groupName)}.{Normalize(operationName)}";
+            var id = $"{Normalize(serviceName)}.{Normalize(sourceFileName)}.{Normalize(groupName)}.{Normalize(operationName)}";
             return Normalize(id);
         }
 
@@ -161,12 +161,6 @@
         {
             var id = $"{groupId}.{Normalize(operationName)}";
             return Normalize(id);
-        }
-
-        public static string GetPath(string serviceName, string groupName, string operationName)
-        {
-            var id = GetId(serviceName, groupName, operationName);
-            return Path.Combine(id.Split('.'));
         }
     }
 }

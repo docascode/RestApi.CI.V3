@@ -114,7 +114,7 @@
                                     operation.Value.OperationId = operation.Key + pathBaseId;
                                 }
 
-                                callbackEntity.CallbackOperations.Add(Utility.GetId(transformModel.ServiceName, ComponentGroup.Callbacks.ToString(), operation.Value.OperationId));
+                                callbackEntity.CallbackOperations.Add(Utility.GetId(transformModel.ServiceName, transformModel.SourceFileName, ComponentGroup.Callbacks.ToString(), operation.Value.OperationId));
                             }
                         }
                     }
