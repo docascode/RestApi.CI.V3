@@ -411,7 +411,7 @@
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas,
             ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks)
         {
-            openApiDoc = SplitHelper.AggregateOpenApiTagsFromPaths(openApiDoc);
+            openApiDoc = SplitHelper.AggregateOpenApiTagsFromPaths(openApiDoc, mappingFile, sourceFilePath);
             var operationGroups = new List<OperationGroupEntity>();
             var linkObjects = new Dictionary<string, List<OpenApiLink>>();
 

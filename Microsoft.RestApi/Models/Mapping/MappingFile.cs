@@ -26,6 +26,12 @@
         [JsonProperty("target_api_root_dir")]
         public string TargetApiRootDir { get; set; }
 
+        [JsonProperty("remove_tag_from_operationId")]
+        public bool RemoveTagFromOperationId { get; set; }
+
+        [JsonProperty("is_grouped_by_tag")]
+        public bool IsGroupdedByTag { get; set; }
+
         [JsonProperty("version_list")]
         public List<string> VersionList { get; set; }
 

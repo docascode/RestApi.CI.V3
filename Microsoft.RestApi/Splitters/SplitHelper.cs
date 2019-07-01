@@ -16,7 +16,7 @@
         public static readonly string YamlExtension = ".yml";
         private static readonly Regex tocRegex = new Regex(@"^(?<headerLevel>#+)(( |\t)*)\[(?<tocTitle>.+)\]\((?<tocLink>(?!http[s]?://).*?)\)( |\t)*#*( |\t)*(\n|$)", RegexOptions.Compiled);
         public static readonly YamlSerializer YamlSerializer = new YamlSerializer();
-       
+
         // Sort by org and service name
         public static MappingFile SortMappingFile(this MappingFile mappingFile)
         {
@@ -49,33 +49,42 @@
             return outputRootDir;
         }
 
-        public static OpenApiDocument AggregateOpenApiTagsFromPaths(OpenApiDocument openApiDoc)
+        public static OpenApiDocument AggregateOpenApiTagsFromPaths(OpenApiDocument openApiDoc, MappingFile mapping, string sourceFilePath)
         {
-            var tags = new List<OpenApiTag>(openApiDoc.Tags);
+            var tags = new List<OpenApiTag>();
             foreach (var path in openApiDoc.Paths)
             {
                 if (path.Value.Operations != null)
                 {
                     foreach (var operation in path.Value.Operations)
                     {
-                        if (operation.Value.Tags != null)
+                        if (mapping.IsGroupdedByTag)
                         {
-                            // only extract the first tag
+                            if (operation.Value.Tags == null || !operation.Value.Tags.Any())
+                            {
+                                throw new Exception($"tags is null or empty for file {sourceFilePath}.");
+                            }
                             var firstTag = operation.Value.Tags?.FirstOrDefault();
-                            if (firstTag != null && !tags.Any(t => t.Name == firstTag.Name))
+
+                            if (!tags.Any(t => t.Name == firstTag.Name))
                             {
                                 tags.Add(firstTag);
                             }
-                            else
+
+                            if (mapping.RemoveTagFromOperationId && operation.Value.OperationId.StartsWith(firstTag.Name))
                             {
-                                operation.Value.Tags.Add(new OpenApiTag() { Name = operation.Value.OperationId });
-                                tags.Add(new OpenApiTag() { Name = operation.Value.OperationId });
+                                operation.Value.OperationId = operation.Value.OperationId.TrimStart(firstTag.Name.ToCharArray())
+                                    .Trim('_').Trim(' ');
                             }
                         }
                         else
                         {
-                            operation.Value.Tags = new List<OpenApiTag> { new OpenApiTag() { Name = operation.Value.OperationId } };
-                            tags.Add(new OpenApiTag() { Name = operation.Value.OperationId });
+                            var idResult = GetOperationGroupFromOperationId(operation.Value.OperationId);
+                            if(!tags.Any(t => t.Name == idResult.Item1))
+                            {
+                                tags.Add(new OpenApiTag() { Name = idResult.Item1 });
+                            }
+                            operation.Value.OperationId = idResult.Item2;
                         }
                     }
                 }
@@ -84,12 +93,27 @@
             return openApiDoc;
         }
 
+        private static Tuple<string, string> GetOperationGroupFromOperationId(string operationId)
+        {
+            var result = operationId.Split('_');
+            if (result.Length < 2)
+            {
+                // When the operation id doesn't contain '_', treat the whole operation id as Noun and Verb at the same time
+                return Tuple.Create(result[0], result[0]);
+            }
+            if (result.Length > 2)
+            {
+                throw new InvalidOperationException($"Invalid operation id: {operationId}, it should be Noun_Verb format.");
+            }
+            return Tuple.Create(result[0], result[1]);
+        }
+
         public static FilteredOpenApiPath FindOperationsByTag(OpenApiPaths openApiPaths, OpenApiTag tag)
         {
             var filteredRestPathOperation = new FilteredOpenApiPath();
             foreach (var path in openApiPaths)
             {
-                foreach(var operation in path.Value.Operations)
+                foreach (var operation in path.Value.Operations)
                 {
                     var firstTag = operation.Value.Tags?.FirstOrDefault();
                     if (firstTag != null)
