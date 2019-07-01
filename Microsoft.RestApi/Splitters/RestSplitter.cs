@@ -276,7 +276,7 @@
             var indexPath = Path.Combine(TargetRootDir, indexRelativePath);
             if (!File.Exists(indexPath))
             {
-                //throw new FileNotFoundException($"Index file '{indexPath}' not exists.");
+                throw new FileNotFoundException($"Index file '{indexPath}' not exists.");
             }
             return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
         }
