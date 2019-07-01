@@ -137,7 +137,7 @@
             foreach (var schema in schemas)
             {
                 var type = ParseOpenApiSchema(schema.Key, schema.Value, transformModel, ref needExtractedSchemas, isComponent);
-                type.Id = Utility.GetId(transformModel.ServiceName, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), schema.Key);
+                type.Id = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), schema.Key);
                 type.Name = schema.Key;
                 types.Add(type);
 
@@ -157,7 +157,7 @@
                     else
                     {
                         var type = ParseOpenApiSchema(schema.Key, schema.Value, transformModel, ref needExtractedSchemas, isComponent);
-                        type.Id = Utility.GetId(transformModel.ServiceName, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), schema.Key);
+                        type.Id = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), schema.Key);
                         type.Name = schema.Key;
                         types.Add(type);
                     }
@@ -177,10 +177,9 @@
             {
                 foreach (var operation in pathItem.Value.Operations)
                 {
-                    var operationName = GetOperationName(operation.Value.OperationId);
                     componentGroup.ServiceName = componentGroup.ServiceName;
-                    componentGroup.OperationId = Utility.GetId(componentGroup.ServiceName, componentGroup.SourceFileName, componentGroup.ComponentGroupName, operation.Value.OperationId);
-                    componentGroup.OperationName = Utility.ExtractPascalNameByRegex(operationName);
+                    componentGroup.OperationId = Utility.GetId(componentGroup.ServiceId, componentGroup.SourceFileName, componentGroup.ComponentGroupName, operation.Value.OperationId);
+                    componentGroup.OperationName = Utility.ExtractPascalNameByRegex(operation.Value.OperationId, componentGroup.MappingFile.NoSplitWords);
                     componentGroup.Operation = operation;
                     componentGroup.OpenApiPath = pathItem;
 
@@ -192,21 +191,6 @@
             return operations;
         }
 
-        public static string GetOperationName(string operationName)
-        {
-            operationName = operationName.Replace('/', '.').Replace('\\', '.');
-
-            if (operationName.Contains('-'))
-            {
-                operationName = operationName.Split('-').Last();
-            }
-            if (operationName.Contains('.'))
-            {
-                operationName = operationName.Split('.').Last();
-            }
-            return operationName.FirstLetterToLower(); ;
-        }
-
         public static PropertyTypeEntity ParseOpenApiSchema(string schemaName, OpenApiSchema openApiSchema, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
             var type = new PropertyTypeEntity();
@@ -215,7 +199,7 @@
             {
                 if (openApiSchema.Reference != null && !isComponent)
                 {
-                    type.ReferenceTo = Utility.GetId(transformModel.ServiceName, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.Reference.Id);
+                    type.ReferenceTo = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.Reference.Id);
                 }
                 else if (openApiSchema.AdditionalProperties != null)
                 {
@@ -231,12 +215,12 @@
 
                         if (reference != null)
                         {
-                            type.ReferenceTo = Utility.GetId(transformModel.ServiceName, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), reference.Id);
+                            type.ReferenceTo = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), reference.Id);
                         }
                     }
                     else
                     {
-                        type.ReferenceTo = Utility.GetId(transformModel.ServiceName, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.AdditionalProperties.Reference.Id);
+                        type.ReferenceTo = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.AdditionalProperties.Reference.Id);
                     }
                 }
                 else if (openApiSchema.Properties?.Count > 0)
@@ -256,7 +240,7 @@
                 else
                 {
                     type.ReferenceTo = openApiSchema.Items?.Reference != null ?
-                        Utility.GetId(transformModel.ServiceName, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.Items.Reference.Id) :
+                        Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.Items.Reference.Id) :
                         openApiSchema.Items?.Type;
                     if (type.ReferenceTo == "array" || type.ReferenceTo == "object")
                     {
@@ -269,7 +253,7 @@
                         else
                         {
                             needExtractedSchemas.Add(extractedName, openApiSchema.Items);
-                            type.ReferenceTo = Utility.GetId(transformModel.ServiceName, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), extractedName);
+                            type.ReferenceTo = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), extractedName);
                         }
                     }
                 }

@@ -16,9 +16,13 @@
 
         public OpenApiSchema OpenApiSchema { get; set; }
 
+        public MappingFile MappingFile { get; set; }
+
         public string SourceFileName { get; set; }
 
         public string SourceFilePath { get; set; }
+
+        public string ServiceId { get; set; }
 
         public string ServiceName { get; set; }
 

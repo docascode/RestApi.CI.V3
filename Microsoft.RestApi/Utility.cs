@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text.RegularExpressions;
     using Microsoft.RestApi.Common;
     using Newtonsoft.Json;
@@ -18,8 +19,11 @@
         public static readonly Regex YamlHeaderRegex = new Regex(@"^\-{3}(?:\s*?)\n([\s\S]+?)(?:\s*?)\n\-{3}(?:\s*?)(?:\n|$)", RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(10));
         public static readonly YamlDotNet.Serialization.Deserializer YamlDeserializer = new YamlDotNet.Serialization.Deserializer();
         public static readonly YamlDotNet.Serialization.Serializer YamlSerializer = new YamlDotNet.Serialization.Serializer();
-        public static readonly string Pattern = @"(?:{0}|[A-Z]+?(?={0}|[A-Z][a-z]|$)|[A-Z](?:[a-z]*?)(?={0}|[A-Z]|$)|(?:[a-z]+?)(?={0}|[A-Z]|$))";
-        public static readonly HashSet<string> Keyword = new HashSet<string> { "BI", "IP", "ML", "MAM", "OS", "VM", "VMs", "APIM", "vCenters", "oneNote" };
+        public static readonly string Pattern = @"(?:{0}|[A-Z]+?(?={0}|[A-Z][a-z]|$)|[A-Z](?:[0-9]*?)(?:[a-z]*?)(?={0}|[A-Z]|$)|(?:[a-z]+?)(?={0}|[A-Z]|$))";
+        public static readonly HashSet<string> Keyword = new HashSet<string> {
+            "BI", "IP", "ML", "MAM", "OS", "VMs", "VM", "APIM", "vCenters", "WANs", "WAN", "IDs", "ID", "REST", "OAuth2", "SignalR", "iOS", "IOS",
+            "PlayFab", "OpenId", "NuGet"
+        };
 
         public static object GetYamlHeaderByMeta(string filePath, string metaName)
         {
@@ -100,7 +104,7 @@
             return str.ToUpper();
         }
 
-        public static string ExtractPascalNameByRegex(string name)
+        public static string ExtractPascalNameByRegex(string name, List<string> noSplitWords)
         {
             if (name.Contains(" "))
             {
@@ -116,7 +120,7 @@
             }
 
             var result = new List<string>();
-            var p = string.Format(Pattern, string.Join("|", Keyword));
+            var p = string.Format(Pattern, string.Join("|", noSplitWords?.Count > 0 ? Keyword.Concat(noSplitWords).Distinct() : Keyword));
             while (name.Length > 0)
             {
                 var m = Regex.Match(name, p);
