@@ -13,6 +13,8 @@
 
         public string Name { get; set; }
 
+        public string RelativePath { get; set; }
+
         public Dictionary<string, RestTocGroup> Groups { get; }
 
         public RestTocGroup this[string name]

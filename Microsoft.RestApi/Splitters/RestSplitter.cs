@@ -233,7 +233,7 @@
 
             using (var writer = new StreamWriter(targetTocPath))
             {
-                WriteTocCore(writer, restTocGroup, "#", 1);
+                WriteTocCore(writer, restTocGroup, targetApiDir, "#", 1);
             }
 
             TocConverter.Convert(targetTocPath);
@@ -245,7 +245,7 @@
             Console.WriteLine("Toc has been generated.");
         }
 
-        public virtual void WriteTocCore(StreamWriter writer, RestTocGroup tocGroup, string signs, int depth)
+        public virtual void WriteTocCore(StreamWriter writer, RestTocGroup tocGroup, string targetApiDir, string signs, int depth)
         {
             if (tocGroup != null)
             {
@@ -257,16 +257,28 @@
                         {
                             writer.WriteLine(!string.IsNullOrEmpty(group.Value.Id)
                                   ? $"{signs} [{Utility.ExtractPascalNameByRegex(group.Key, MappingFile.NoSplitWords)}](xref:{group.Value.Id})"
+                                  : !string.IsNullOrEmpty(group.Value.RelativePath)
+                                  ? $"{signs} [{Utility.ExtractPascalNameByRegex(group.Key, MappingFile.NoSplitWords)}]({GenerateIndexHRef(group.Value.RelativePath, targetApiDir)})"
                                   : $"{signs} {Utility.ExtractPascalNameByRegex(group.Key, MappingFile.NoSplitWords)}");
                         }
-                        WriteTocCore(writer, group.Value, signs + "#", depth + 1);
+                        WriteTocCore(writer, group.Value, targetApiDir, signs + "#", depth + 1);
                     }
                     else
                     {
-                        WriteTocCore(writer, group.Value, signs, depth + 1);
+                        WriteTocCore(writer, group.Value, targetApiDir, signs, depth + 1);
                     }
                 }
             }
+        }
+
+        private string GenerateIndexHRef(string indexRelativePath, string targetApiVersionDir)
+        {
+            var indexPath = Path.Combine(TargetRootDir, indexRelativePath);
+            if (!File.Exists(indexPath))
+            {
+                //throw new FileNotFoundException($"Index file '{indexPath}' not exists.");
+            }
+            return FileUtility.GetRelativePath(indexPath, targetApiVersionDir);
         }
 
         private void PrintAndClearError()
@@ -309,7 +321,7 @@
 
         private RestTocGroup SplitSwaggers(string targetApiDir, ServiceInfo service)
         {
-            var serviceGroup = new RestTocGroup { Name = service.TocFile };
+            var serviceGroup = new RestTocGroup { RelativePath = service.IndexFile };
             var splitResults = new List<SplitSwaggerResult>();
             foreach (var swagger in service.SwaggerInfo)
             {
