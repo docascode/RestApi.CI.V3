@@ -16,6 +16,7 @@
     public class RestSplitter
     {
         protected const string TocFileName = "toc.md";
+        private const string LinkPrefix = "$response.body#/";
         public static readonly string YamlExtension = ".yml";
         protected static readonly Regex TocRegex = new Regex(@"^(?<headerLevel>#+)(( |\t)*)\[(?<tocTitle>.+)\]\((?<tocLink>(?!http[s]?://).*?)\)( |\t)*#*( |\t)*(\n|$)", RegexOptions.Compiled);
         public static readonly YamlSerializer YamlSerializer = new YamlSerializer();
@@ -487,10 +488,19 @@
 
                                 if (linkedParameter != null && linkedParameter.Link == null)
                                 {
+                                    var linkedProperty = parameter.Value?.Expression?.Expression;
+                                    if(linkedProperty != null && linkedProperty.StartsWith(LinkPrefix))
+                                    {
+                                        linkedProperty = linkedProperty.TrimStart(LinkPrefix.ToCharArray());
+                                    }
+                                    else
+                                    {
+                                        linkedProperty = null;
+                                    }
                                     linkedParameter.Link = new LinkEntity
                                     {
                                         OperationId = linkObjectKeyValue.Key,
-                                        LinkedProperty = parameter.Value.Expression.Expression
+                                        LinkedProperty = linkedProperty
                                     };
                                 }
                             }
