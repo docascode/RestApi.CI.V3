@@ -3,194 +3,14 @@
     using Microsoft.OpenApi.Any;
     using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Models;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
     public static class TransformHelper
     {
         public static IList<string> Errors = new List<string>();
-        private static HashSet<string> PrimitiveTypes = new HashSet<string> { "integer", "number", "string", "boolean" };
-
-        public static string GetOperationSummary(string summary, string description)
-        {
-            var content = summary;
-            if (!string.IsNullOrEmpty(description) && !string.Equals(summary, description))
-            {
-                content = string.IsNullOrEmpty(summary) ? description : $"{summary} {description}";
-            }
-            return content;
-        }
-
-        public static string GetStatusCodeString(string statusCode)
-        {
-            switch (statusCode)
-            {
-                case "200":
-                    return "200 OK";
-                case "201":
-                    return "201 Created";
-                case "202":
-                    return "202 Accepted";
-                case "204":
-                    return "204 No Content";
-                case "400":
-                    return "400 Bad Request";
-                default:
-                    return "Other Status Codes";
-            }
-        }
-
-        public static string GetOpenApiPathItemKey(OpenApiDocument openApiDocument, OpenApiOperation openApiOperation)
-        {
-            foreach (var path in openApiDocument.Paths)
-            {
-                foreach (var operation in path.Value.Operations)
-                {
-                    if (openApiOperation.OperationId == operation.Value.OperationId)
-                    {
-                        return path.Key;
-                    }
-                }
-            }
-            throw new KeyNotFoundException($"Can not find the {openApiOperation.OperationId}");
-        }
-
-        public static string GetValueFromPrimitiveType(IOpenApiAny anyPrimitive)
-        {
-            if (anyPrimitive is OpenApiInteger integerValue)
-            {
-                return integerValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiLong longValue)
-            {
-                return longValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiFloat floatValue)
-            {
-                return floatValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiDouble doubleValue)
-            {
-                return doubleValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiString stringValue)
-            {
-                return stringValue.Value;
-            }
-            if (anyPrimitive is OpenApiByte byteValue)
-            {
-                return byteValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiBinary binaryValue)
-            {
-                return binaryValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiBoolean boolValue)
-            {
-                return boolValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiDate dateValue)
-            {
-                return dateValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiDateTime dateTimeValue)
-            {
-                return dateTimeValue.Value.ToString();
-            }
-            if (anyPrimitive is OpenApiPassword passwordValue)
-            {
-                return passwordValue.Value.ToString();
-            }
-            return string.Empty;
-        }
-
-        private static IList<string> GetValueFromListAny(IList<IOpenApiAny> anyList)
-        {
-            var results = new List<string>();
-            foreach (var anyValue in anyList)
-            {
-                if (anyValue.AnyType == AnyType.Primitive)
-                {
-                    results.Add(GetValueFromPrimitiveType(anyValue));
-                }
-            }
-            return results.OrderBy(r => r).ToList();
-        }
-
-        public static string GetReferenceId(OpenApiReference openApiReference, string componentGroupId)
-        {
-            if (openApiReference != null)
-            {
-                var referenceId = $"{componentGroupId}.{openApiReference.Id}";
-                return referenceId.Replace(" ", "").Trim('.').ToLower();
-
-            }
-            return null;
-        }
-
-        public static List<PropertyTypeEntity> TransformSchemas(TransformModel transformModel, IDictionary<string, OpenApiSchema> schemas, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
-        {
-            var types = new List<PropertyTypeEntity>();
-            var schemaNames = new HashSet<string>();
-
-            foreach (var schema in schemas)
-            {
-                var type = ParseOpenApiSchema(schema.Key, schema.Value, transformModel, ref needExtractedSchemas, isComponent);
-                type.Id = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), schema.Key);
-                type.Name = schema.Key;
-                types.Add(type);
-
-                schemaNames.Add(schema.Key);
-            }
-
-            var newNeedExtractedSchemas = needExtractedSchemas;
-            while (newNeedExtractedSchemas?.Count > 0)
-            {
-                needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
-                foreach (var schema in newNeedExtractedSchemas)
-                {
-                    if (schemaNames.Contains(schema.Key))
-                    {
-                        Errors.Add($"Please move schema definition in property \"{GetRawPropertyName(schema.Key)}\" to schema components in file {transformModel.SourceFilePath}");
-                    }
-                    else
-                    {
-                        var type = ParseOpenApiSchema(schema.Key, schema.Value, transformModel, ref needExtractedSchemas, isComponent);
-                        type.Id = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), schema.Key);
-                        type.Name = schema.Key;
-                        types.Add(type);
-                    }
-
-                    schemaNames.Add(schema.Key);
-                }
-                newNeedExtractedSchemas = needExtractedSchemas;
-            }
-
-            return types;
-        }
-
-        public static IEnumerable<OperationV3Entity> TransformCallbacks(TransformModel componentGroup, OpenApiDocument openApiDoc, Dictionary<string, OpenApiPathItem> needExtractedCallbacks, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
-        {
-            var operations = new List<OperationV3Entity>();
-            foreach (var pathItem in needExtractedCallbacks)
-            {
-                foreach (var operation in pathItem.Value.Operations)
-                {
-                    componentGroup.ServiceName = componentGroup.ServiceName;
-                    componentGroup.OperationId = Utility.GetId(componentGroup.ServiceId, componentGroup.SourceFileName, componentGroup.ComponentGroupName, operation.Value.OperationId);
-                    componentGroup.OperationName = Utility.ExtractPascalNameByRegex(operation.Value.OperationId, componentGroup.MappingFile.NoSplitWords);
-                    componentGroup.Operation = operation;
-                    componentGroup.OpenApiPath = pathItem;
-
-                    var ignoredCallbacks = new Dictionary<string, OpenApiPathItem>();
-                    var ignoredLinkObjects = new Dictionary<string, List<OpenApiLink>>();
-                    operations.Add(RestOperationTransformer.Transform(componentGroup, ref needExtractedSchemas, ref ignoredCallbacks, ref ignoredLinkObjects));
-                }
-            }
-            return operations;
-        }
-
+        public static HashSet<string> PrimitiveTypes = new HashSet<string> { "integer", "number", "string", "boolean" };
+        
         public static PropertyTypeEntity ParseOpenApiSchema(string schemaName, OpenApiSchema openApiSchema, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
             var type = new PropertyTypeEntity();
@@ -332,18 +152,80 @@
             return properties;
         }
 
-        private static string GetExtractedName(string propertyName)
+        public static string GetValueFromPrimitiveType(IOpenApiAny anyPrimitive)
+        {
+            if (anyPrimitive is OpenApiInteger integerValue)
+            {
+                return integerValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiLong longValue)
+            {
+                return longValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiFloat floatValue)
+            {
+                return floatValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiDouble doubleValue)
+            {
+                return doubleValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiString stringValue)
+            {
+                return stringValue.Value;
+            }
+            if (anyPrimitive is OpenApiByte byteValue)
+            {
+                return byteValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiBinary binaryValue)
+            {
+                return binaryValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiBoolean boolValue)
+            {
+                return boolValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiDate dateValue)
+            {
+                return dateValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiDateTime dateTimeValue)
+            {
+                return dateTimeValue.Value.ToString();
+            }
+            if (anyPrimitive is OpenApiPassword passwordValue)
+            {
+                return passwordValue.Value.ToString();
+            }
+            return string.Empty;
+        }
+
+        public static IList<string> GetValueFromListAny(IList<IOpenApiAny> anyList)
+        {
+            var results = new List<string>();
+            foreach (var anyValue in anyList)
+            {
+                if (anyValue.AnyType == AnyType.Primitive)
+                {
+                    results.Add(GetValueFromPrimitiveType(anyValue));
+                }
+            }
+            return results.OrderBy(r => r).ToList();
+        }
+
+        public static string GetExtractedName(string propertyName)
         {
             return string.IsNullOrEmpty(propertyName) ? string.Empty : propertyName + "Param";
         }
 
-        private static string GetRawPropertyName(string extractedName)
+        public static string GetRawPropertyName(string extractedName)
         {
             if (string.IsNullOrEmpty(extractedName)) return extractedName;
             return extractedName.EndsWith("Param") ? extractedName.Substring(0, extractedName.Length - 5) : extractedName;
         }
 
-        private static List<PropertyTypeEntity> ExtractTypes(string propertyName, List<OpenApiSchema> schemas, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        public static List<PropertyTypeEntity> ExtractTypes(string propertyName, List<OpenApiSchema> schemas, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
         {
             if (schemas?.Count < 1) return null;
 
@@ -373,7 +255,7 @@
             return types;
         }
 
-        private static void SetExtractedSchemas(string propertyName, OpenApiSchema schema, TransformModel transformModel, Dictionary<string, OpenApiSchema> needExtractedSchemas, ref OpenApiReference reference)
+        public static void SetExtractedSchemas(string propertyName, OpenApiSchema schema, TransformModel transformModel, Dictionary<string, OpenApiSchema> needExtractedSchemas, ref OpenApiReference reference)
         {
             if (needExtractedSchemas == null) needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
 

@@ -1,16 +1,11 @@
 ﻿namespace Microsoft.RestApi.Transformers
 {
-    using System.Collections.Generic;
-
     using Microsoft.OpenApi.Models;
-    using Microsoft.RestApi.Models;
-    using Microsoft.OpenApi.Any;
-    using Microsoft.OpenApi.Expressions;
     using Microsoft.OpenApi.Writers;
-    using System.Linq;
+    using Microsoft.RestApi.Models;
+    using System.Collections.Generic;
     using System.IO;
-    using System;
-    using Newtonsoft.Json;
+    using System.Linq;
 
     public class RestOperationTransformer
     {
@@ -56,7 +51,7 @@
             };
         }
 
-        private static List<ExampleEntity> TransformExamples(TransformModel transformModel, IDictionary<string, OpenApiExample> examples)
+        public static List<ExampleEntity> TransformExamples(TransformModel transformModel, IDictionary<string, OpenApiExample> examples)
         {
             if (examples == null || !examples.Any()) return null;
             var exampleEntities = new List<ExampleEntity>();
@@ -77,7 +72,7 @@
             return exampleEntities;
         }
 
-        private static List<CallbackEntity> TransformCallbacks(
+        public static List<CallbackEntity> TransformCallbacks(
             TransformModel transformModel,
             IDictionary<string, OpenApiCallback> callbacks,
             ref Dictionary<string, OpenApiPathItem> needExtractedCallbacks)
@@ -125,7 +120,7 @@
             return callbackEntities;
         }
 
-        private static RequestBodyEntity TransformRequestBody(
+        public static RequestBodyEntity TransformRequestBody(
             TransformModel transformModel,
             OpenApiRequestBody requestBody,
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
@@ -210,7 +205,7 @@
             return responseEntities;
         }
 
-        private static List<ResponseHeaderEntity> TransformResponseHeaders(
+        public static List<ResponseHeaderEntity> TransformResponseHeaders(
             TransformModel transformModel,
             IDictionary<string, OpenApiHeader> responseHeaders,
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
@@ -246,7 +241,7 @@
             return responseHeaderEntities;
         }
 
-        private static IList<ParameterEntity> TransformParameters(
+        public static IList<ParameterEntity> TransformParameters(
             TransformModel transformModel,
             IList<OpenApiParameter> parameters,
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
@@ -261,7 +256,7 @@
             return parameterEntities;
         }
 
-        private static ParameterEntity TransformParameter(
+        public static ParameterEntity TransformParameter(
             TransformModel transformModel,
             OpenApiParameter parameter,
             ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
@@ -288,7 +283,7 @@
             };
         }
 
-        private static IList<ServerEntity> GetServerEnities(IList<OpenApiServer> apiServers)
+        public static IList<ServerEntity> GetServerEnities(IList<OpenApiServer> apiServers)
         {
             if (apiServers == null) return null;
             var servers = new List<ServerEntity>();
@@ -325,7 +320,7 @@
             return servers;
         }
 
-        private static IList<OpenApiParameter> GetRawParameters(TransformModel transformModel)
+        public static IList<OpenApiParameter> GetRawParameters(TransformModel transformModel)
         {
             if (transformModel.Operation.Value?.Parameters?.Count > 0)
                 return transformModel.Operation.Value.Parameters;
@@ -333,7 +328,7 @@
             return transformModel.OpenApiPath.Value?.Parameters;
         }
 
-        private static List<SecurityEntity> GetSecurities(TransformModel transformModel)
+        public static List<SecurityEntity> GetSecurities(TransformModel transformModel)
         {
             if (transformModel.Operation.Value.Security == null || transformModel.Operation.Value.Security.Count == 0) return null;
 
@@ -358,7 +353,7 @@
         }
 
 
-        private static List<FlowEntity> GetFlow(OpenApiOAuthFlows openApiFlows, IList<string> usedScopes)
+        public static List<FlowEntity> GetFlow(OpenApiOAuthFlows openApiFlows, IList<string> usedScopes)
         {
             if (openApiFlows == null) return null;
 
@@ -394,7 +389,7 @@
             return flows;
         }
 
-        private static FlowEntity TransformFlow(OpenApiOAuthFlow openApiFlow, IList<string> usedScopes)
+        public static FlowEntity TransformFlow(OpenApiOAuthFlow openApiFlow, IList<string> usedScopes)
         {
             return new FlowEntity
             {
@@ -407,7 +402,7 @@
             };
         }
 
-        private static IList<OpenApiServer> GetRawServers(TransformModel transformModel)
+        public static IList<OpenApiServer> GetRawServers(TransformModel transformModel)
         {
             if (transformModel.Operation.Value.Servers != null && transformModel.Operation.Value.Servers.Any())
             {
@@ -422,7 +417,7 @@
             return transformModel.OpenApiDoc.Servers;
         }
 
-        private static List<PathEntity> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, IList<ParameterEntity> parameters)
+        public static List<PathEntity> TransformPaths(KeyValuePair<string, OpenApiPathItem> defaultOpenApiPathItem, IList<ParameterEntity> parameters)
         {
             var pathEntities = new List<PathEntity>();
 
@@ -456,7 +451,7 @@
             return pathEntities;
         }
 
-        private static string FormatPathQueryStrings(string initParameters, IEnumerable<ParameterEntity> queryParameters)
+        public static string FormatPathQueryStrings(string initParameters, IEnumerable<ParameterEntity> queryParameters)
         {
             var queries = new List<string>();
             if (!string.IsNullOrEmpty(initParameters))
@@ -536,7 +531,7 @@
             return seealsos;
         }
 
-        private static FlowEntity NewFlowEntity(string name, IList<string> scopeNames, OpenApiOAuthFlow openApiOAuthFlow)
+        public static FlowEntity NewFlowEntity(string name, IList<string> scopeNames, OpenApiOAuthFlow openApiOAuthFlow)
         {
             var scopes = new List<SecurityScopeEntity>();
             foreach (var scopeName in scopeNames)

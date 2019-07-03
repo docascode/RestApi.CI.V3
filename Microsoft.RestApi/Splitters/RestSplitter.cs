@@ -577,7 +577,7 @@
             var componentGroup = RestComponentGroupTransformer.Transform(model);
             componentGroup.Components = new List<NamedEntity>();
 
-            foreach (var callback in TransformHelper.TransformCallbacks(model, openApiDoc, needExtractedCallbacks, ref needExtractedSchemas))
+            foreach (var callback in RestComponentTransformer.TransformCallbacks(model, openApiDoc, needExtractedCallbacks, ref needExtractedSchemas))
             {
                 componentGroup.Components.Add(callback);
             }
@@ -601,7 +601,7 @@
             };
             var componentGroup = RestComponentGroupTransformer.Transform(model);
             componentGroup.Components = new List<NamedEntity>();
-            foreach (var schema in TransformHelper.TransformSchemas(model, openApiDoc.Components.Schemas, ref needExtractedSchemas, true))
+            foreach (var schema in RestComponentTransformer.TransformSchemas(model, openApiDoc.Components.Schemas, ref needExtractedSchemas, true))
             {
                 componentGroup.Components.Add(schema);
             }
