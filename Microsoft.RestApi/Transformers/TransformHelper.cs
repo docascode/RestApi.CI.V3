@@ -275,7 +275,7 @@
 
             if (type.ReferenceTo != null && PrimitiveTypes.Contains(type.ReferenceTo))
             {
-                type.IsPrimitiveTypes = true;
+                type.IsPrimitiveType = true;
             }
 
             return type;

@@ -22,10 +22,10 @@
         /// <summary>
         /// if is the anonymous object, then we use properties to provide values.
         /// </summary>
-        [YamlMember(Alias = "properties")]
+        [YamlMember(Alias = "typeProperties")]
         public List<PropertyEntity> Properties { get; set; }
 
-        [YamlMember(Alias = "isPrimitiveTypes")]
-        public bool IsPrimitiveTypes { get; internal set; }
+        [YamlMember(Alias = "isPrimitiveType")]
+        public bool IsPrimitiveType { get; internal set; }
     }
 }
