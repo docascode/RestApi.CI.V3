@@ -1,0 +1,7 @@
+### YamlMime:RESTOperationGroupV3
+uid: maps.generaltest.patchtaxgroupbyid
+name: patchtaxGroupbyid
+operations:
+- maps.generaltest.patchtaxgroupbyid.patchtaxgroupbyid
+apiVersion: 1.0.0
+service: Maps

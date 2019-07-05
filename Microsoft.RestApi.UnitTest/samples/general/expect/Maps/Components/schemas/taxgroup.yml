@@ -4,15 +4,7 @@ name: taxGroup
 typeProperties:
 - name: business_profile
   types:
-  - isArray: true
-    enumValues:
-    - black
-    - blue
-    - green
-    - red
-    - white
-    isPrimitiveType: true
-    ref: string
+  - ref: maps.generaltest.schemas.taxarea
 - name: business_profile1
   types:
   - ref: maps.generaltest.schemas.business_profile1param
@@ -45,15 +37,7 @@ typeProperties:
   isOneOf: true
 - name: business_profile7
   types:
-  - isArray: true
-    enumValues:
-    - black
-    - blue
-    - green
-    - red
-    - white
-    isPrimitiveType: true
-    ref: string
+  - ref: maps.generaltest.schemas.taxarea
   - ref: maps.generaltest.schemas.paymentmethod
   isOneOf: true
 - name: business_profile9
@@ -103,15 +87,7 @@ typeProperties:
 - name: business_profile18
   types:
   - ref: maps.generaltest.schemas.paymentmethod
-  - isArray: true
-    enumValues:
-    - black
-    - blue
-    - green
-    - red
-    - white
-    isPrimitiveType: true
-    ref: string
+  - ref: maps.generaltest.schemas.taxarea
   isAllOf: true
 apiVersion: 1.0.0
 service: Maps

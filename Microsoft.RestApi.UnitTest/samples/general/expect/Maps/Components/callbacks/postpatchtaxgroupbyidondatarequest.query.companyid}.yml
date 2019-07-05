@@ -1,0 +1,62 @@
+### YamlMime:RESTOperationV3
+uid: maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id}
+name: PostpatchtaxGroupbyidonData$request.query.company id}
+groupName: Callbacks
+httpVerb: POST
+parameters: []
+paths:
+- content: $request.query.company_id}
+requestBody:
+  bodies:
+  - mediaType: application/json
+    type:
+      typeProperties:
+      - name: timestamp
+        types:
+        - isPrimitiveType: true
+          ref: string
+        format: date-time
+      - name: userData
+        types:
+        - isPrimitiveType: true
+          ref: string
+  description: subscription payload
+responses:
+- bodies: []
+  description: >
+    Your server implementation should return this HTTP status code
+
+    if the data was received successfully
+  statusCode: "202"
+- bodies: []
+  description: >
+    Your server should return this HTTP status code if no longer interested
+
+    in further updates
+  statusCode: "204"
+security:
+- name: group_oauth2
+  type: OAuth2
+  in: query
+  flows:
+  - authorizationUrl: https://example.com/api/oauth/dialog
+    type: Implicit
+    scopes:
+    - name: read
+      description: read your pets
+servers:
+- name: https://prod.api.stripe.{param1}.com:{port}
+  description: This is prod
+  variables:
+  - name: param1
+    description: for demo
+    defaultValue: demo
+  - name: port
+    defaultValue: "8443"
+    values:
+    - "8443"
+    - "443"
+- name: https://ppe.api.stripe..com:8443
+  description: This is ppe
+apiVersion: 1.0.0
+service: Maps

@@ -5,6 +5,9 @@ components:
 - maps.generaltest.schemas.taxgroup
 - maps.generaltest.schemas.taxarea
 - maps.generaltest.schemas.paymentmethod
+- maps.generaltest.schemas.business1param
+- maps.generaltest.schemas.business10param
+- maps.generaltest.schemas.business14param
 - maps.generaltest.schemas.business_profile1param
 - maps.generaltest.schemas.business_profile10param
 - maps.generaltest.schemas.business_profile14param

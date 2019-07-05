@@ -1,0 +1,7 @@
+### YamlMime:RESTOperationGroupV3
+uid: maps.generaltest.gettaxgroups
+name: gettaxGroups
+operations:
+- maps.generaltest.gettaxgroups.gettaxgroups
+apiVersion: 1.0.0
+service: Maps

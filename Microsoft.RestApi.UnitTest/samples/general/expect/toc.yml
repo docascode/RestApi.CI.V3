@@ -1,0 +1,50 @@
+- name: Maps
+  href: ../index.md
+  items:
+  - name: Components
+    items:
+    - uid: maps.generaltest.callbacks
+      name: Callbacks
+      items:
+      - uid: maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id}
+        name: PostpatchtaxGroupbyidonData$request.query.company id}
+    - uid: maps.generaltest.schemas
+      name: Schemas
+      items:
+      - uid: maps.generaltest.schemas.business_profile10param
+        name: business profile10Param
+      - uid: maps.generaltest.schemas.business_profile14param
+        name: business profile14Param
+      - uid: maps.generaltest.schemas.business_profile1param
+        name: business profile1Param
+      - uid: maps.generaltest.schemas.business10param
+        name: Param param param
+      - uid: maps.generaltest.schemas.business14param
+        name: Param param param
+      - uid: maps.generaltest.schemas.business1param
+        name: Param param aram
+      - uid: maps.generaltest.schemas.paymentmethod
+        name: Payment method
+      - uid: maps.generaltest.schemas.taxarea
+        name: Tax area
+      - uid: maps.generaltest.schemas.taxgroup
+        name: Tax group
+      - uid: maps.generaltest.schemas.textparam
+        name: Text param
+  - name: Operations
+    items:
+    - uid: maps.generaltest.gettaxgroups
+      name: Gettax groups
+      items:
+      - uid: maps.generaltest.gettaxgroups.gettaxgroups
+        name: Gettax groups
+    - uid: maps.generaltest.patchtaxgroupbyid
+      name: Patchtax groupbyid
+      items:
+      - uid: maps.generaltest.patchtaxgroupbyid.patchtaxgroupbyid
+        name: Patchtax groupbyid
+    - uid: maps.generaltest.posttaxgroup
+      name: Posttax group
+      items:
+      - uid: maps.generaltest.posttaxgroup.posttaxgroup
+        name: Posttax group

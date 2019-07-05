@@ -1,6 +1,6 @@
 ### YamlMime:RESTTypeV3
-uid: maps.generaltest.schemas.business_profile1param
-name: business_profile1Param
+uid: maps.generaltest.schemas.business_profile14param
+name: business_profile14Param
 typeProperties:
 - name: code
   types:
@@ -8,6 +8,7 @@ typeProperties:
     ref: integer
 - name: text
   types:
-  - ref: maps.generaltest.schemas.textparam
+  - isPrimitiveType: true
+    ref: string
 apiVersion: 1.0.0
 service: Maps

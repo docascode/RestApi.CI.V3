@@ -76,6 +76,66 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="samples\general\expect\Maps\Components\callbacks.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\callbacks\postpatchtaxgroupbyidondatarequest.query.companyid}.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\business10param.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\business14param.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\business1param.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\business_profile10param.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\business_profile14param.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\business_profile1param.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\paymentmethod.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\taxarea.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\taxgroup.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\Components\schemas\textparam.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\gettaxgroups.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\gettaxgroups\gettaxgroups.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\patchtaxgroupbyid.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\patchtaxgroupbyid\patchtaxgroupbyid.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\posttaxgroup.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\Maps\posttaxgroup\posttaxgroup.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\expect\toc.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="samples\general\GeneralTest.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -102,9 +162,7 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="expects\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
