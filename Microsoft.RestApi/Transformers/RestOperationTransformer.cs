@@ -336,9 +336,12 @@
 
         public static List<SecurityEntity> GetSecurities(TransformModel transformModel)
         {
-            if (transformModel.Operation.Value.Security == null || transformModel.Operation.Value.Security.Count == 0) return null;
+            var operation = transformModel.Operation.Value;
+            var securities = operation.Security?.Count > 0 ? operation.Security : transformModel.OpenApiDoc.SecurityRequirements;
 
-            return transformModel.Operation.Value.Security.SelectMany(s => s.Select(c =>
+            if (securities == null || !securities.Any()) return null;
+
+            return securities.SelectMany(s => s.Select(c =>
             {
                 var security = c.Key;
                 var scopes = c.Value;
