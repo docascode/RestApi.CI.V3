@@ -1,0 +1,20 @@
+﻿{
+  "target_api_root_dir": "docs-ref-autogen",
+  "use_service_url_group": true,
+  "organizations": [
+    {
+      "services": [
+        {
+          "toc_title": "Maps",
+          "url_group": "maps",
+          "service_index": "index.md",
+          "swagger_files": [
+            {
+              "source": "GeneralTest.yaml"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

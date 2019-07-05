@@ -82,7 +82,10 @@
                             var idResult = GetOperationGroupFromOperationId(operation.Value.OperationId);
                             if(!tags.Any(t => t.Name == idResult.Item1))
                             {
-                                tags.Add(new OpenApiTag() { Name = idResult.Item1 });
+                                var newTag = new OpenApiTag() { Name = idResult.Item1 };
+
+                                tags.Add(newTag);
+                                operation.Value.Tags = new List<OpenApiTag> { newTag };
                             }
                             operation.Value.OperationId = idResult.Item2;
                         }

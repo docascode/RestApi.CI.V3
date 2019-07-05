@@ -69,44 +69,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseUnitTest.cs" />
-    <Compile Include="ComponentEntity.UnitTest.cs" />
-    <Compile Include="RequestBody.UnitTest.cs" />
-    <Compile Include="Response.UnitTest.cs" />
-    <Compile Include="Security.UnitTest.cs" />
-    <Compile Include="SeeAlso.UnitTest.cs" />
-    <Compile Include="Servers.UnitTest.cs" />
-    <Compile Include="OperationEntitySummary.UnitTest.cs" />
-    <Compile Include="OperationEntityId.UnitTest.cs" />
-    <Compile Include="Paths.UnitTest.cs" />
-    <Compile Include="UriParameters.UnitTest.cs" />
+    <Compile Include="General.UnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="expects\Requestbodies2.json" />
-    <None Include="expects\Components.json" />
-    <None Include="expects\Responses2.json" />
-    <None Include="expects\Responses.json" />
-    <None Include="expects\Requestbodies.json" />
-    <None Include="expects\UriParameters.json" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="samples\GetComponent.yaml" />
-    <None Include="samples\GetPaths2.yaml" />
-    <None Include="samples\GetPaths.yaml" />
-    <None Include="samples\GetRequestBody2.yaml" />
-    <None Include="samples\GetResponse2.yaml" />
-    <None Include="samples\GetResponse.yaml" />
-    <None Include="samples\GetRequestBody.yaml" />
-    <None Include="samples\GetSecurity.yaml" />
-    <None Include="samples\GetSeeAlso.yaml" />
-    <None Include="samples\GetUriParameters.yaml" />
-    <None Include="samples\GetSummary2.yaml" />
-    <None Include="samples\GetSummary.yaml" />
-    <None Include="samples\GetServers2.yaml" />
-    <None Include="samples\GetServers.yaml" />
-    <None Include="samples\GetOperationId2.yaml" />
-    <None Include="samples\GetOperationId.yaml" />
+    <None Include="samples\general\GeneralTest.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\index.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="samples\general\mapping.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\xunit.analyzers.0.7.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
@@ -123,6 +101,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="expects\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

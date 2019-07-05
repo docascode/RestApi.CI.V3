@@ -1,0 +1,21 @@
+### YamlMime:RESTTypeV3
+uid: maps.generaltest.schemas.business_profile10param
+name: business_profile10Param
+typeProperties:
+- name: code
+  types:
+  - isArray: true
+    enumValues:
+    - black
+    - blue
+    - green
+    - red
+    - white
+    isPrimitiveType: true
+    ref: string
+- name: text
+  types:
+  - isPrimitiveType: true
+    ref: string
+apiVersion: 1.0.0
+service: Maps

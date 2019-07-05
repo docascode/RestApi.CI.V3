@@ -10,12 +10,12 @@
     {
         public static IList<string> Errors = new List<string>();
         public static HashSet<string> PrimitiveTypes = new HashSet<string> { "integer", "number", "string", "boolean" };
-        
+
         public static PropertyTypeEntity ParseOpenApiSchema(string schemaName, OpenApiSchema openApiSchema, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
             var type = new PropertyTypeEntity();
             type.ReferenceTo = openApiSchema.Type;
-            if (openApiSchema.Type == "object" || openApiSchema.Properties?.Count > 0)
+            if (openApiSchema.Type == "object" || openApiSchema.Properties?.Count > 0 || openApiSchema.Type == null || openApiSchema.Reference != null)
             {
                 if (openApiSchema.Reference != null && !isComponent)
                 {
@@ -109,28 +109,6 @@
             {
                 foreach (var property in openApiSchema.Properties)
                 {
-                    var types = new List<PropertyTypeEntity>();
-                    if (property.Value.AnyOf?.Count() > 0)
-                    {
-                        types = ExtractTypes(property.Key, property.Value.AnyOf.ToList(), transformModel, ref needExtractedSchemas);
-                    }
-                    else if (property.Value.OneOf?.Count() > 0)
-                    {
-                        types = ExtractTypes(property.Key, property.Value.OneOf.ToList(), transformModel, ref needExtractedSchemas);
-                    }
-                    else if (property.Value.AllOf?.Count() > 0)
-                    {
-                        types = ExtractTypes(property.Key, property.Value.AllOf.ToList(), transformModel, ref needExtractedSchemas);
-                    }
-                    else if (property.Value.Not != null)
-                    {
-                        types = ExtractTypes(property.Key, new List<OpenApiSchema> { property.Value.Not }, transformModel, ref needExtractedSchemas);
-                    }
-                    else
-                    {
-                        types = ExtractTypes(property.Key, new List<OpenApiSchema> { property.Value }, transformModel, ref needExtractedSchemas);
-                    }
-
                     properties.Add(new PropertyEntity
                     {
                         Name = property.Key,
@@ -144,7 +122,7 @@
                         IsOneOf = property.Value.OneOf?.Count() > 0,
                         IsAllOf = property.Value.AllOf?.Count() > 0,
                         IsNot = property.Value.Not != null,
-                        Types = types
+                        Types = ExtractProperty(property, transformModel, ref needExtractedSchemas)
                     });
                 }
             }
@@ -223,6 +201,32 @@
         {
             if (string.IsNullOrEmpty(extractedName)) return extractedName;
             return extractedName.EndsWith("Param") ? extractedName.Substring(0, extractedName.Length - 5) : extractedName;
+        }
+
+        public static List<PropertyTypeEntity> ExtractProperty(KeyValuePair<string, OpenApiSchema> property, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)
+        {
+            var types = new List<PropertyTypeEntity>();
+            if (property.Value.AnyOf?.Count() > 0)
+            {
+                types = ExtractTypes(property.Key, property.Value.AnyOf.ToList(), transformModel, ref needExtractedSchemas);
+            }
+            else if (property.Value.OneOf?.Count() > 0)
+            {
+                types = ExtractTypes(property.Key, property.Value.OneOf.ToList(), transformModel, ref needExtractedSchemas);
+            }
+            else if (property.Value.AllOf?.Count() > 0)
+            {
+                types = ExtractTypes(property.Key, property.Value.AllOf.ToList(), transformModel, ref needExtractedSchemas);
+            }
+            else if (property.Value.Not != null)
+            {
+                types = ExtractTypes(property.Key, new List<OpenApiSchema> { property.Value.Not }, transformModel, ref needExtractedSchemas);
+            }
+            else
+            {
+                types = ExtractTypes(property.Key, new List<OpenApiSchema> { property.Value }, transformModel, ref needExtractedSchemas);
+            }
+            return types;
         }
 
         public static List<PropertyTypeEntity> ExtractTypes(string propertyName, List<OpenApiSchema> schemas, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas)

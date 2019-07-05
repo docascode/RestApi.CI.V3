@@ -3,6 +3,7 @@
     using Microsoft.OpenApi.Models;
     using Microsoft.OpenApi.Writers;
     using Microsoft.RestApi.Models;
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -65,7 +66,7 @@
                     {
                         Name = example.Key,
                         Value = stringWriter.ToString(),
-                        Description = example.Value.Description
+                        Description = string.IsNullOrEmpty(example.Value.Description) ? example.Value.Summary : example.Value.Description
                     });
                 }
             }
@@ -106,7 +107,7 @@
                             {
                                 if (string.IsNullOrEmpty(operation.Value.OperationId))
                                 {
-                                    operation.Value.OperationId = operation.Key + pathBaseId;
+                                    operation.Value.OperationId = GetCallbackOperationParameter(operation.Key.ToString()) + pathBaseId;
                                 }
 
                                 callbackEntity.CallbackOperations.Add(Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Callbacks.ToString(), operation.Value.OperationId));
@@ -118,6 +119,12 @@
             }
 
             return callbackEntities;
+        }
+
+        private static string GetCallbackOperationParameter(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return key;
+            return key.Split(new[] { '.', '/' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault().TrimEnd(new[] { '}'});
         }
 
         public static RequestBodyEntity TransformRequestBody(
@@ -276,10 +283,7 @@
                 IsDeprecated = parameter.Deprecated,
                 Pattern = parameter.Schema?.Pattern,
                 Format = parameter.Schema?.Format,
-                Types = new List<PropertyTypeEntity>
-                    {
-                        TransformHelper.ParseOpenApiSchema(parameter.Name, parameter.Schema, transformModel, ref needExtractedSchemas)
-                    }
+                Types = TransformHelper.ExtractProperty(new KeyValuePair<string, OpenApiSchema>(parameter.Name, parameter.Schema), transformModel, ref needExtractedSchemas)
             };
         }
 
@@ -303,7 +307,7 @@
                             Name = variable.Key,
                             DefaultValue = variable.Value.Default,
                             Description = variable.Value.Description,
-                            Values = variable.Value.Enum
+                            Values = variable.Value.Enum?.Count > 0 ? variable.Value.Enum: null
                         };
                         serverVariables.Add(serverVariable);
                     }
@@ -322,10 +326,12 @@
 
         public static IList<OpenApiParameter> GetRawParameters(TransformModel transformModel)
         {
+            List<OpenApiParameter> result = new List<OpenApiParameter>();
+            if (transformModel.OpenApiPath.Value?.Parameters?.Count > 0)
+                result.AddRange(transformModel.OpenApiPath.Value?.Parameters.ToList());
             if (transformModel.Operation.Value?.Parameters?.Count > 0)
-                return transformModel.Operation.Value.Parameters;
-
-            return transformModel.OpenApiPath.Value?.Parameters;
+                result.AddRange(transformModel.Operation.Value.Parameters.ToList());
+            return result;
         }
 
         public static List<SecurityEntity> GetSecurities(TransformModel transformModel)
@@ -393,9 +399,9 @@
         {
             return new FlowEntity
             {
-                AuthorizationUrl = openApiFlow.AuthorizationUrl.ToString(),
-                RefreshUrl = openApiFlow.RefreshUrl.ToString(),
-                TokenUrl = openApiFlow.TokenUrl.ToString(),
+                AuthorizationUrl = openApiFlow.AuthorizationUrl?.ToString(),
+                RefreshUrl = openApiFlow.RefreshUrl?.ToString(),
+                TokenUrl = openApiFlow.TokenUrl?.ToString(),
                 Scopes = usedScopes != null ? openApiFlow.Scopes.Where(scope => usedScopes.Contains(scope.Key))
                     .Select(scope => new SecurityScopeEntity { Name = scope.Key, Description = scope.Value })
                     .ToList() : null

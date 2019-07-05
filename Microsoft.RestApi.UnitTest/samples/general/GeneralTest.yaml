@@ -1,0 +1,481 @@
+﻿openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Fake API
+  description: A fake API for test
+servers:
+- url: https://prod.api.stripe.{param1}.com:{port}
+  description: This is prod
+  variables: 
+    param1:
+      default: demo
+      description: for demo
+    port:
+      default: '8443'
+      enum:
+        - '8443'
+        - '443'
+- url: https://ppe.api.stripe..com:8443
+  description: This is ppe
+externalDocs:
+  description: Find more info here
+  url: https://example.com
+paths:
+  "/companies({company_id})/taxGroups":
+    parameters:
+    - name: company_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    get:
+      summary: Returns a list of taxGroups
+      operationId: gettaxGroups
+      externalDocs:
+        description: Find more info here
+        url: https://example.com
+      deprecated: true
+      tags:
+      - taxGroups
+      responses:
+        '200':
+          description: Succesfully returned a list of taxGroups
+          headers:
+            X-Rate-Limit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+            X-Rate-Limit-Remaining:
+              description: The number of remaining requests in the current period
+              schema:
+                type: integer
+            X-Rate-Limit-Reset:
+              description: The number of seconds left in the current period
+              schema:
+                type: integer
+          content:
+            application/json:
+              examples:
+                cat:
+                  summary: An example of a cat
+                  value:
+                    name: Fluffy
+                    petType: Cat
+                    color: White
+                    gender: male
+                    breed: Persian
+                dog:
+                  summary: An example of a dog with a cat's name
+                  value:
+                    name: Puma
+                    petType: Dog
+                    color: Black
+                    gender: Female
+                    breed: Mixed
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/taxGroup"
+      parameters:
+      - "$ref": "#/components/parameters/topParam"
+      - "$ref": "#/components/parameters/skipParam"
+      - "$ref": "#/components/parameters/limitParam"
+      - "$ref": "#/components/parameters/filterParam"
+      - name: business
+        in: query
+        schema:
+          "$ref": "#/components/schemas/taxArea"
+      - name: business1
+        in: query
+        schema:
+          type: object
+          properties:
+            code:
+              type: integer
+            text:
+              type: object
+              properties:
+                code1:
+                  type: integer
+                text1:
+                  type: string
+      - name: business2
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: business3
+        in: query
+        schema:
+          type: string
+          pattern: '^\d{3}-\d{2}-\d{4}$'
+          nullable: true
+      - name: business4
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: business5
+        in: query
+        schema:
+          type: array
+          items:
+            "$ref": "#/components/schemas/taxArea"
+      - name: business6
+        in: query
+        schema:
+          oneOf:
+            - type: string
+            - type: integer
+      - name: business7
+        in: query
+        schema:
+          oneOf:
+            - "$ref": "#/components/schemas/taxArea"
+            - "$ref": "#/components/schemas/paymentMethod"
+      - name: business_profile9
+        in: query
+        schema:
+          type: object
+          additionalProperties: true
+      - name: business10
+        in: query
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                "$ref": "#/components/schemas/taxArea"
+              text:
+                type: string
+      - name: business11
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - black
+              - white
+              - red
+              - green
+              - blue
+      - name: business12
+        in: query
+        schema:
+          type: string
+          enum:
+            - black
+            - white
+            - red
+            - green
+            - blue
+      - name: business14
+        in: query
+        schema:
+          description: The business type. Can be `individual` or `company`.
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+                code:
+                  type: integer
+                text:
+                  type: string
+      - name: business15
+        in: query
+        schema:
+          description: The business type. Can be `individual` or `company`.
+          type: object
+          additionalProperties:
+            "$ref": "#/components/schemas/paymentMethod"
+      - name: business16
+        in: query
+        schema:
+          description: The business type. Can be `individual` or `company`.
+          type: object
+          additionalProperties:
+            type: string
+      - name: business18
+        in: query
+        schema:
+          allOf:
+            - "$ref": "#/components/schemas/paymentMethod"
+            - "$ref": "#/components/schemas/taxArea"
+      - name: "$select"
+        allowReserved: true
+        examples:
+          foo:
+            summary: A foo example
+            value: {"foo": "bar"}
+          bar:
+            summary: A bar example
+            value: {"bar": "baz"}
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - "*"
+            - id
+            - code
+            - displayName
+            - taxType
+            - lastModifiedDateTime
+            default: "*"
+        style: form
+        explode: false
+    post:
+      summary: Lets a user post a new taxGroup
+      operationId: posttaxGroup
+      tags:
+      - taxGroups
+      requestBody:
+        "$ref": "#/components/requestBodies/taxGroup"
+      responses:
+        '201':
+          description: taxGroup succesfully created
+          links:
+            link1:
+              operationId: gettaxGroups
+              parameters: 
+                  company_id: $response.body#/id
+                  $top: $response.body#/code
+            link2:
+              operationId: patchtaxGroupbyid
+              requestBody: $response.body
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/taxGroup"
+  "/companies({company_id})/taxGroups({taxGroup_id})":
+    patch:
+      summary: Lets the user patch the specified taxGroup
+      operationId: patchtaxGroupbyid
+      security:
+        - group_oauth2: ["write"]
+      tags:
+      - taxGroups
+      callbacks:
+        onData:
+          '$request.query.company_id}':
+            post:
+              requestBody:
+                description: subscription payload
+                content:
+                  application/json:
+                    schema:
+                      properties:
+                        timestamp:
+                          type: string
+                          format: date-time
+                        userData:
+                          type: string
+              responses:
+                '202':
+                  description: |
+                    Your server implementation should return this HTTP status code
+                    if the data was received successfully
+                '204':
+                  description: |
+                    Your server should return this HTTP status code if no longer interested
+                    in further updates
+      parameters:
+      - "$ref": "#/components/parameters/IfMatchParam"
+      requestBody:
+        "$ref": "#/components/requestBodies/taxGroup"
+      responses:
+        '200':
+          description: Succesfully updated the taxGroup with the specified id
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/taxGroup"
+security:
+  - group_oauth2: ["read"]
+components:
+  securitySchemes:
+    group_oauth2:
+      type: oauth2
+      flows: 
+        implicit:
+          authorizationUrl: https://example.com/api/oauth/dialog
+          scopes:
+            write: modify pets in your account
+            read: read your pets
+  schemas:
+    taxGroup:
+      properties:
+        business_profile:
+          "$ref": "#/components/schemas/taxArea"
+        business_profile1:
+          type: object
+          properties:
+            code:
+              type: integer
+            text:
+              type: object
+              properties:
+                code1:
+                  type: integer
+                text1:
+                  type: string
+        business_profile2:
+          type: string
+          format: date
+        business_profile3:
+          type: string
+          pattern: '^\d{3}-\d{2}-\d{4}$'
+          nullable: true
+        business_profile4:
+          type: array
+          items:
+            type: string
+        business_profile5:
+          type: array
+          items:
+            "$ref": "#/components/schemas/taxArea"
+        business_profile6:
+          oneOf:
+            - type: string
+            - type: integer
+        business_profile7:
+          oneOf:
+            - "$ref": "#/components/schemas/taxArea"
+            - "$ref": "#/components/schemas/paymentMethod"
+        business_profile9:
+          type: object
+          additionalProperties: true
+        business_profile10:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                "$ref": "#/components/schemas/taxArea"
+              text:
+                type: string
+        business_profile11:
+          type: array
+          items:
+            type: string
+            enum:
+              - black
+              - white
+              - red
+              - green
+              - blue
+        business_profile12:
+          type: string
+          enum:
+            - black
+            - white
+            - red
+            - green
+            - blue
+        business_profile14:
+          description: The business type. Can be `individual` or `company`.
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+                code:
+                  type: integer
+                text:
+                  type: string
+        business_profile15:
+          description: The business type. Can be `individual` or `company`.
+          type: object
+          additionalProperties:
+            "$ref": "#/components/schemas/paymentMethod"
+        business_profile16:
+          description: The business type. Can be `individual` or `company`.
+          type: object
+          additionalProperties:
+            type: string
+        business_profile18:
+          allOf:
+            - "$ref": "#/components/schemas/paymentMethod"
+            - "$ref": "#/components/schemas/taxArea"
+    taxArea:
+      type: array
+      items:
+        type: string
+        enum:
+          - black
+          - white
+          - red
+          - green
+          - blue
+    paymentMethod:
+      type: object
+      additionalProperties:
+        "$ref": "#/components/schemas/paymentMethod"
+  parameters:
+    filterParam:
+      name: "$filter"
+      in: query
+      schema:
+        type: string
+      description: Filtering expression
+    topParam:
+      name: "$top"
+      in: query
+      schema:
+        type: integer
+      description: Number of items to return from the top of the list
+    skipParam:
+      name: "$skip"
+      in: query
+      schema:
+        type: integer
+      description: Number of items to skip from the list
+    limitParam:
+      name: "$limit"
+      in: query
+      schema:
+        type: integer
+      description: Number of items to return from the list
+    IfMatchParam:
+      name: If-Match
+      in: header
+      schema:
+        type: string
+      required: true
+  requestBodies:
+    taxGroup:
+      required: true
+      content:
+        application/json:
+          examples:
+            cat:
+              summary: An example of a cat
+              value:
+                name: Fluffy
+                petType: Cat
+                color: White
+                gender: male
+                breed: Persian
+            dog:
+              summary: An example of a dog with a cat's name
+              value:
+                name: Puma
+                petType: Dog
+                color: Black
+                gender: Female
+                breed: Mixed
+          schema:
+            properties:
+              code:
+                type: string
+              displayName:
+                type: string
+              taxType:
+                type: string
+              lastModifiedDateTime:
+                type: string
+                format: date-time

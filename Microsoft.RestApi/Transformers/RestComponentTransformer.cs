@@ -6,7 +6,6 @@
 
     public class RestComponentTransformer
     {
-
         public static List<PropertyTypeEntity> TransformSchemas(TransformModel transformModel, IDictionary<string, OpenApiSchema> schemas, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
             var types = new List<PropertyTypeEntity>();

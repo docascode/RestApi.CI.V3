@@ -1,0 +1,13 @@
+### YamlMime:RESTTypeV3
+uid: maps.generaltest.schemas.business_profile1param
+name: business_profile1Param
+typeProperties:
+- name: code
+  types:
+  - isPrimitiveType: true
+    ref: integer
+- name: text
+  types:
+  - ref: maps.generaltest.schemas.textparam
+apiVersion: 1.0.0
+service: Maps
