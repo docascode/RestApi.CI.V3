@@ -1,10 +1,10 @@
-### YamlMime:RESTOperationV3
+### YamlMime:OpenAPIOperation
 uid: maps.generaltest.patchtaxgroupbyid.patchtaxgroupbyid
 name: Patchtax groupbyid
 callbacks:
 - name: onData
-  callbackOperations:
-  - maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id}
+  operations:
+  - maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id
 groupName: patchtaxGroupbyid
 httpVerb: PATCH
 parameters:
@@ -12,8 +12,7 @@ parameters:
   in: header
   isRequired: true
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
 paths:
 - content: /companies({company_id})/taxGroups({taxGroup_id})
 requestBody:
@@ -44,20 +43,16 @@ requestBody:
       typeProperties:
       - name: code
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
       - name: displayName
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
       - name: taxType
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
       - name: lastModifiedDateTime
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
         format: date-time
   link:
     operationId: maps.generaltest.posttaxgroup.posttaxgroup
@@ -67,16 +62,16 @@ responses:
 - bodies:
   - mediaType: application/json
     type:
-      ref: maps.generaltest.schemas.taxgroup
+      referencedType: maps.generaltest.schemas.taxgroup
   description: Succesfully updated the taxGroup with the specified id
   statusCode: "200"
 security:
 - name: group_oauth2
-  type: OAuth2
+  type: oauth2
   in: query
   flows:
   - authorizationUrl: https://example.com/api/oauth/dialog
-    type: Implicit
+    type: implicit
     scopes:
     - name: write
       description: modify pets in your account

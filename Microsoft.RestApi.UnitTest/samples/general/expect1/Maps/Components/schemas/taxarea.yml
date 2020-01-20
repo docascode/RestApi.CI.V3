@@ -1,6 +1,0 @@
-### YamlMime:RESTTypeV3
-uid: maps.generaltest.schemas.taxarea
-name: taxArea
-ref: array
-apiVersion: 1.0.0
-service: Maps

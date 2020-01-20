@@ -1,7 +1,8 @@
-### YamlMime:RESTOperationGroupV3
+### YamlMime:OpenAPIGroup
 uid: maps.generaltest.posttaxgroup
 name: posttaxGroup
-operations:
+groupItems:
 - maps.generaltest.posttaxgroup.posttaxgroup
+groupType: operations
 apiVersion: 1.0.0
 service: Maps

@@ -1,7 +1,8 @@
-### YamlMime:RESTComponentGroupV3
+### YamlMime:OpenAPIGroup
 uid: maps.generaltest.callbacks
 name: Callbacks
-components:
-- maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id}
+groupItems:
+- maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id
+groupType: components
 apiVersion: 1.0.0
 service: Maps

@@ -6,8 +6,8 @@
     - uid: maps.generaltest.callbacks
       name: Callbacks
       items:
-      - uid: maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id}
-        name: PostpatchtaxGroupbyidonData$request.query.company id}
+      - uid: maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id
+        name: PostpatchtaxGroupbyidonData$request.query.company id
     - uid: maps.generaltest.schemas
       name: Schemas
       items:

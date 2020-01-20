@@ -1,6 +1,13 @@
-### YamlMime:RESTTypeV3
+### YamlMime:OpenAPIType
 uid: maps.generaltest.schemas.taxarea
 name: taxArea
-ref: array
+isArray: true
+enumValues:
+- black
+- blue
+- green
+- red
+- white
+simpleType: string
 apiVersion: 1.0.0
 service: Maps

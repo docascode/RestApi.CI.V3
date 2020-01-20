@@ -1,7 +1,7 @@
-### YamlMime:RESTComponentGroupV3
+### YamlMime:OpenAPIGroup
 uid: maps.generaltest.schemas
 name: Schemas
-components:
+groupItems:
 - maps.generaltest.schemas.taxgroup
 - maps.generaltest.schemas.taxarea
 - maps.generaltest.schemas.paymentmethod
@@ -12,5 +12,6 @@ components:
 - maps.generaltest.schemas.business_profile10param
 - maps.generaltest.schemas.business_profile14param
 - maps.generaltest.schemas.textparam
+groupType: components
 apiVersion: 1.0.0
 service: Maps

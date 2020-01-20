@@ -1,4 +1,4 @@
-### YamlMime:RESTOperationV3
+### YamlMime:OpenAPIOperation
 uid: maps.generaltest.posttaxgroup.posttaxgroup
 name: Posttax group
 groupName: posttaxGroup
@@ -8,8 +8,7 @@ parameters:
   in: path
   isRequired: true
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
   format: uuid
 paths:
 - content: /companies({company_id})/taxGroups
@@ -41,36 +40,32 @@ requestBody:
       typeProperties:
       - name: code
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
       - name: displayName
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
       - name: taxType
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
       - name: lastModifiedDateTime
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
         format: date-time
   isRequired: true
 responses:
 - bodies:
   - mediaType: application/json
     type:
-      ref: maps.generaltest.schemas.taxgroup
+      referencedType: maps.generaltest.schemas.taxgroup
   description: taxGroup succesfully created
   statusCode: "201"
 security:
 - name: group_oauth2
-  type: OAuth2
+  type: oauth2
   in: query
   flows:
   - authorizationUrl: https://example.com/api/oauth/dialog
-    type: Implicit
+    type: implicit
     scopes:
     - name: read
       description: read your pets

@@ -1,7 +1,0 @@
-### YamlMime:RESTComponentGroupV3
-uid: maps.generaltest.callbacks
-name: Callbacks
-components:
-- maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id}
-apiVersion: 1.0.0
-service: Maps

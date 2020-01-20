@@ -1,7 +1,7 @@
-### YamlMime:RESTTypeV3
+### YamlMime:OpenAPIType
 uid: maps.generaltest.schemas.paymentmethod
 name: paymentMethod
 isDictionary: true
-ref: maps.generaltest.schemas.paymentmethod
+referencedType: maps.generaltest.schemas.paymentmethod
 apiVersion: 1.0.0
 service: Maps

@@ -1,13 +1,19 @@
-### YamlMime:RESTTypeV3
+### YamlMime:OpenAPIType
 uid: maps.generaltest.schemas.business10param
 name: business10Param
 typeProperties:
 - name: code
   types:
-  - ref: maps.generaltest.schemas.taxarea
+  - isArray: true
+    enumValues:
+    - black
+    - blue
+    - green
+    - red
+    - white
+    simpleType: string
 - name: text
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
 apiVersion: 1.0.0
 service: Maps

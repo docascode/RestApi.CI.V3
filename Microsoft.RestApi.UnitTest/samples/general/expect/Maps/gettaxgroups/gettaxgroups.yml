@@ -1,4 +1,4 @@
-### YamlMime:RESTOperationV3
+### YamlMime:OpenAPIOperation
 uid: maps.generaltest.gettaxgroups.gettaxgroups
 name: Gettax groups
 groupName: gettaxGroups
@@ -12,8 +12,7 @@ parameters:
     linkedProperty: id
   isRequired: true
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
   format: uuid
 - name: $top
   in: query
@@ -22,81 +21,75 @@ parameters:
     linkedProperty: code
   description: Number of items to return from the top of the list
   types:
-  - isPrimitiveType: true
-    ref: integer
+  - simpleType: integer
 - name: $skip
   in: query
   description: Number of items to skip from the list
   types:
-  - isPrimitiveType: true
-    ref: integer
+  - simpleType: integer
 - name: $limit
   in: query
   description: Number of items to return from the list
   types:
-  - isPrimitiveType: true
-    ref: integer
+  - simpleType: integer
 - name: $filter
   in: query
   description: Filtering expression
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
 - name: business
   in: query
   types:
-  - ref: maps.generaltest.schemas.taxarea
+  - referencedType: maps.generaltest.schemas.taxarea
 - name: business1
   in: query
   types:
-  - ref: maps.generaltest.schemas.business1param
+  - referencedType: maps.generaltest.schemas.business1param
 - name: business2
   in: query
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
   format: date
 - name: business3
   in: query
   isNullable: true
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
   pattern: ^\d{3}-\d{2}-\d{4}$
 - name: business4
   in: query
   types:
   - isArray: true
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 - name: business5
   in: query
   types:
   - isArray: true
-    ref: maps.generaltest.schemas.taxarea
+    referencedType: maps.generaltest.schemas.taxarea
 - name: business6
   in: query
   types:
-  - isPrimitiveType: true
-    ref: string
-  - isPrimitiveType: true
-    ref: integer
+  - simpleType: string
+  - simpleType: integer
   isOneOf: true
 - name: business7
   in: query
   types:
-  - ref: maps.generaltest.schemas.taxarea
-  - ref: maps.generaltest.schemas.paymentmethod
+  - isArray: true
+    enumValues:
+    - black
+    - blue
+    - green
+    - red
+    - white
+    simpleType: string
+  - referencedType: maps.generaltest.schemas.paymentmethod
   isOneOf: true
-- name: business_profile9
-  in: query
-  types:
-  - ref: object
 - name: business10
   in: query
   types:
   - isArray: true
-    ref: maps.generaltest.schemas.business10param
+    referencedType: maps.generaltest.schemas.business10param
 - name: business11
   in: query
   types:
@@ -107,8 +100,7 @@ parameters:
     - green
     - red
     - white
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 - name: business12
   in: query
   types:
@@ -118,29 +110,34 @@ parameters:
     - green
     - red
     - white
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 - name: business14
   in: query
   types:
   - isDictionary: true
-    ref: maps.generaltest.schemas.business14param
+    referencedType: maps.generaltest.schemas.business14param
 - name: business15
   in: query
   types:
   - isDictionary: true
-    ref: maps.generaltest.schemas.paymentmethod
+    referencedType: maps.generaltest.schemas.paymentmethod
 - name: business16
   in: query
   types:
   - isDictionary: true
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 - name: business18
   in: query
   types:
-  - ref: maps.generaltest.schemas.paymentmethod
-  - ref: maps.generaltest.schemas.taxarea
+  - referencedType: maps.generaltest.schemas.paymentmethod
+  - isArray: true
+    enumValues:
+    - black
+    - blue
+    - green
+    - red
+    - white
+    simpleType: string
   isAllOf: true
 - name: $select
   in: query
@@ -167,11 +164,10 @@ parameters:
     - id
     - lastModifiedDateTime
     - taxType
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 paths:
 - content: /companies({company_id})/taxGroups
-- content: /companies({company_id})/taxGroups?$top={$top}&$skip={$skip}&$limit={$limit}&$filter={$filter}&business={business}&business1={business1}&business2={business2}&business3={business3}&business4={business4}&business5={business5}&business6={business6}&business7={business7}&business_profile9={business_profile9}&business10={business10}&business11={business11}&business12={business12}&business14={business14}&business15={business15}&business16={business16}&business18={business18}&$select={$select}
+- content: /companies({company_id})/taxGroups?$top={$top}&$skip={$skip}&$limit={$limit}&$filter={$filter}&business={business}&business1={business1}&business2={business2}&business3={business3}&business4={business4}&business5={business5}&business6={business6}&business7={business7}&business10={business10}&business11={business11}&business12={business12}&business14={business14}&business15={business15}&business16={business16}&business18={business18}&$select={$select}
   isOptional: true
 responses:
 - bodies:
@@ -199,37 +195,35 @@ responses:
     mediaType: application/json
     type:
       isArray: true
-      ref: maps.generaltest.schemas.taxgroup
+      referencedType: maps.generaltest.schemas.taxgroup
   description: Succesfully returned a list of taxGroups
   headers:
   - name: X-Rate-Limit-Limit
     description: The number of allowed requests in the current period
     types:
-    - isPrimitiveType: true
-      ref: integer
+    - simpleType: integer
   - name: X-Rate-Limit-Remaining
     description: The number of remaining requests in the current period
     types:
-    - isPrimitiveType: true
-      ref: integer
+    - simpleType: integer
   - name: X-Rate-Limit-Reset
     description: The number of seconds left in the current period
     types:
-    - isPrimitiveType: true
-      ref: integer
+    - simpleType: integer
   statusCode: "200"
 security:
 - name: group_oauth2
-  type: OAuth2
+  type: oauth2
   in: query
   flows:
   - authorizationUrl: https://example.com/api/oauth/dialog
-    type: Implicit
+    type: implicit
     scopes:
     - name: read
       description: read your pets
 seeAlso:
-- '[Find more info here](https://example.com/)'
+- text: Find more info here
+  href: https://example.com/
 summary: Returns a list of taxGroups
 servers:
 - name: https://prod.api.stripe.{param1}.com:{port}

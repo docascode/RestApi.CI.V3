@@ -1,7 +1,8 @@
-### YamlMime:RESTOperationGroupV3
+### YamlMime:OpenAPIGroup
 uid: maps.generaltest.patchtaxgroupbyid
 name: patchtaxGroupbyid
-operations:
+groupItems:
 - maps.generaltest.patchtaxgroupbyid.patchtaxgroupbyid
+groupType: operations
 apiVersion: 1.0.0
 service: Maps

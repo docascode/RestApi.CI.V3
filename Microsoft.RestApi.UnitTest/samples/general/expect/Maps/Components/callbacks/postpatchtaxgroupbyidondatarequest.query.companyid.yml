@@ -1,11 +1,10 @@
-### YamlMime:RESTOperationV3
-uid: maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id}
-name: PostpatchtaxGroupbyidonData$request.query.company id}
+### YamlMime:OpenAPIOperation
+uid: maps.generaltest.callbacks.postpatchtaxgroupbyidondatarequest.query.company_id
+name: PostpatchtaxGroupbyidonData$request.query.company id
 groupName: Callbacks
 httpVerb: POST
-parameters: []
 paths:
-- content: $request.query.company_id}
+- content: $request.query.company_id
 requestBody:
   bodies:
   - mediaType: application/json
@@ -13,34 +12,30 @@ requestBody:
       typeProperties:
       - name: timestamp
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
         format: date-time
       - name: userData
         types:
-        - isPrimitiveType: true
-          ref: string
+        - simpleType: string
   description: subscription payload
 responses:
-- bodies: []
-  description: >
+- description: >
     Your server implementation should return this HTTP status code
 
     if the data was received successfully
   statusCode: "202"
-- bodies: []
-  description: >
+- description: >
     Your server should return this HTTP status code if no longer interested
 
     in further updates
   statusCode: "204"
 security:
 - name: group_oauth2
-  type: OAuth2
+  type: oauth2
   in: query
   flows:
   - authorizationUrl: https://example.com/api/oauth/dialog
-    type: Implicit
+    type: implicit
     scopes:
     - name: read
       description: read your pets

@@ -1,52 +1,58 @@
-### YamlMime:RESTTypeV3
+### YamlMime:OpenAPIType
 uid: maps.generaltest.schemas.taxgroup
 name: taxGroup
 typeProperties:
 - name: business_profile
   types:
-  - ref: maps.generaltest.schemas.taxarea
+  - isArray: true
+    enumValues:
+    - black
+    - blue
+    - green
+    - red
+    - white
+    simpleType: string
 - name: business_profile1
   types:
-  - ref: maps.generaltest.schemas.business_profile1param
+  - referencedType: maps.generaltest.schemas.business_profile1param
 - name: business_profile2
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
   format: date
 - name: business_profile3
   isNullable: true
   types:
-  - isPrimitiveType: true
-    ref: string
+  - simpleType: string
   pattern: ^\d{3}-\d{2}-\d{4}$
 - name: business_profile4
   types:
   - isArray: true
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 - name: business_profile5
   types:
   - isArray: true
-    ref: maps.generaltest.schemas.taxarea
+    referencedType: maps.generaltest.schemas.taxarea
 - name: business_profile6
   types:
-  - isPrimitiveType: true
-    ref: string
-  - isPrimitiveType: true
-    ref: integer
+  - simpleType: string
+  - simpleType: integer
   isOneOf: true
 - name: business_profile7
   types:
-  - ref: maps.generaltest.schemas.taxarea
-  - ref: maps.generaltest.schemas.paymentmethod
+  - isArray: true
+    enumValues:
+    - black
+    - blue
+    - green
+    - red
+    - white
+    simpleType: string
+  - referencedType: maps.generaltest.schemas.paymentmethod
   isOneOf: true
-- name: business_profile9
-  types:
-  - ref: object
 - name: business_profile10
   types:
   - isArray: true
-    ref: maps.generaltest.schemas.business_profile10param
+    referencedType: maps.generaltest.schemas.business_profile10param
 - name: business_profile11
   types:
   - isArray: true
@@ -56,8 +62,7 @@ typeProperties:
     - green
     - red
     - white
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 - name: business_profile12
   types:
   - enumValues:
@@ -66,28 +71,33 @@ typeProperties:
     - green
     - red
     - white
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 - name: business_profile14
   description: The business type. Can be `individual` or `company`.
   types:
   - isDictionary: true
-    ref: maps.generaltest.schemas.business_profile14param
+    referencedType: maps.generaltest.schemas.business_profile14param
 - name: business_profile15
   description: The business type. Can be `individual` or `company`.
   types:
   - isDictionary: true
-    ref: maps.generaltest.schemas.paymentmethod
+    referencedType: maps.generaltest.schemas.paymentmethod
 - name: business_profile16
   description: The business type. Can be `individual` or `company`.
   types:
   - isDictionary: true
-    isPrimitiveType: true
-    ref: string
+    simpleType: string
 - name: business_profile18
   types:
-  - ref: maps.generaltest.schemas.paymentmethod
-  - ref: maps.generaltest.schemas.taxarea
+  - referencedType: maps.generaltest.schemas.paymentmethod
+  - isArray: true
+    enumValues:
+    - black
+    - blue
+    - green
+    - red
+    - white
+    simpleType: string
   isAllOf: true
 apiVersion: 1.0.0
 service: Maps

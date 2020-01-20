@@ -79,8 +79,8 @@
     <None Include="samples\general\expect\Maps\Components\callbacks.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="samples\general\expect\Maps\Components\callbacks\postpatchtaxgroupbyidondatarequest.query.companyid}.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Include="samples\general\expect\Maps\Components\callbacks\postpatchtaxgroupbyidondatarequest.query.companyid.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="samples\general\expect\Maps\Components\schemas.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

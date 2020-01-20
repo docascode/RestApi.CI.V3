@@ -1,13 +1,12 @@
-### YamlMime:RESTTypeV3
+### YamlMime:OpenAPIType
 uid: maps.generaltest.schemas.business1param
 name: business1Param
 typeProperties:
 - name: code
   types:
-  - isPrimitiveType: true
-    ref: integer
+  - simpleType: integer
 - name: text
   types:
-  - ref: maps.generaltest.schemas.textparam
+  - referencedType: maps.generaltest.schemas.textparam
 apiVersion: 1.0.0
 service: Maps

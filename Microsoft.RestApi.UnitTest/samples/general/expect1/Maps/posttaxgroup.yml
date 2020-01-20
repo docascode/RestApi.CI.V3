@@ -1,7 +1,0 @@
-### YamlMime:RESTOperationGroupV3
-uid: maps.generaltest.posttaxgroup
-name: posttaxGroup
-operations:
-- maps.generaltest.posttaxgroup.posttaxgroup
-apiVersion: 1.0.0
-service: Maps
