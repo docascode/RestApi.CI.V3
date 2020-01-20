@@ -5,13 +5,10 @@
     using Newtonsoft.Json;
     using YamlDotNet.Serialization;
 
-    public class OperationGroupEntity : NamedEntity
+    public class OperationGroupEntity : GroupEntity
     {
-        [YamlMember(Alias = "summary")]
-        public string Summary { get; set; }
-
-        [YamlMember(Alias = "operations")]
-        public IList<string> OperationIds
+        [YamlMember(Alias = "groupItems")]
+        public IList<string> GroupItems
         {
             get
             {
@@ -25,7 +22,6 @@
         }
 
         [YamlIgnore]
-        [JsonIgnore]
         public List<OperationV3Entity> Operations { get; set; }
     }
 }

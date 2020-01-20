@@ -112,6 +112,7 @@
     <Compile Include="Models\Schema\Common\BodyEntity.cs" />
     <Compile Include="Models\Schema\Common\ComponentType.cs" />
     <Compile Include="Models\Schema\Common\ReferenceEntity.cs" />
+    <Compile Include="Models\Schema\GroupEntity.cs" />
     <Compile Include="Models\Schema\OperationV3\ExampleEntity.cs" />
     <Compile Include="Models\Schema\OperationV3\LinkEntitycs.cs" />
     <Compile Include="Models\Schema\OperationV3\RequestBodyEntity.cs" />

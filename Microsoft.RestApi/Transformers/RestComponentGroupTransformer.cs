@@ -13,7 +13,8 @@
                 Id = transformModel.ComponentGroupId,
                 Name = transformModel.ComponentGroupName,
                 Service = transformModel.ServiceName,
-                ApiVersion = transformModel.OpenApiDoc.Info.Version
+                ApiVersion = transformModel.OpenApiDoc.Info.Version,
+                GroupType = "components"
             };
             return componentGroup;
         }

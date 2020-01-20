@@ -118,7 +118,7 @@
                 callbackEntities.Add(callbackEntity);
             }
 
-            return callbackEntities;
+            return callbackEntities.Any()? callbackEntities : null;
         }
 
         private static string GetCallbackOperationParameter(string key)
@@ -355,7 +355,7 @@
                     In = security.In.ToString().ToLower(),
                     OpenIdConnectUrl = security.OpenIdConnectUrl?.ToString(),
                     Scheme = security.Scheme,
-                    Type = security.Type.ToString(),
+                    Type = security.Type.ToString().ConvertSecurityTypeToSchemaString(),
                     Flows = GetFlow(security.Flows, scopes)
                 };
             })).ToList();
@@ -370,28 +370,28 @@
             if (openApiFlows.AuthorizationCode != null)
             {
                 var flow = TransformFlow(openApiFlows.AuthorizationCode, usedScopes);
-                flow.Type = "AuthorizationCode";
+                flow.Type = "authorizationCode";
                 flows.Add(flow);
             }
 
             if (openApiFlows.ClientCredentials != null)
             {
                 var flow = TransformFlow(openApiFlows.ClientCredentials, usedScopes);
-                flow.Type = "ClientCredentials";
+                flow.Type = "clientCredentials";
                 flows.Add(flow);
             }
 
             if (openApiFlows.Implicit != null)
             {
                 var flow = TransformFlow(openApiFlows.Implicit, usedScopes);
-                flow.Type = "Implicit";
+                flow.Type = "implicit";
                 flows.Add(flow);
             }
 
             if (openApiFlows.Password != null)
             {
                 var flow = TransformFlow(openApiFlows.Password, usedScopes);
-                flow.Type = "Password";
+                flow.Type = "password";
                 flows.Add(flow);
             }
 
@@ -483,58 +483,14 @@
             return string.Join("&", queries);
         }
 
-        public static IList<SecurityEntity> TransformSecurity(IList<OpenApiSecurityRequirement> openApiSecurityRequirements)
-        {
-            var securities = new List<SecurityEntity>();
-
-            foreach (var openApiSecurityRequirement in openApiSecurityRequirements)
-            {
-                var keyValue = openApiSecurityRequirement.Single();
-                var openApiSecurityScheme = keyValue.Key;
-                var flows = new List<FlowEntity>();
-
-                OpenApiOAuthFlow openApiOAuthFlow;
-                if ((openApiOAuthFlow = openApiSecurityScheme.Flows.AuthorizationCode) != null)
-                {
-                    flows.Add(NewFlowEntity("authorizationCode", keyValue.Value, openApiOAuthFlow));
-                }
-
-                if ((openApiOAuthFlow = openApiSecurityScheme.Flows.ClientCredentials) != null)
-                {
-                    flows.Add(NewFlowEntity("clientCredentials", keyValue.Value, openApiOAuthFlow));
-                }
-
-                if ((openApiOAuthFlow = openApiSecurityScheme.Flows.Implicit) != null)
-                {
-                    flows.Add(NewFlowEntity("implicit", keyValue.Value, openApiOAuthFlow));
-                }
-
-                if ((openApiOAuthFlow = openApiSecurityScheme.Flows.Password) != null)
-                {
-                    flows.Add(NewFlowEntity("password", keyValue.Value, openApiOAuthFlow));
-                }
-
-                var securityEntity = new SecurityEntity
-                {
-                    Type = openApiSecurityScheme.Type.ToString(),
-                    Description = openApiSecurityScheme.Description,
-                    In = openApiSecurityScheme.In.ToString().ToLower(),
-                    Flows = flows
-                };
-                securities.Add(securityEntity);
-            }
-
-            return securities;
-        }
-
-        public static List<string> TransformExternalDocs(OpenApiOperation openApiOperation)
+        public static List<ExternalLink> TransformExternalDocs(OpenApiOperation openApiOperation)
         {
             if (openApiOperation.ExternalDocs == null) return null;
 
-            var seealsos = new List<string>();
+            var seealsos = new List<ExternalLink>();
             if (openApiOperation.ExternalDocs != null)
             {
-                seealsos.Add($"[{openApiOperation.ExternalDocs.Description}]({openApiOperation.ExternalDocs.Url.ToString()})");
+                seealsos.Add(new ExternalLink { Text = openApiOperation.ExternalDocs.Description , Href = openApiOperation.ExternalDocs.Url.ToString()});
             }
 
             return seealsos;

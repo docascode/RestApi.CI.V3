@@ -14,55 +14,26 @@
         public static PropertyTypeEntity ParseOpenApiSchema(string schemaName, OpenApiSchema openApiSchema, TransformModel transformModel, ref Dictionary<string, OpenApiSchema> needExtractedSchemas, bool isComponent = false)
         {
             var type = new PropertyTypeEntity();
-            type.ReferenceTo = openApiSchema.Type;
-            if (openApiSchema.Type == "object" || openApiSchema.Properties?.Count > 0 || openApiSchema.Type == null || openApiSchema.Reference != null)
-            {
-                if (openApiSchema.Reference != null && !isComponent)
-                {
-                    type.ReferenceTo = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.Reference.Id);
-                }
-                else if (openApiSchema.AdditionalProperties != null)
-                {
-                    type.IsDictionary = true;
-                    if (PrimitiveTypes.Contains(openApiSchema.AdditionalProperties.Type))
-                    {
-                        type.ReferenceTo = openApiSchema.AdditionalProperties.Type;
-                    }
-                    else if (openApiSchema.AdditionalProperties.Reference == null)
-                    {
-                        OpenApiReference reference = null;
-                        SetExtractedSchemas(schemaName, openApiSchema.AdditionalProperties, transformModel, needExtractedSchemas, ref reference);
+            type.ReferencedType = openApiSchema.Type;
 
-                        if (reference != null)
-                        {
-                            type.ReferenceTo = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), reference.Id);
-                        }
-                    }
-                    else
-                    {
-                        type.ReferenceTo = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.AdditionalProperties.Reference.Id);
-                    }
-                }
-                else if (openApiSchema.Properties?.Count > 0)
-                {
-                    type.Properties = new List<PropertyEntity>();
-                    type.Properties.AddRange(GetPropertiesFromSchema(openApiSchema, transformModel, ref needExtractedSchemas));
-                    type.ReferenceTo = null;
-                }
+            if (isComponent)
+            {
+                type.Summary = openApiSchema.Description;
             }
-            else if (openApiSchema.Type == "array")
+
+            if (openApiSchema.Type == "array")
             {
                 if (openApiSchema.Items?.Enum?.Count > 0)
                 {
-                    type.ReferenceTo = openApiSchema.Items.Type;
+                    type.ReferencedType = openApiSchema.Items.Type;
                     type.Values = GetValueFromListAny(openApiSchema.Items.Enum).ToList();
                 }
                 else
                 {
-                    type.ReferenceTo = openApiSchema.Items?.Reference != null ?
+                    type.ReferencedType = openApiSchema.Items?.Reference != null ?
                         Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.Items.Reference.Id) :
                         openApiSchema.Items?.Type;
-                    if (type.ReferenceTo == "array" || type.ReferenceTo == "object")
+                    if (type.ReferencedType == "array" || type.ReferencedType == "object")
                     {
                         if (needExtractedSchemas == null) needExtractedSchemas = new Dictionary<string, OpenApiSchema>();
                         var extractedName = GetExtractedName(schemaName);
@@ -73,11 +44,46 @@
                         else
                         {
                             needExtractedSchemas.Add(extractedName, openApiSchema.Items);
-                            type.ReferenceTo = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), extractedName);
+                            type.ReferencedType = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), extractedName);
                         }
                     }
                 }
                 type.IsArray = true;
+            }
+            else if (openApiSchema.Type == "object" || openApiSchema.Properties?.Count > 0 || openApiSchema.Type == null || openApiSchema.Reference != null)
+            {
+                if (openApiSchema.Reference != null && !isComponent)
+                {
+                    type.ReferencedType = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.Reference.Id);
+                }
+                else if (openApiSchema.AdditionalProperties != null)
+                {
+                    type.IsDictionary = true;
+                    if (PrimitiveTypes.Contains(openApiSchema.AdditionalProperties.Type))
+                    {
+                        type.ReferencedType = openApiSchema.AdditionalProperties.Type;
+                    }
+                    else if (openApiSchema.AdditionalProperties.Reference == null)
+                    {
+                        OpenApiReference reference = null;
+                        SetExtractedSchemas(schemaName, openApiSchema.AdditionalProperties, transformModel, needExtractedSchemas, ref reference);
+
+                        if (reference != null)
+                        {
+                            type.ReferencedType = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), reference.Id);
+                        }
+                    }
+                    else
+                    {
+                        type.ReferencedType = Utility.GetId(transformModel.ServiceId, transformModel.SourceFileName, ComponentGroup.Schemas.ToString(), openApiSchema.AdditionalProperties.Reference.Id);
+                    }
+                }
+                else if (openApiSchema.Properties?.Count > 0)
+                {
+                    type.Properties = new List<PropertyEntity>();
+                    type.Properties.AddRange(GetPropertiesFromSchema(openApiSchema, transformModel, ref needExtractedSchemas));
+                    type.ReferencedType = null;
+                }
             }
             else
             {
@@ -93,9 +99,10 @@
                 type.ApiVersion = transformModel.OpenApiDoc.Info.Version;
             }
 
-            if (type.ReferenceTo != null && PrimitiveTypes.Contains(type.ReferenceTo))
+            if (type.ReferencedType != null && PrimitiveTypes.Contains(type.ReferencedType))
             {
-                type.IsPrimitiveType = true;
+                type.SimpleType = type.ReferencedType;
+                type.ReferencedType = null;
             }
 
             return type;

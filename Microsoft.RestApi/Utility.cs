@@ -4,8 +4,11 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Text.RegularExpressions;
+    using Microsoft.OpenApi.Models;
     using Microsoft.RestApi.Common;
+    using Microsoft.RestApi.Models;
     using Newtonsoft.Json;
 
     public static class Utility
@@ -91,6 +94,18 @@
             return str.ToLower();
         }
 
+        public static string ConvertSecurityTypeToSchemaString(this string str)
+        {
+            if (str == null) return null;
+
+            if (string.Compare(str, "OAuth2", true) == 0)
+            {
+                return "oauth2";
+            }
+
+            return str.FirstLetterToUpper();
+        }
+
         public static string FirstLetterToUpper(this string str)
         {
             if (str == null)
@@ -165,6 +180,56 @@
         {
             var id = $"{groupId}.{Normalize(operationName)}";
             return Normalize(id);
+        }
+
+        public static OperationV3Entity CleanOperation(this OperationV3Entity operation)
+        {
+            if(operation.Parameters != null && operation.Parameters.Count == 0)
+            {
+                operation.Parameters = null;
+            }
+
+            if(operation.Callbacks != null && operation.Callbacks.Count == 0)
+            {
+                operation.Callbacks = null;
+            }
+
+            if (operation.Paths != null && operation.Paths.Count == 0)
+            {
+                operation.Paths = null;
+            }
+
+            if (operation.Responses != null && operation.Responses.Count == 0)
+            {
+                operation.Responses = null;
+            }
+
+            if (operation.Securities != null && operation.Securities.Count == 0)
+            {
+                operation.Securities = null;
+            }
+
+            if (operation.Servers != null && operation.Servers.Count == 0)
+            {
+                operation.Servers = null;
+            }
+
+            if(operation.RequestBody != null && operation.RequestBody.Bodies != null && !operation.RequestBody.Bodies.Any())
+            {
+                operation.RequestBody.Bodies = null;
+            }
+
+            if(operation.Responses != null)
+            {
+                operation.Responses.ForEach(response =>
+                {
+                    if (response.Bodies != null && !response.Bodies.Any())
+                    {
+                        response.Bodies = null;
+                    }
+                });
+            }
+            return operation;
         }
     }
 }

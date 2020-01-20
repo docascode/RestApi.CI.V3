@@ -130,7 +130,7 @@
 
                 using (var writer = new StreamWriter(Path.Combine(servicePath, $"{groupFileName}{YamlExtension}")))
                 {
-                    writer.WriteLine("### YamlMime:RESTOperationGroupV3");
+                    writer.WriteLine("### YamlMime:OpenAPIGroup");
                     YamlSerializer.Serialize(writer, group);
                 }
 
@@ -138,8 +138,8 @@
                 {
                     using (var writer = new StreamWriter(Path.Combine(groupFolder, $"{Utility.GetId("", operation.Name)}{YamlExtension}")))
                     {
-                        writer.WriteLine("### YamlMime:RESTOperationV3");
-                        YamlSerializer.Serialize(writer, operation);
+                        writer.WriteLine("### YamlMime:OpenAPIOperation");
+                        YamlSerializer.Serialize(writer, operation.CleanOperation());
                     }
                 }
             }
@@ -155,20 +155,6 @@
 
             foreach (var group in componentGroups)
             {
-                var schema = string.Empty;
-                switch (group.Name)
-                {
-                    case "Schemas":
-                        schema = "RESTTypeV3";
-                        break;
-                    case "Callbacks":
-                        schema = "RESTOperationV3";
-                        break;
-                    default:
-                        schema = string.Empty;
-                        break;
-                }
-
                 var groupFileName = Utility.GetId("", group.Name);
                 var groupFolder = Path.Combine(componentsFolder, groupFileName);
                 if (!Directory.Exists(groupFolder))
@@ -178,7 +164,7 @@
 
                 using (var writer = new StreamWriter(Path.Combine(componentsFolder, $"{groupFileName}{YamlExtension}")))
                 {
-                    writer.WriteLine("### YamlMime:RESTComponentGroupV3");
+                    writer.WriteLine("### YamlMime:OpenAPIGroup");
                     YamlSerializer.Serialize(writer, group);
                 }
 
@@ -186,8 +172,19 @@
                 {
                     using (var writer = new StreamWriter(Path.Combine(groupFolder, $"{Utility.GetId("", component.Name)}{YamlExtension}")))
                     {
-                        writer.WriteLine($"### YamlMime:{schema}");
-                        YamlSerializer.Serialize(writer, component);
+                        switch (group.Name)
+                        {
+                            case "Schemas":
+                                writer.WriteLine($"### YamlMime:OpenAPIType");
+                                YamlSerializer.Serialize(writer, component);
+                                break;
+                            case "Callbacks":
+                                writer.WriteLine($"### YamlMime:OpenAPIOperation");
+                                YamlSerializer.Serialize(writer, (component as OperationV3Entity).CleanOperation());
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
             }

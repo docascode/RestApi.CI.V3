@@ -2,7 +2,7 @@
 {
     using YamlDotNet.Serialization;
 
-    public class ExampleEntity : ReferenceEntity
+    public class ExampleEntity : NamedEntity
     {
         [YamlMember(Alias = "description")]
         public string Description { get; set; }

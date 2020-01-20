@@ -4,7 +4,7 @@
 
     using YamlDotNet.Serialization;
 
-    public class ResponseEntity: ReferenceEntity
+    public class ResponseEntity: NamedEntity
     {
         [YamlMember(Alias = "bodies")]
         public List<BodyEntity> Bodies { get; set; }

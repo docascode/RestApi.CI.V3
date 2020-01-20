@@ -40,13 +40,22 @@
         public List<SecurityEntity> Securities { get; set; }
 
         [YamlMember(Alias = "seeAlso")]
-        public List<string> SeeAlso { get; set; }
+        public List<ExternalLink> SeeAlso { get; set; }
 
         [YamlMember(Alias = "summary")]
         public string Summary { get; set; }
 
         [YamlMember(Alias = "servers")]
         public IList<ServerEntity> Servers { get; set; }
+    }
+
+    public class ExternalLink
+    {
+        [YamlMember(Alias = "text")]
+        public string Text { get; set; }
+
+        [YamlMember(Alias = "href")]
+        public string Href { get; set; }
     }
 
     public class PathEntity
@@ -70,7 +79,7 @@
 
     public class CallbackEntity : NamedEntity
     {
-        [YamlMember(Alias = "callbackOperations")]
+        [YamlMember(Alias = "operations")]
         public IList<string> CallbackOperations { get; set; }
     }
 

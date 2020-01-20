@@ -6,6 +6,9 @@
 
     public class PropertyTypeEntity : ReferenceEntity
     {
+        [YamlMember(Alias = "summary")]
+        public string Summary { get; set; }
+
         [YamlMember(Alias = "isArray")]
         public bool IsArray { get; set; } = false;
 
@@ -27,5 +30,8 @@
 
         [YamlMember(Alias = "isPrimitiveType")]
         public bool IsPrimitiveType { get; internal set; }
+
+        [YamlMember(Alias = "simpleType")]
+        public string SimpleType { get; internal set; }
     }
 }

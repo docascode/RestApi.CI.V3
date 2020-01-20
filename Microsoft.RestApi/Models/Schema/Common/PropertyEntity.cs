@@ -4,7 +4,7 @@
 
     using YamlDotNet.Serialization;
 
-    public class PropertyEntity : ReferenceEntity
+    public class PropertyEntity : NamedEntity
     {
         [YamlMember(Alias = "allowReserved")]
         public bool AllowReserved { get; set; }

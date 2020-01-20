@@ -5,16 +5,13 @@
     using Newtonsoft.Json;
     using YamlDotNet.Serialization;
 
-    public class ComponentGroupEntity : NamedEntity
+    public class ComponentGroupEntity : GroupEntity
     {
-        [YamlMember(Alias = "summary")]
-        public string Summary { get; set; }
-
         [YamlIgnore]
         public List<NamedEntity> Components { get; set; }
 
-        [YamlMember(Alias = "components")]
-        public IList<string> ComponentIds
+        [YamlMember(Alias = "groupItems")]
+        public IList<string> GroupItems
         {
             get
             {

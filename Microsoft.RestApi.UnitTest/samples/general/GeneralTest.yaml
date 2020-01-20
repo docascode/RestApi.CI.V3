@@ -135,11 +135,6 @@ paths:
           oneOf:
             - "$ref": "#/components/schemas/taxArea"
             - "$ref": "#/components/schemas/paymentMethod"
-      - name: business_profile9
-        in: query
-        schema:
-          type: object
-          additionalProperties: true
       - name: business10
         in: query
         schema:
@@ -262,7 +257,7 @@ paths:
       - taxGroups
       callbacks:
         onData:
-          '$request.query.company_id}':
+          '$request.query.company_id':
             post:
               requestBody:
                 description: subscription payload
@@ -318,12 +313,7 @@ components:
             code:
               type: integer
             text:
-              type: object
-              properties:
-                code1:
-                  type: integer
-                text1:
-                  type: string
+              type: string
         business_profile2:
           type: string
           format: date
@@ -347,9 +337,6 @@ components:
           oneOf:
             - "$ref": "#/components/schemas/taxArea"
             - "$ref": "#/components/schemas/paymentMethod"
-        business_profile9:
-          type: object
-          additionalProperties: true
         business_profile10:
           type: array
           items:

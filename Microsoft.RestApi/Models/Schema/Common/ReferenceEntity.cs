@@ -4,7 +4,7 @@
 
     public class ReferenceEntity : NamedEntity
     {
-        [YamlMember(Alias = "ref")]
-        public string ReferenceTo { get; set; }
+        [YamlMember(Alias = "referencedType")]
+        public string ReferencedType { get; set; }
     }
 }

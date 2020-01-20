@@ -12,7 +12,8 @@
                 ApiVersion = transformModel.OpenApiDoc.Info?.Version,
                 Name = transformModel.OperationGroupName,
                 Service = transformModel.ServiceName,
-                Summary = transformModel.OpenApiTag.Description
+                Summary = transformModel.OpenApiTag.Description,
+                GroupType = "operations"
             };
         }
     }
