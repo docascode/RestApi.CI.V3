@@ -8,9 +8,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.RestApi</RootNamespace>
     <AssemblyName>Microsoft.RestApi</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -59,8 +60,8 @@
     <Reference Include="Microsoft.DocAsCode.Plugins, Version=2.32.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.DocAsCode.Plugins.2.32.2\lib\net461\Microsoft.DocAsCode.Plugins.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.DocAsCode.YamlSerialization, Version=2.32.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.DocAsCode.YamlSerialization.2.32.2\lib\net461\Microsoft.DocAsCode.YamlSerialization.dll</HintPath>
+    <Reference Include="Microsoft.DocAsCode.YamlSerialization, Version=2.57.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.DocAsCode.YamlSerialization.2.57.2\lib\netstandard2.0\Microsoft.DocAsCode.YamlSerialization.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.OpenApi, Version=1.0.1.0, Culture=neutral, PublicKeyToken=3f5743946376f042, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.OpenApi.1.0.1\lib\net46\Microsoft.OpenApi.dll</HintPath>
@@ -103,8 +104,8 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="YamlDotNet, Version=4.2.2.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-      <HintPath>..\packages\YamlDotNet.Signed.4.2.2\lib\net35\YamlDotNet.dll</HintPath>
+    <Reference Include="YamlDotNet, Version=5.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.Signed.5.1.0\lib\net45\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
